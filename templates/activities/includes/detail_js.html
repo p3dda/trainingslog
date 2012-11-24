@@ -1,0 +1,296 @@
+<!-- bring in the OpenLayers javascript library
+ (here we bring it from the remote site, but you could
+ easily serve up this javascript yourself) 
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script> -->
+<script src="/media/js/openlayers/OpenLayers.js"></script>
+<!-- bring in the OpenStreetMap OpenLayers layers.
+ Using this hosted file will make sure we are kept up
+ to date with any necessary changes -->
+<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+
+<script type="text/javascript">
+	{% if activity.sport.speed_as_pace %}
+		var speed_as_pace = true;
+	{% else %}
+		var speed_as_pace = false;
+	{% endif %}
+	
+	var distanceSuffixFormatter = function(val, axis) {
+			if (val > 1000)
+				return (val / 1000).toFixed(axis.tickDecimals) + "km";
+			else
+				return val.toFixed(axis.tickDecimals) + "m";
+		};
+
+	$(document).ready(function() {
+		$( "#details_overview" ).accordion({collapsible: true});
+		$( "#details_details" ).accordion({collapsible: true});
+		$( "#laps_laps").accordion();
+		$( "#details_tabs" ).tabs();
+{% if tcx %}
+		$( "#details_map" ).accordion({collapsible: true});
+		$( "#details_hf" ).accordion({collapsible: true});
+		$( "#details_speed" ).accordion({collapsible: true});
+		$( "#details_alt" ).accordion({collapsible: true});
+		$( "#details_cad" ).accordion({collapsible: true});
+		init_map();
+		plot_graphs();
+{% endif %}
+	});
+
+{% if tcx %}
+	var plot_graphs = function() {
+		var url = "/activities/{{ activity.id }}/?p=plots";
+
+		function onDataReceived(data) {
+			plothf_data = new Object();
+			plothf_data["data"] = data["hf"];
+			plothf_data["label"] = "HF = 0.0";
+			plothf_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
+			plothf_data["points"] = {"show": false};
+			plothf_data["color"] = "#0070A3";
+
+			plotcad_data = new Object();
+			plotcad_data["data"] = data["cadence"];
+			plotcad_data["label"] = "Cadence = 0.0";
+			plotcad_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
+			plotcad_data["points"] = {"show": false};
+			plotcad_data["color"] = "#0070A3";
+
+			plotalt_data = new Object();
+			plotalt_data["data"] = data["altitude"];
+			plotalt_data["label"] = "Hoehe = 0.0";
+			plotalt_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
+			plotalt_data["points"] = {"show": false};
+			plotalt_data["color"] = "#0070A3";
+
+			plotspeed_data = new Object();
+			plotspeed_data["data"] = data["speed"];
+			plotspeed_data["label"] = "Geschwindigkeit = 0.0";
+			plotspeed_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
+			plotspeed_data["points"] = {"show": false};
+			plotspeed_data["color"] = "#0070A3";
+
+			if (plothf_data["data"].length == 0) {
+				$("#details_hf").hide();
+			}
+			if (plotspeed_data["data"].length == 0) {
+				$("#details_speed").hide();
+			}
+			if (plotcad_data["data"].length == 0) {
+				$("#details_cad").hide();
+			}
+			if (plotalt_data["data"].length == 0) {
+				$("#details_alt").hide();
+			}
+
+			var plotalt = $.plot($("#details_alt_container"), [plotalt_data], {
+				xaxis : {
+					tickDecimals: "1",
+					tickFormatter: distanceSuffixFormatter
+				},
+				crosshair : {
+					mode : "x"
+				},
+				grid : {
+					hoverable : true,
+					autoHighlight : false
+				},
+			});
+			var plotcad = $.plot($("#details_cad_container"), [plotcad_data], {
+				xaxis : {
+					tickDecimals: "1",
+					tickFormatter: distanceSuffixFormatter
+				},
+				crosshair : {
+					mode : "x"
+				},
+				grid : {
+					hoverable : true,
+					autoHighlight : false
+				},
+			});
+			var plothf = $.plot($("#details_hf_container"), [plothf_data], {
+				xaxis : {
+					tickDecimals: "1",
+					tickFormatter: distanceSuffixFormatter
+				},
+				crosshair : {
+					mode : "x"
+				},
+				grid : {
+					hoverable : true,
+					autoHighlight : false
+				},
+			});
+			var plotspeed = $.plot($("#details_speed_container"), [plotspeed_data], {
+				xaxis : {
+					tickDecimals: "1",
+					tickFormatter: distanceSuffixFormatter
+				},
+				crosshair : {
+					mode : "x"
+				},
+				grid : {
+					hoverable : true,
+					autoHighlight : false
+				},
+			});
+
+			var legend_hf = $("#details_hf_container .legendLabel");
+			legend_hf.each(function() {
+				// fix the widths so they don't jump around
+				$(this).css('width', $(this).width());
+			});
+			var legend_speed = $("#details_speed_container .legendLabel");
+			legend_speed.each(function() {
+				// fix the widths so they don't jump around
+				$(this).css('width', $(this).width());
+			});
+			var legend_alt = $("#details_alt_container .legendLabel");
+			legend_alt.each(function() {
+				// fix the widths so they don't jump around
+				$(this).css('width', $(this).width());
+			});
+			var legend_cad = $("#details_cad_container .legendLabel");
+			legend_cad.each(function() {
+				// fix the widths so they don't jump around
+				$(this).css('width', $(this).width());
+			});
+
+
+			var updateLegendTimeout = null;
+			var latestPosition = null;
+
+			function updateLegend() {
+				updateLegendTimeout = null;
+
+				var pos = latestPosition;
+				
+				var plotlist = [[plothf, legend_hf], [plotspeed, legend_speed], [plotcad, legend_cad], [plotalt, legend_alt]];
+				for (var p = 0; p < plotlist.length; p++) {
+					plot = plotlist[p][0];
+					legend = plotlist[p][1];
+
+					plot.setCrosshair(pos);
+					axes = plot.getAxes();
+					if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
+						continue;
+
+					var i, j, dataset = plot.getData();
+					for( i = 0; i < dataset.length; ++i) {
+						var series = dataset[i];
+
+						// find the nearest points, x-wise
+						for( j = 0; j < series.data.length; ++j)
+							if(series.data[j][0] > pos.x)
+								break;
+
+						// now interpolate
+						var y, p1 = series.data[j - 1], p2 = series.data[j];
+						if(p1 == null)
+							y = p2[1];
+						else if(p2 == null)
+							y = p1[1];
+						else
+							y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+							
+						if(plot == plotspeed && speed_as_pace){
+							legend.eq(i).text(series.label.replace(/=.*/, "= " + secondsToTime(y*60, with_hours=false)));
+						} else {
+							legend.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
+						}
+					}
+				}
+			}
+
+			$("#details_hf_container").bind("plothover", function(event, pos, item) {
+				latestPosition = pos;
+				if(!updateLegendTimeout)
+					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+			$("#details_speed_container").bind("plothover", function(event, pos, item) {
+				latestPosition = pos;
+				if(!updateLegendTimeout)
+					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+			$("#details_alt_container").bind("plothover", function(event, pos, item) {
+				latestPosition = pos;
+				if(!updateLegendTimeout)
+					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+			$("#details_cad_container").bind("plothover", function(event, pos, item) {
+				latestPosition = pos;
+				if(!updateLegendTimeout)
+					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+			return data;
+
+		}
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async : false,
+			url : url,
+			dataType : "json",
+			success : onDataReceived
+		});
+
+	};
+	
+	// Start position for the map (hardcoded here for simplicity,
+	// but maybe you want to get this from the URL params)
+	var lat=50.626844941
+	var lon=6.550658997
+	var zoom=13
+
+	var map; //complex object of type OpenLayers.Map
+
+	var init_map = function () {
+		details_map = new OpenLayers.Map ("details_map_container", {
+			controls:[
+				new OpenLayers.Control.Navigation(),
+				new OpenLayers.Control.PanZoomBar(),
+				new OpenLayers.Control.LayerSwitcher(),
+				new OpenLayers.Control.Attribution()],
+			maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+			maxResolution: 156543.0399,
+			numZoomLevels: 19,
+			units: 'm',
+			projection: new OpenLayers.Projection("EPSG:900913"),
+			displayProjection: new OpenLayers.Projection("EPSG:4326")
+		} );
+		
+		populate_map(details_map);
+	}
+	
+	var populate_map = function(map) {
+		// Define the map layer
+		// Here we use a predefined layer that will be kept up to date with URL changes
+		layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
+		map.addLayer(layerMapnik);
+		layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
+		map.addLayer(layerCycleMap);
+		layerMarkers = new OpenLayers.Layer.Markers("Markers");
+		map.addLayer(layerMarkers);
+
+		// Add the Layer with the GPX Track
+		{%  if tcx %}
+		var lgpx = new OpenLayers.Layer.GML("Track", "{{ tcx.url }}.gpx", {
+			format: OpenLayers.Format.GPX,
+			style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
+			projection: new OpenLayers.Projection("EPSG:4326")
+		});
+		map.addLayer(lgpx);
+		{% endif %}
+		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		map.setCenter(lonLat, zoom);
+		lgpx.events.register('loadend', details_map, function(){this.zoomToExtent(lgpx.getDataExtent())});
+		map.setCenter(null, null);
+
+		var size = new OpenLayers.Size(21, 25);
+		var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+		var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
+	}
+{% endif %}
+</script>

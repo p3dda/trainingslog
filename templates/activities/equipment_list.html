@@ -1,0 +1,12 @@
+{% if equipment_list %}
+	<table border=1>
+		<tr><th>Name</th></tr>
+		{% for equ in equipment_list %}
+			<tr>
+				<td>{{equ.name}}</td>
+			</tr>
+		{%endfor %}
+	</table>
+{% else %}
+	<p>No equipments are available</p>
+{%endif%}

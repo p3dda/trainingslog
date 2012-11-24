@@ -1,0 +1,254 @@
+#navi {
+	top: 10px;
+	width:950px;
+	height:30px;
+	margin:auto;
+}
+#subnavi {
+	top:40px;
+	width:950px;
+	height:20px;
+	margin:auto;
+}
+
+#content {
+	top:60px;
+	width:950px;
+	margin: auto;
+}
+
+
+#colordisplay div {
+	width: 16px;
+	height: 16px;
+}
+
+
+div#user_logout {
+	float:right;
+}
+
+div .speed_unit {
+	display: inline;
+}
+
+div #plot_container {
+	padding: 10px;
+}
+
+div#result{ background-color: #E6E6E6;font-weight: bold;color: #FF0000;}
+body { /*height: 10px;*/font-family: verdana;font-size: small;color: #9CA9CB}*/
+p#head{ color: #0F35FF}
+input#mes{ border-style: solid; border-width: thin;color: #FF0000}
+
+
+/* tables */
+table.tablesorter {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 8pt;
+	width: 100%;
+	text-align: left;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 8pt;
+	padding: 4px;
+}
+table.tablesorter thead tr .header {
+	background-image: url(/media/img/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+}
+table.tablesorter tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(/media/img/asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(/media/img/desc.gif);
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
+}
+
+a:link { font-family:Arial,Helvetica,sans-serif; font-size: 14px; text-decoration: none; color: #3c82b4; } 
+a:visited { color: #3c82b4; } 
+a:focus { color: #2496ec; } 
+a:hover { color: #2496ec; } 
+a:active { color: #2496ec; }
+
+hr {
+	color: #dddddd;
+	background-color: #dddddd;
+	height: 1px;
+	width: 70%;
+	border: 0;
+}
+/* 
+ * activity details
+ */
+.activity_facts {
+	padding: 5px;
+	margin: 0px;
+}
+
+div .details_left_tables {
+	width: 295px;
+}
+
+div #details_left_tables {
+	width: 295px;
+	float: left;
+	font-size: small;
+}
+div #details_map{
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
+div #details_map_container {
+	width: 100%;
+	height: 400px;
+}
+
+div #details_hf{
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
+div #details_hf_container {
+	width: 100%;
+	height: 250px;
+	overflow: hidden;
+}
+div #details_speed{
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
+div #details_speed_container {
+	width: 100%;
+	height: 250px;
+	overflow: hidden;
+}
+div #details_alt{
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
+div #details_alt_container {
+	width: 100%;
+	height: 250px;
+	overflow: hidden;
+}
+div #details_cad{
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
+div #details_cad_container {
+	width: 100%;
+	height: 250px;
+	overflow: hidden;
+}
+
+div #tabs-laps {
+	font-size: small;
+}
+
+.activity_details {
+	padding: 1px;
+	border-spacing: 1px 8px;
+
+}
+
+
+.data_table td {
+	border: 1px solid #ccc;
+	padding: 5px;
+	line-height: 1.8em;
+	font-size: 0.8em;
+	vertical-align: top;
+	width: 20%;
+}
+
+.data_table {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	border-collapse: collapse;
+	border-left: 1px solid #ccc;
+	border-top: 1px solid #ccc; 
+	color: #333;
+}
+
+.data_table caption {
+	font-size: 1.1em;
+	font-weight: bold;
+	letter-spacing: -1px;
+	margin-bottom: 10px;
+	padding: 5px;
+	background: #efefef;
+	border: 1px solid #ccc;
+	color: #666;
+}
+
+.data_table a {
+	text-decoration: none;
+	border-bottom: 1px dotted #f60;
+	color: #f60;
+	font-weight: bold;
+}
+
+.data_table a:hover {
+	text-decoration: none;
+	color: #fff;
+	background: #f60;
+}
+
+.data_table tr th a {
+	color: #369;
+	border-bottom: 1px dotted #369;
+}
+
+.data_table tr th a:hover {
+	color: #fff;
+	background: #369;
+}
+
+.data_table thead tr th {
+	text-transform: uppercase;
+	background: #e2e2e2;
+}
+
+.data_table tfoot tr th, table tfoot tr td {
+	text-transform: uppercase;
+	color: #000;
+	font-weight: bold;
+}
+
+.data_table tfoot tr th {
+	width: 20%;
+}
+
+.data_table tfoot tr td {
+	width: 80%;
+}
+
+.data_table td, table th {
+	border: 1px solid #ccc;
+	padding: 5px;
+	line-height: 1.8em;
+	font-size: 0.8em;
+	vertical-align: top;
+	width: 20%;
+}

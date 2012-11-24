@@ -1,0 +1,29 @@
+TODO: Anzahl Einheiten / Zeit als Diagramm in Berichten
+
+Feature: Koerperfett / Bauch-/Brustumfang in Health-Tabelle
+Feature: Höhenkorrekturen http://stevendkay.wordpress.com/tag/srtm/
+http://pub7.bravenet.com/forum/static/show.php?usernum=537683448&frmid=8&msgid=745924&cmd=show
+
+TODO: Wochenkilometerstatistik (Spalte im Kalender)
+TODO: Historie: Von-Bis-Datumsbereiche oder Quartale
+
+TODO: Generische Kalender-EintrŠge
+TODO: Trainingsplan-EintrŠge im Kalender
+TODO: Goals
+
+
+
+
+
+FIXME: Re-Enable CSRF
+
+
+Notes
+
+Icon set:
+http://www.iconarchive.com/show/vista-artistic-icons-by-awicons/delete-icon.html
+
+Formeln Energieverbrauch:
+Laufen: Energie = Distanz x Gewicht x 1.036 kcal / (km x kg)
+Andere Sportarten: http://www.novafeel.de/fitness/kalorienverbrauch.htm
+

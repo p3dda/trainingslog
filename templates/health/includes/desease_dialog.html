@@ -1,0 +1,122 @@
+<div id="desease_dialog" title="Neue Erkrankung">
+	<table>
+		<tr><td>Erkrankung:</td><td><input type="text" id="desease_name"/></td></tr>
+		<tr><td>Beginn:</td><td><input type="text" id="desease_startdate"/></td></tr>
+		<tr><td>Ende:</td><td><input type="text" id="desease_enddate"/></td></tr>
+		<tr><td>Kommentar:</td><td><textarea rows=3 cols=30 id="desease_comment"></textarea></td></tr>	
+	</table>
+	<input type="submit" id="desease_send" value="Speichern"/>
+</div>
+
+<script>
+	var update_desease_id = null;
+	$(document).ready(function() {
+		init_desease_dialog();
+			
+	});
+
+	var populate_desease_dialog = function(desease_id) {
+		var url = "/health/desease/get/?id=" + desease_id;
+		update_desease_id = desease_id;  
+		function onDataReceived(data) {
+			console.debug(data);
+			var fields = data[0].fields;
+			console.debug(fields);
+			regexp = /(\d{4})-(\d{2})-(\d{2})/g;
+			startdateArray = regexp.exec(fields.start_date);
+			regexp = /(\d{4})-(\d{2})-(\d{2})/g;
+			enddateArray = regexp.exec(fields.end_date); 
+			console.debug(startdateArray);
+			console.debug(enddateArray);
+			startdateObject = new Date(
+				(+startdateArray[1]),
+				(+startdateArray[2])-1, // Careful, month starts at 0!
+				(+startdateArray[3])
+			);
+			enddateObject = new Date(
+				(+enddateArray[1]),
+				(+enddateArray[2])-1, // Careful, month starts at 0!
+				(+enddateArray[3])
+			);
+			
+			$("#desease_name").val(fields.name);
+			$("#desease_comment").val(fields.comment);
+			$("#desease_startdate").datepicker("setDate", startdateObject);
+			$("#desease_enddate").datepicker("setDate", enddateObject);
+			
+		}
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async:false,
+			url: url,
+			dataType:"json",
+			success: onDataReceived
+		});
+
+	};
+	
+	var init_desease_dialog = function() {
+		$(function() {
+			$("#desease_dialog").dialog({
+				autoOpen : false,
+				show : "blind",
+				hide : "explode",
+				minWidth : 500,
+				minHeight : 300,
+			});
+		});
+		$("#desease_startdate").datepicker({
+			dateFormat : 'dd.mm.yy'
+		});
+		$("#desease_enddate").datepicker({
+			dateFormat : 'dd.mm.yy'
+		});
+
+		now = new Date();
+
+		$("#desease_startdate").datepicker("setDate", now);
+		$("#desease_enddate").datepicker("setDate", now);
+		$("#desease_send").click(submit_desease);
+		$("#desease_add").click(show_desease_dialog);		
+	};
+
+	var submit_desease = function() {
+		// retrieve the text entered
+		var startdate = $("#desease_startdate").val();
+		var enddate = $("#desease_enddate").val();
+		var name = $("#desease_name").val();
+		var comment = $("#desease_comment").val();
+		// store value in data variable
+		var data = {
+			start_date: startdate,
+			end_date: enddate,
+			name: name,
+			comment: comment
+		};
+
+		if (update_desease_id != null) {
+			data.update_id = update_desease_id;			
+		}
+
+		$.post("/health/desease/add/", data, function(data) {
+			console.debug(data);
+			if (data["success"]) {
+				noty({text: "Erkrankung gespeichert", type: 'success', timeout: 5000});
+				$("#desease_dialog").dialog("close");
+//				if(typeof updateCalendar == 'fcuntion') { //FIXME: How does this work??
+					updateCalendar();
+//				}
+			} else {
+				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+			}
+		}, "json");
+		return false;
+	};
+	var show_desease_dialog = function() {
+		$("#desease_dialog").dialog("open");
+		$("#desease_startdate").datepicker("hide");
+		$("#desease_enddate").datepicker("hide");
+		$("#desease_name").focus();
+	};
+</script>

@@ -1,0 +1,12 @@
+{% if event_list %}
+	<table border=1>
+		<tr><th>Name</th></tr>
+		{% for event in event_list %}
+			<tr>
+				<td>{{event.name}}</td>
+			</tr>
+		{%endfor %}
+	</table>
+{% else %}
+	<p>No events are available</p>
+{%endif%}

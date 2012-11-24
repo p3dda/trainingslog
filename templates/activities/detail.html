@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}{{ activity.name }} - Details{% endblock %}
+
+{% block head %} 
+<script type="text/javascript" src="/media/js/common.js"></script>
+
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.core.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.tabs.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.accordion.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.crosshair.js"></script>
+<script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
+<script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
+<script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/media/css/jquery.jqplot.min.css" />
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css" />
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.all.css" />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
+
+{% include "activities/includes/detail_js.html" %}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="ui-widget ui-widget-content ui-corner-all">
+	<h2 class="activity_facts ui-widget-header ui-corner-top ui-state-active">{{ activity.name }}</h2>
+	<div class="activity_facts">	{{ activity.date }} <br/>
+		Sportart: <b>{{ activity.sport }}</b> | Ereignistyp: <b>{{ activity.event }}</b> <br/>
+		{% if activity.comment != "" %}
+			<hr>
+			{{ activity.comment }}
+		{% endif %}
+		{% if not public %}
+		<br/><br/>
+		<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{ activity.id }})"/>&nbsp;&nbsp;
+		<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{ activity.id }})">
+		{% endif %}
+	</div>
+</div>
+<br/>
+
+<div id="details_tabs">
+	<ul>
+		<li><a href="#tabs-details">Details</a></li>
+		{% if laps %}
+		<li><a href="#tabs-laps">Zwischenzeiten</a></li>
+		{% endif %}
+	</ul>
+	
+	<div id="tabs-details" >
+		<div id="details_left_tables">
+			<div class="details_left_tables" id="details_overview">
+				<h3><a href="#">&Uuml;bersicht</a></h3>
+				<div>
+					<table class = "activity_details">
+						<colgroup>
+							<col width="200">
+							<col width="100">
+						</colgroup>
+						<tr><td>Distanz</td><td>{{ activity.distance|default_if_none:"-" }} km</td></tr>
+						<tr><td>Dauer</td><td>{{ activity.time|default_if_none:"-" }}</td></tr>
+						<tr><td>Ø Geschwindigkeit</td><td>{{ activity.speed_avg|default_if_none:"-" }} {{speed_unit}}</td></tr>
+						<tr><td>Aufstieg</td><td>{{ activity.elevation_gain|default_if_none:"-" }} m</td></tr>
+						<tr><td>Kalorien</td><td>{{ activity.calories|default_if_none:"-" }} kcal</td></tr>
+					</table>
+				</div>
+			</div>
+			<div class="details_left_tables" id="details_details">
+				<h3><a href="#">Details</a></h3>
+				<div>
+					<table class = "activity_details">
+						<colgroup>
+							<col width="200">
+							<col width="100">
+						</colgroup>
+{% if not public %}
+						<tr><td>Ausr&uuml;stung</td><td>{% for equ in activity.equipment.all %}{{ equ }}, {% endfor %}</td></tr>
+{% endif %}
+						<tr><td>Ø Trittfrequenz</td><td>{{ activity.cadence_avg|default_if_none:"-" }} / min</td></tr>
+						<tr><td>Max. Trittfrequenz</td><td>{{ activity.cadence_max|default_if_none:"-" }} / min</td></tr>
+						<tr><td>Abstieg</td><td>{{ activity.elevation_loss|default_if_none:"-" }} m</td></tr>
+						<tr><td>Min. Höhe</td><td>{{ activity.elevation_min|default_if_none:"-" }}</td></tr>
+						<tr><td>Max. Höhe</td><td>{{ activity.elevation_max|default_if_none:"-" }}</td></tr>
+						<tr><td>Max. HF</td><td>{{ activity.hf_max|default_if_none:"-" }}</td></tr>
+						<tr><td>Ø HF</td><td>{{ activity.hf_avg|default_if_none:"-" }}</td></tr>
+						<tr><td>Max. Geschwindigkeit</td><td>{{ activity.speed_max|default_if_none:"-" }} {{speed_unit}}</td></tr>
+						<tr><td>Ø Geschwindigkeit in Bewegung</td><td>{{ activity.speed_avg_movement|default_if_none:"-" }} {{speed_unit}}</td></tr>
+						<tr><td>Gesamtzeit</td><td>{{ activity.time_elapsed|default_if_none:"-" }}</td></tr>
+						<tr><td>Zeit in Bewegung</td><td>{{ activity.time_movement|default_if_none:"-" }}</td></tr>
+					</table>
+				</div>
+			</div>
+		</div>
+		{% if tcx %}
+		<div id="details_map">
+			<h3><a href="#">Karte</a></h3>
+			<div id="details_map_container"></div>
+		</div>
+		<div id="details_hf">
+			<h3><a href="#">Herzfrequenz</a></h3>
+			<div id="details_hf_container"></div>
+		</div>
+		<div id="details_speed">
+			<h3><a href="#">Geschwindigkeit</a></h3>
+			<div id="details_speed_container"></div>
+		</div>
+		<div id="details_alt">
+			<h3><a href="#">H&ouml;he</a></h3>
+			<div id="details_alt_container"></div>
+		</div>
+		<div id="details_cad">
+			<h3><a href="#">Trittfrequenz</a></h3>
+			<div id="details_cad_container"></div>
+		</div>
+		{% endif %}
+		<br style="clear:both"/>
+	</div>
+
+
+	{% if laps %}	
+	<div id="tabs-laps">
+		<div id="laps_laps">
+			<h3><a href="#">Runden</a></h3>
+			<table id="laps_table" class="data_table">
+				<thead>
+					<tr><th>Zeit</th><th>Distanz</th><th>Max. Geschwindigkeit</th><th>Ø Geschwindigkeit</th><th>Aufstieg</th><th>Abstieg</th><th>Max. HF</th><th>Ø HF</th><th>Kalorien</th></tr>
+				</thead>
+				<tbody>
+					{% for lap in laps %}
+					<tr>
+						<td>{{ lap.time }}</td>
+						<td>{{ lap.distance }}</td>
+						<td>{{ lap.speed_max }}</td>
+						<td>{{ lap.speed_avg }}</td>
+						<td>{{ lap.elevation_gain }}</td>
+						<td>{{ lap.elevation_loss }}</td>
+						<td>{{ lap.hf_max }}</td>
+						<td>{{ lap.hf_avg }}</td>
+						<td>{{ lap.calories }}</td>
+				
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{% endif %}
+	
+</div>
+{% if not public %}
+{% include "activities/includes/activity_dialog.html" %}
+{% endif %}
+
+{% endblock %}

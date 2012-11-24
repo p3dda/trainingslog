@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Berichte{% endblock %}
+{% block head %} 
+<script type="text/javascript" src="/media/js/common.js"></script>
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.pie.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.stack.js"></script>
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
+<script>
+	$(document).ready(function() {
+
+		$("#timespan").change(function() {
+			ajaxDataGetter();
+		});
+		$(':checkbox').change(function() {
+			ajaxDataGetter();
+		});
+
+		ajaxDataGetter();
+	});
+
+
+	var ajaxDataGetter = function(){
+		events = new Array();
+		sports = new Array();
+		$(".event_cb:checked").each(function () {
+			console.debug($(this).name);
+			events.push($(this).val());
+		});
+		$(".sport_cb:checked").each(function () {
+			console.debug($(this).name);
+			sports.push($(this).val());
+		});
+		param = {"sports": sports, "events": events}
+		var param_b64 = base64Encode(JSON.stringify(param));
+		var bysport_url = "/reports/get/?mode=sports&timespan=" + $("#timespan option:selected").val() + "&param=" + param_b64;
+		var byweek_url = "/reports/get/?mode=weeks&timespan=" + $("#timespan option:selected").val() + "&param=" + param_b64;
+		
+		function onPieDataReceived(data) {
+			update_table(data);
+			
+			var pie_data = new Array();
+			
+			for(var key in data) {
+				if(data[key]['num_activities'] > 0) {
+					var pie_series = Object();
+					pie_series["label"] = key;
+					pie_series["data"] = data[key]['total_time'];
+					pie_series["color"] = data[key]['color'];
+					pie_data.push(pie_series);
+				}
+			}
+			console.debug(pie_data);
+			$.plot($("#pie1"), pie_data,
+				{
+					series: {
+						pie: { 
+							show: true,
+							radius: 1,
+							label: {
+								show: true,
+								radius: 3/4,
+								formatter: function(label, series){
+									return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+								},
+								background: { 
+									opacity: 0.5,
+									color: '#000'
+								}
+							}
+						}
+					},
+					legend: {
+						show: false
+					}
+					
+				}
+			);
+			
+		}
+		
+		function timeTickFormatter(val, axis) {
+			var hours = Math.floor(val/60);
+			var minutes = val % 60;
+			
+			return hours+":"+minutes;
+		}
+		
+		function weekTickFormatter(val, axis) {
+			var date = new Date();
+			date.setTime(val);
+			return date.getWeek();
+		}
+		
+		function onBarDataReceived(data) {
+			console.debug(data);
+			console.debug(data.time);
+			$.plot($("#bar_weeks_time"), data.time, {
+				xaxis : {
+					mode : "time",
+					minTickSize : [7, "day"],
+					tickFormatter:weekTickFormatter,
+				},
+				yaxis: {
+					tickFormatter:timeTickFormatter,
+				},
+				series: {
+					stack: true,
+					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+				},
+				grid: {
+					show: true,
+				},
+				legend: {
+					show: false,
+				}
+			});
+
+			$.plot($("#bar_weeks_distance"), data.distance, {
+				xaxis : {
+					mode : "time",
+					minTickSize : [7, "day"],
+					tickFormatter:weekTickFormatter,
+				},
+				series: {
+					stack: true,
+					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+				},
+				grid: {
+					show: true,
+				},
+				legend: {
+					show: false,
+				}
+			});
+
+			$.plot($("#bar_weeks_calories"), data.calories, {
+				xaxis : {
+					mode : "time",
+					minTickSize : [7, "day"],
+					tickFormatter:weekTickFormatter,
+				},
+				series: {
+					stack: true,
+					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+				},
+				grid: {
+					show: true,
+				},
+				legend: {
+					show: false,
+				}
+			});
+			
+			$.plot($("#bar_weeks_count"), data.count, {
+				xaxis : {
+					mode : "time",
+					minTickSize : [7, "day"],
+					tickFormatter:weekTickFormatter,
+				},
+				series: {
+					stack: true,
+					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+				},
+				grid: {
+					show: true,
+				},
+				legend: {
+					show: false,
+				}
+			});
+
+		}
+		
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async:false,
+			url: bysport_url,
+			dataType:"json",
+			success: onPieDataReceived
+		});
+		
+		$.ajax({
+			async: false,
+			url: byweek_url,
+			dataType:"json",
+			success: onBarDataReceived
+		});
+	};
+
+
+	function update_table(data) {
+		// update report table with new data
+		$("#table_report tbody").empty();
+		for(var key in data) {
+			var item = data[key];
+			if(item['num_activities'] > 0) {
+
+				console.debug("Filling table body with data set: " + item);
+				$("#table_report tbody").append('<tr><td>' + key + '</td><td>' + item['num_activities'] + '</td><td>' + item['total_distance'] + '</td><td>' + item['total_time_str'] + '</td><td>' + item['total_elev_gain'] + '</td><td>' + item['total_calories'] + '</td></tr>');
+			}
+		}
+
+		var table = $("#table_report");
+		/*		table.tablesorter({
+		 widgets : ['zebra']
+		 });
+
+		 table.trigger("update");
+		 table.trigger("appendCache");
+		 */
+	}
+</script>
+{% endblock %}
+{% block subnavi %} 
+<a href="/reports">Sportarten</a>
+{% endblock %}
+
+{% block content %}
+<div id="timespanform">
+	<p>
+		<select id="timespan">
+			<option name='-1' value='-1'>Alle Tage</option>
+			<option name='{% now "z" %}' value = '{% now "z" %}'>Aktuelles Jahr</option>
+			<option name='7' value='7'>Letzte 7 Tage</option>
+			<option name='30' value='30'>Letzter Monat</option>
+			<option name='90' value='90' selected>Letzte 3 Monate</option>
+			<option name='365' value='365'>Letzte 365 Tage</option>
+		</select>
+	</p>
+	<table>
+		<tr>
+			<td valign="top">
+				{%  if events %}
+				<p>
+					{% for event in events %}
+						<input type="checkbox" class="event_cb" value="{{ event.pk }}" checked>{{ event.name }}<br/>
+					{% endfor %}
+				</p>
+				{%  endif %}
+			</td>
+			<td valign="top">
+				{%  if sports %}
+				<p>
+					{% for sport in sports %}
+						<input type="checkbox" class="sport_cb" value="{{ sport.pk }}" checked>{{ sport.name }}<br/>
+					{% endfor %}
+				</p>
+				{%  endif %}
+			</td>
+		</tr>
+	</table>
+</div>
+<table>
+	<tr>
+		<td><div id="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div></td>
+	</tr>
+	<tr>
+		<td><div id="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
+		<td><div id="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
+	</tr>
+	<tr>
+		<td><div id="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
+		<td><div id="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
+	</tr>
+</table>
+
+
+<div id="div_report_table">
+	<table id="table_report" border=1>
+		<thead>
+			<tr>
+				<th>Sportart</th>
+				<th>Anzahl</th>
+				<th>Gesamtdistanz</th>
+				<th>Dauer</th>
+				<th>H&ouml;hengewinn</th>
+				<th>Kalorien</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+</div>
+
+{% endblock %}

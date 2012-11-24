@@ -1,0 +1,16 @@
+{% if object %}
+<h1>Update event:</h1>
+{% else %}
+<h1>Create a event</h1>
+{% endif %}
+
+{% if form.has_errors %}
+<h2>Please correct the following error{{ form.errors|pluralize }}:</h2>
+{% endif %}
+
+<form method="post" action=".">
+	{{ form.as_p }}
+	<input type="submit" value="Submit" />
+</form>
+
+<p> {{ form.error_dict }} </p>

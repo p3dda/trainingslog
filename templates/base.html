@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/media/css/style.css" />
+	{% block head %}{% endblock %}
+    <title>{% block title %}TrainingsLog{% endblock %}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+{% if not public %}
+    <div id="navi">
+        {% block navi %}
+        	<a href="/activities/">Aktivit&auml;ten</a>&nbsp;
+        	<a href="/calendar/">Kalender</a>&nbsp;
+			<a href="/reports/">Berichte</a>&nbsp;
+        	<a href="/health/">Gesundheit</a>&nbsp;&nbsp;
+			<a href="/settings/">Einstellungen</a>&nbsp;
+        {% endblock %}
+        <div id="user_logout">
+        	{% if username %}
+				Angemeldet als <a href="/admin/password_change/">{{username}}</a>&nbsp;
+			{% endif %}
+			<a href="/accounts/logout">Logout</a>
+        </div>
+    </div>
+	<div id="subnavi">
+		{% block subnavi %}{% endblock %}
+	</div>
+{% endif %}
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

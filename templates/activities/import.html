@@ -1,0 +1,10 @@
+{% if tracks %}
+    <ul>
+    {% for track in tracks %}
+        <li><a href="{{ track.trackfile.url }}">{{ track.trackfile.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No tracks.</p>
+{% endif %}
+

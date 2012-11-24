@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Gesundheit{% endblock %}
+{% block head %} <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="/media/js/excanvas.js"></script><![endif]-->
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.core.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/media/js/flot/jquery.flot.crosshair.js"></script>
+<script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
+<script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
+<script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
+
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.core.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.tabs.css' />
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css" />
+<script>
+	var plot = null;
+	var series;
+	var weight_data = null;
+	//var weight_avg = False;
+	$(document).ready(function() {
+		$(function() {
+			$("#weight_dialog").dialog({
+				autoOpen : false,
+				show : "blind",
+				hide : "explode",
+				minWidth : 500,
+				minHeight : 300,
+			});
+		});
+		$(function() {
+			$("#pulse_dialog").dialog({
+				autoOpen : false,
+				show : "blind",
+				hide : "explode",
+				minWidth : 500,
+				minHeight : 300,
+			});
+		});
+		$(function() {
+			$("#weightgoal_dialog").dialog({
+				autoOpen : false,
+				show : "blind",
+				hide : "explode",
+				minWidth : 500,
+				minHeight : 300,
+			});
+		});
+		// Initialize datepicker input
+		$(function() {
+			now = new Date();
+			$("#weight_date").datepicker({
+				dateFormat : 'dd.mm.yy'
+			});
+			$("#weightgoal_date").datepicker({
+				dateFormat : 'dd.mm.yy'
+			});
+			$("#pulse_date").datepicker({
+				dateFormat : 'dd.mm.yy'
+			});
+			$("#weight_date").datepicker("setDate", now);
+			$("#weightgoal_date").datepicker("setDate", now);
+			$("#pulse_date").datepicker("setDate", now);
+		});
+		// attach the click handler to the button
+		$("#weight_send").click(add_weight);
+		$("#pulse_send").click(add_pulse);
+		$("#weightgoal_send").click(add_weightgoal);
+		$("#pulse_add").click(show_pulse_dialog);
+		$("#weight_add").click(show_weight_dialog);
+		$("#weightgoal_add").click(show_weightgoal_dialog);
+		$("#weight_avg").change(update_plot);
+		$("#timespan").change(timespan_change);
+		
+		ajaxDataGetter();
+	});
+
+	function onDataReceived(rcvd_series) {
+		series = rcvd_series;
+		update_plot();
+	}
+	function update_plot() {
+		plotweight_data = new Object();
+		if( $("#weight_avg").is(':checked')) {
+			plotweight_data["data"] = series["weight_weekly_list"];
+		} else {
+			plotweight_data["data"] = series["weight_list"];
+		}
+		plotweight_data["label"] = "Gewicht = 0.0";
+		plotweight_data["lines"] = {"show": true};
+		plotweight_data["points"] = {"show": true};
+		
+		plotpulsemin_data = new Object();
+		plotpulsemin_data["data"] = series["pulse_min_list"];
+		plotpulsemin_data["label"] = "Ruhepuls = 0.0";
+		plotpulsemin_data["yaxis"] = 2;
+		plotpulsemin_data["lines"] = {"show": true};
+		plotpulsemin_data["points"] = {"show": true};
+		plotpulsemax_data = new Object();
+		plotpulsemax_data["data"] = series["pulse_max_list"];
+		plotpulsemax_data["label"] = "Maximalpuls = 0.0";
+		plotpulsemax_data["yaxis"] = 2;
+		plotpulsemax_data["lines"] = {"show": true};
+		plotpulsemax_data["points"] = {"show": true};
+		
+		plotgoal_data = {"data": series["goal_data"],
+						"label": "Zielgewicht",
+						"lines": {"show": true}
+						}
+						
+		plot = $.plot($("#placeholder"), [plotweight_data, plotgoal_data, plotpulsemin_data, plotpulsemax_data], {
+			xaxis : {
+				mode : "time",
+				minTickSize : [1, "day"],
+				timeformat : "%d.%m.%y"
+			},
+			yaxes : [{
+				position : "left"
+			}, {
+				position : "right"
+			}, {
+				position : "right"
+			}],
+			crosshair : {
+				mode : "x"
+			},
+			grid : {
+				hoverable : true,
+				autoHighlight : false
+			},
+		});
+
+		var legends = $("#placeholder .legendLabel");
+		legends.each(function() {
+			// fix the widths so they don't jump around
+			$(this).css('width', $(this).width());
+		});
+		var updateLegendTimeout = null;
+		var latestPosition = null;
+
+		function updateLegend() {
+			updateLegendTimeout = null;
+
+			var pos = latestPosition;
+
+			var axes = plot.getAxes();
+			if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max)
+				return;
+
+			var i, j, dataset = plot.getData();
+			for( i = 0; i < dataset.length; ++i) {
+				var series = dataset[i];
+
+				// find the nearest points, x-wise
+				for( j = 0; j < series.data.length; ++j)
+				if(series.data[j][0] > pos.x)
+					break;
+
+				// now interpolate
+				var y, p1 = series.data[j - 1], p2 = series.data[j];
+				if(p1 == null)
+					if(p2 != null)
+						y = p2[1];
+					else
+						y = 0;
+				else if(p2 == null)
+					if(p1 != null)
+						y = p1[1];
+					else
+						y = 0;
+				else
+					y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+
+				legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
+			}
+		}
+
+
+		$("#placeholder").bind("plothover", function(event, pos, item) {
+			latestPosition = pos;
+			if(!updateLegendTimeout)
+				updateLegendTimeout = setTimeout(updateLegend, 50);
+		});
+		return series
+
+	}
+
+	var ajaxDataGetter = function() {
+		var url = "/health/weights/?timespan=" + $("#timespan").val();
+
+
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async : false,
+			url : "/health/data/?timespan=" + $("#timespan").val(),
+			dataType : "json",
+			success : onDataReceived
+		});
+	};
+
+	var add_weight = function() {
+		// retrieve the text entered
+		var date = $("#weight_date").val();
+		var weight =$("#weight_input").val();
+		if(date != "") {
+			// store value in data variable
+			var data = {
+				date: date,
+				weight: weight
+			};
+			$.post("/health/weights/add/", data, function(data) {
+				console.debug(data);
+				if (data["success"]) {
+					noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
+					$("#weight_dialog").dialog("close");
+					ajaxDataGetter();
+					{% if goal %}
+					last_weight = weight_data[weight_data.length-1];
+					distance = last_weight[1] - {{goal.target_weight}};
+					$("#td_goal_distance").html(distance.toFixed(1));
+					{% endif %}
+				} else {
+					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+				}
+			}, "json");
+
+		} else {
+			alert("Enter some text silly!");
+		}
+		return false;
+	};
+
+	var add_pulse = function() {
+		var date = $("#pulse_date").val();
+
+		var data = {
+			date : date,
+		};
+
+		if(! isNaN(parseInt($("#pulse_rest").val()))) {
+			data["rest"] = parseInt($("#pulse_rest").val());
+		}
+		if(! isNaN(parseInt($("#pulse_maximum").val()))) {
+			data["maximum"] = parseInt($("#pulse_maximum").val());
+		}
+		if((! "rest" in data) && (! "maximum" in data)){
+			noty({text: "Kein gueltiger Puls angegeben", type: 'error', timeout: 5000});
+		}
+		$.post("/health/pulses/add/", data, function(data) {
+			if (data["success"]) {
+				noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
+				$("#pulse_dialog").dialog("close");
+				ajaxDataGetter();
+			} else {
+				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+			}
+		}, "json");
+	};
+	
+	var add_weightgoal = function() {
+		var date = $("#weightgoal_date").val();
+		var weight = $("#weightgoal_weight").val();
+		var data = {
+			date : date,
+			weight : weight
+		};
+		$.post("/health/weightgoals/add/", data, function(data) {
+			if (data["success"]) {
+				noty({text: "Zielgewicht gespeichert", type: 'success', timeout: 5000});
+				$("#weightgoal_dialog").dialog("close");
+				ajaxDataGetter();
+			} else {
+				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+			}
+		}, "json");
+		return false;
+	};
+	
+	var timespan_change = function() {
+		if ( $("#timespan").val() >32|| $("#timespan").val() == -1) {
+			$("#weight_avg").attr('checked', true);
+		} else {
+			$("#weight_avg").attr('checked', false);
+		}
+		ajaxDataGetter();
+	};
+	var weight_avg_change = function() {
+		if( $("#weight_avg").is(':checked')) {
+			weight_avg = True;
+		} else {
+			weight_avg = False;
+		}
+	}
+
+	var show_weight_dialog = function() {
+		$("#weight_dialog").dialog("open");
+		$("#weight_date").datepicker("hide");
+		$("#weight_input").focus();
+	};
+	
+	var show_pulse_dialog = function() {
+		$("#pulse_dialog").dialog("open");
+		$("#pulse_date").datepicker("hide");
+		$("#pulse_rest").focus();
+	};
+	
+	var show_weightgoal_dialog = function() {
+		$("#weightgoal_dialog").dialog("open");
+		$("#weightgoal_date").datepicker("hide");
+		$("#weightgoal_weight").focus();
+	};
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="timespanform">
+	<select id="timespan">
+		<option name='-1' value='-1'>Alle Tage</option>
+		<option name='{% now "z" %}' value = '{% now "z" %}'>Aktuelles Jahr</option>
+		<option name='7' value='7'>Letzte 7 Tage</option>
+		<option name='30' value='30'>Letzter Monat</option>
+		<option name='90' value='90' selected>Letzte 3 Monate</option>
+		<option name='365' value='365'>Letzte 365 Tage</option>
+	</select>
+	<input id="weight_avg" type="checkbox" checked>Gl&auml;tten</input>
+</div>
+<div id="placeholder" style="width:600px;height:300px;"></div>
+<p>
+	<input type="submit" id="weight_add" value="Neue Gewichtsmessung...">
+	<input type="submit" id="pulse_add" value="Neue Pulsmessung...">
+	<input type="submit" id="desease_add" value="Neue Erkrankung...">
+</p>
+{% if goal %}
+<table border=1>
+	<tr>
+		<th>Zielgewicht</th><th>Zieldatum</th><th>Distanz</th>
+	</tr>
+	<tr>
+		<td>{{goal.target_weight}}</td>
+		<td>{{goal.due_date}}</td>
+		<td id="td_goal_distance">{{goal_distance}}</td>
+	</tr>
+</table>
+{% else %}
+<p>
+	Keine Ziele eingerichtet
+</p>
+{%endif%}
+<input type="submit" id="weightgoal_add" value="Neues Zielgewicht...">
+<div id="weight_dialog" title="Neue Gewichtsmessung">
+	Datum:
+	<input type="text" id="weight_date"/>
+	<br/>
+	Gewicht:
+	<input type="text" id="weight_input"/>
+	<br/>
+	<input type="submit" id="weight_send" value="Speichern"/>
+</div>
+<div id="pulse_dialog" title="Neue Pulsmessung">
+	Datum:
+	<input type="text" id="pulse_date"/>
+	<br/>
+	Ruhepuls:
+	<input type="text" id="pulse_rest"/>
+	<br/>
+	Maximalpuls:
+	<input type="text" id="pulse_maximum" />
+	<br/>
+	<input type="submit" id="pulse_send" value="Speichern">
+</div>
+<div id="weightgoal_dialog" title="Neues Ziel">
+	Datum:
+	<input type="text" id="weightgoal_date"/>
+	<br/>
+	Gewicht:
+	<input type="text" id="weightgoal_weight"/>
+	<br/>
+	<input type="submit" id="weightgoal_send" value="Speichern"/>
+</div>
+{% include "health/includes/desease_dialog.html" %}
+
+{% endblock %} 

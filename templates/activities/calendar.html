@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Kalender{% endblock %}
+{% block head %}
+<link rel='stylesheet' type='text/css' href='/media/css/fullcalendar.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.core.css"></link>
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.tabs.css"></link>
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css"></link>
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
+
+<script type="text/javascript" src="/media/js/common.js"></script>
+
+<script type="text/javascript" src="/media/js/common.js"></script>
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.core.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.tabs.js"></script>
+<script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
+<script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
+<script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
+
+
+<script type='text/javascript' src='/media/js/fullcalendar.js'></script>
+<script type="text/javascript">
+	// we will add our javascript code here
+
+	$(document).ready(function() {
+		$(function() {
+			$( "#dialog" ).dialog({
+				autoOpen: false,
+				show: "blind",
+				hide: "explode",
+			});
+		});
+		updateCalendar();
+	});
+	
+	var updateCalendar = function() {
+		// do stuff when DOM is ready
+		$('#calendar').fullCalendar({
+			theme : true,
+			timeFormat: {'agenda': 'H:mm{ - H:mm}',
+						'':'' },
+			firstDay: 1,	// begin weeks on monday
+			header : {
+				left : 'prev,next today',
+				center : 'title',
+				right : 'month,agendaWeek'
+			},
+			buttonText : {
+				today: 'Heute',
+				month: 'Monat',
+				week: 'Woche',
+			},
+			monthNames: monthNames,
+			monthNamesShort: monthNamesMin,
+			dayNamesShort: dayNamesMin,
+			events : '/calendar/events/',
+			dayClick : function() {
+				$("#new_act_date").datepicker("setDate", arguments[0]);
+				$("#activity_dialog").dialog("open");
+			},
+			eventClick : function(calEvent) {
+				if(calEvent.hasOwnProperty('url')) {
+					window.open(calEvent.url);
+				} else if(calEvent.hasOwnProperty('className')) {
+					console.debug(calEvent.className);
+					if ($.inArray('fc_desease', calEvent.className) != -1) {
+						console.debug(calEvent.desease_id);	
+						populate_desease_dialog(calEvent.desease_id);
+						show_desease_dialog();					
+					}
+				}
+
+				return false;
+			}
+		})
+	};
+
+
+</script>
+{% endblock %}
+
+{% block content %} <!-- we will add our HTML content here -->
+<div id='calendar'></div>
+
+{% include "activities/includes/activity_dialog.html" %}
+{% include "health/includes/desease_dialog.html" %}
+
+{% endblock %} 

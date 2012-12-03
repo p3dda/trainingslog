@@ -2,6 +2,17 @@
 
 {% block title %}Activities list{% endblock %}
 {% block head %} 
+
+{%  if garmin_keys %}
+<style type="text/css" media="all">@import "/media/css/garmin/communicator2.css";</style>
+<script type="text/javascript" src="/media/js/garmin/prototype.js"></script>
+<script type="text/javascript" src="/media/js/garmin/device/GarminDeviceDisplay.js"></script>
+<script type="text/javascript" src="/media/js/garmin/device/GarminDevicePlugin.js"></script>
+<script type="text/javascript" src="/media/js/garmin/device/GarminDeviceControl.js"></script>
+<script type="text/javascript" src="/media/js/garmin/util/Util-PluginDetect.js"></script>
+{%  endif %}
+
+
 <script type="text/javascript" src="/media/js/common.js"></script>
 
 <script type="text/javascript" src="/media/js/jquery.js"></script>
@@ -17,6 +28,7 @@
 <script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
 <script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
 
+
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
 <link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.core.css"></link>
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
@@ -26,6 +38,8 @@
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
 
 <script>
+	var garmincontrol;
+	
 	$(document).ready(function() {
 		// Initialize tablesorter
 
@@ -68,8 +82,59 @@
 
 
 		});
-			
-			
+
+		{%  if garmin_keys %}
+		try {
+			control = new Garmin.DeviceControl();
+			if (control && control.isPluginInitialized()) {
+
+			   	var display = new Garmin.DeviceDisplay("garminDisplay", { 
+					pathKeyPairsArray: [{% for url, key in garmin_keys %}"{{url}}", "{{key}}", {% endfor %}],
+					showReadDataElement: true,
+					showProgressBar: true,
+					showFindDevicesElement: true,
+					showFindDevicesButton: false,
+					showDeviceButtonsOnLoad: false,
+					showDeviceButtonsOnFound: false,
+					autoFindDevices: true,
+					showDeviceSelectOnLoad: true,
+					autoHideUnusedElements: true,
+					showReadDataTypesSelect: false,
+					readDataType: Garmin.DeviceControl.FILE_TYPES.tcxDir,
+					deviceSelectLabel: "Choose Device <br/>",
+					readDataButtonText:			"List Activities",
+					showCancelReadDataButton:		false,
+					lookingForDevices: 'Searching for Device <br/><br/> <img src="/media/css/garmin/ajax-loader.gif"/>',
+					uploadsFinished: "Transfer Complete",
+					uploadSelectedActivities: true,
+					uploadCompressedData: false,    // Turn on data compression by setting to true.
+					uploadMaximum: 1, 
+					dataFound: "#{tracks} activities found on device",
+					showReadDataElementOnDeviceFound: true,
+					postActivityHandler: function(activityXml, display) {
+						console.debug(display);
+						data = { filename: "test.tcx", content:activityXml}
+						$.post('.', data, function(data) {
+							console.debug(data);
+							if(data["success"]){
+								window.location=data["redirect_to"];
+							} else {
+								noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+							}
+						}, "json");
+					}
+		
+				});
+				$('#garminDisplay').show();
+
+
+			}
+		} catch (e) {
+			console.debug("Garmin plugin not installed");
+			$('#garminDisplay').hide();			
+		}
+		
+		{%  endif %}	
 		$("#activity_add").click(function(){show_activity_dialog();});
 		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
 	});
@@ -120,6 +185,21 @@
     <input id = "newact_fileform" type="file" name="trackfile" />
 	<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>
 </form>
+
+{%  if garmin_keys %}
+<table border="0" cellpadding="4" cellspacing="0" width="100%">
+	<tr>
+		<td>
+			<div id="garminDisplay" style="display:none;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div id="activity"></div>
+		</td>
+	</tr>
+</table>
+{%  endif %}
 
 {% include "activities/includes/activity_dialog.html" %}
 

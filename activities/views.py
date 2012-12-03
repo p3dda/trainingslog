@@ -3,7 +3,10 @@ from base64 import b64decode
 import json
 import copy
 import datetime
+import os
+import tempfile
 import time
+import traceback
 import logging
 
 from elementtree.ElementTree import ElementTree
@@ -26,8 +29,8 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-
-logging.debug("Hello world!")
+from django.core.files.base import File
+from django.conf import settings as django_settings
 
 @login_required
 def add_calformula(request):
@@ -248,28 +251,73 @@ def list_equipment(request):
 @login_required
 def list_activities(request):
 	if request.method == 'POST':
-		logging.debug("list_activities called with POST request %s" % request.POST)
-		try:
-			activity = importtrack(request)
-			return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
-		except Exception, exc:
-			print "Exception raised in importtrack"
-			raise
-			#return HttpResponse(simplejson.dumps((False, )))
+		if len(request.FILES)>0:
+			logging.debug("Creating activity from tcx file upload");
+			try:
+				try:
+					newtrack = Track(trackfile=request.FILES['trackfile'])
+				except Exception:
+					print "Exception occured in file upload"
+					raise
+			
+				newtrack.save()
+
+				activity = importtrack(request, newtrack)
+				return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
+			except Exception, exc:
+				print "Exception raised in importtrack"
+				raise
+				#return HttpResponse(simplejson.dumps((False, )))
+		elif request.POST.has_key('content'):
+			logging.debug("Creating activity from text upload");
+			try:
+				filename = "%s.tcx" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
+				newtrack = Track()
+
+				tmpfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+				tmpfilename = tmpfile.name
+
+				content = request.POST['content']
+				tmpfile.write(content)
+				tmpfile.close()
+
+				#create tcx file 
+				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
+
+				logging.debug("Filename: %s" % filename)
+	
+				activity = importtrack(request, newtrack)
+				tmpfile.close()
+				os.remove(tmpfilename)
+				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
+			except Exception, exc:
+				logging.debug( "Exception raised in importtrack: %s" %str(exc))
+				for line in traceback.format_exc().splitlines():
+					logging.debug(line.strip())
+				
+				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(exc)}))
+			
+		else:
+			logging.error("Missing upload data");
 	else:
 		events = Event.objects.filter(user=request.user)
 		equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
 		sports = Sport.objects.filter(user=request.user)
 		calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 		activitytemplates = ActivityTemplate.objects.filter(user=request.user)
-
+		
+		try:
+			garmin_keys = django_settings.GARMIN_KEYS
+		except AttributeError:
+			garmin_keys = False
+			
 		weight = Weight.objects.filter(user=request.user).order_by('-date')
 		if len(weight)>0:
 			weight = weight[0]
 		else:
 			weight = None
 
-		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates})
+		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
 @login_required
 def get_activities(request):
@@ -682,21 +730,13 @@ def settings(request):
 	
 	return render_to_response('activities/settings.html', {'calformula_list': calformula_list, 'event_list': event_list, 'equipment_list': equipment_list, 'equipment_archived_list': equipment_archived_list, 'sport_list': sport_list, 'username': request.user})
 	
-def importtrack(request):
+def importtrack(request, newtrack):
 	"""
 	Process garmin tcx file import
 	"""
 	logging.debug("importtrack calles with request %r" % request)
 
 	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
-	try:
-		newtrack = Track(trackfile=request.FILES['trackfile'])
-	except Exception:
-		print "Exception occured in file upload"
-		raise
-
-	newtrack.save()
-
 	# create additional gpx file from track
 	logging.debug("Calling tcx2gpx.convert with track object %s" % newtrack)
 	tcx2gpx.convert(newtrack)

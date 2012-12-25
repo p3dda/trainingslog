@@ -3,7 +3,27 @@ import re
 import time
 from django.utils.timezone import utc
 
-from elementtree.ElementTree import ElementTree
+found_xml_parser=False
+
+try:
+	if not found_xml_parser:
+		from elementtree.ElementTree import ElementTree
+except ImportError, msg:
+	pass
+else:
+	found_xml_parser=True
+
+try:
+	if not found_xml_parser:
+		from xml.etree.ElementTree import ElementTree
+except ImportError, msg:
+	pass
+else:
+	found_xml_parser=True
+
+if not found_xml_parser:
+	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
+
 
 class TCXTrack:
 	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"

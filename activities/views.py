@@ -9,7 +9,26 @@ import time
 import traceback
 import logging
 
-from elementtree.ElementTree import ElementTree
+found_xml_parser=False
+
+try:
+	if not found_xml_parser:
+		from elementtree.ElementTree import ElementTree
+except ImportError, msg:
+	pass
+else:
+	found_xml_parser=True
+
+try:
+	if not found_xml_parser:
+		from xml.etree.ElementTree import ElementTree
+except ImportError, msg:
+	pass
+else:
+	found_xml_parser=True
+
+if not found_xml_parser:
+	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
 
 from activities.extras import tcx2gpx
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
@@ -765,6 +784,9 @@ def importtrack(request, newtrack):
 		date = parse_xsd_timestamp(xmllap.get("StartTime"))
 		time = int(float(xmllap.find(xmlns+"TotalTimeSeconds").text))
 		distance = str(float(xmllap.find(xmlns+"DistanceMeters").text)/1000)
+		if xmllap.find(xmlns+"MaximumSpeed") is None:
+			logging.debug("MaximumSpeed is None")
+		logging.debug("MaximumSpeed xml is %r" % xmllap.find(xmlns+"MaximumSpeed"))
 		speed_max = str(float(xmllap.find(xmlns+"MaximumSpeed").text)*3.6)	# Given as meters per second in tcx file
 		logging.debug("speed_max is %s" % speed_max)
 		calories = int(xmllap.find(xmlns+"Calories").text)

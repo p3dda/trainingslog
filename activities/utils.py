@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 import time
 from django.utils.timezone import utc
@@ -27,12 +28,82 @@ if not found_xml_parser:
 
 class TCXTrack:
 	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
+	xmlactextns = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
+	xml_instance = "{http://www.w3.org/2001/XMLSchema-instance}"
 
 	def __init__(self, tcxfile):
-		
+		#logging.debug("Opening Trackfile %r" % tcxfile.trackfile)	
 		tcxfile.trackfile.open()
 		self.xmltree = ElementTree(file = tcxfile.trackfile)
 		tcxfile.trackfile.close()
+		#logging.debug("Trackfile %r closed" % tcxfile.trackfile)
+
+		self.track_data={}
+		self.parse_trackpoints()
+
+	def parse_trackpoints(self):
+		# take only first activity from file
+		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
+
+		alt_data=[]
+		cad_data=[]
+		hf_data=[]
+		speed_gps_data=[]
+		speed_foot_data=[]
+		#logging.debug("Parsing TCX Track file in first activity")
+		for xmltp in xmlactivity.findall(self.xmlns+"Lap/"+self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
+			distance=alt=cad=hf=time=None
+
+			if not hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
+				continue
+
+			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)	
+			# Get altitude
+			if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
+				alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
+				alt_data.append((distance,alt))
+			# Get Cadence data (from Bike cadence sensor)
+			if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
+				cad = int(xmltp.find(self.xmlns + "Cadence").text)
+				cad_data.append((distance,cad))
+
+			# Locate heart rate in beats per minute
+			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
+			if not hrt is None:
+				if hrt.get(self.xml_instance+"type")!="HeartRateInBeatsPerMinute_t":
+					logger.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
+				else:
+					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
+						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
+						hf_data.append((distance,hf))
+
+			# Locate time stamps for speed calculation based on GPS
+			if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
+				time = parse_xsd_timestamp(xmltp.find(self.xmlns + "Time").text)
+				speed_gps_data.append((distance,time))
+
+			# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
+			ext=xmltp.find(self.xmlns + "Extensions")
+			#logging.debug("Found Activity Extensions")
+			if not ext is None:
+				xmltpx=ext.find(self.xmlactextns+"TPX")
+				# currenlty supported Footpod sensor
+				if not xmltpx is None and xmltpx.get("CadenceSensor")=="Footpod":
+					if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
+						speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
+						speed_foot_data.append((distance,speed))
+					if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
+						# Only copy cadence data if no other Cadence data (from bike) is present
+						if cad is None:
+							cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
+							cad_data.append((distance,cad))
+				#TODO: Watts sensors ???
+
+		self.track_data["speed_gps"]=speed_gps_data
+		self.track_data["speed_foot"]=speed_foot_data
+		self.track_data["alt"]=alt_data
+		self.track_data["cad"]=cad_data
+		self.track_data["hf"]=hf_data
 		
 	def get_alt(self, samples=-1):
 		"""Returns list of (distance, altitude) tuples with optional given max length
@@ -41,26 +112,12 @@ class TCXTrack:
 		@returns (distance, altitude) tuples
 		@rtype: list
 		"""
-		alt_data = []
-		# take only first activity from file
-		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
-
-		for xmllap in xmlactivity.findall(self.xmlns + "Lap"):
-			for xmltrack in xmllap.findall(self.xmlns + "Track"):
-				for xmltp in xmltrack.findall(self.xmlns + "Trackpoint"):
-					try:
-						alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
-						distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-					except AttributeError:
-						pass
-					else:
-						alt_data.append((distance, alt))
 		if samples > 0:
-			if len(alt_data) > samples:
-				sample_size = len(alt_data) / samples
-				s = list(zip(*[iter(alt_data)]*sample_size))
+			if len(self.track_data["alt"]) > samples:
+				sample_size = len(self.track_data["alt"]) / samples
+				s = list(zip(*[iter(self.track_data["alt"])]*sample_size))
 				return map(avg, s)
-		return alt_data
+		return self.track_data["alt"]
 	
 	def get_cad(self, samples=-1):
 		"""Returns list of (distance, cadence) tuples with optional given max length
@@ -69,26 +126,12 @@ class TCXTrack:
 		@returns (distance, cadence) tuples
 		@rtype: list
 		"""
-		cad_data = []
-		# take only first activity from file
-		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
-
-		for xmllap in xmlactivity.findall(self.xmlns + "Lap"):
-			for xmltrack in xmllap.findall(self.xmlns + "Track"):
-				for xmltp in xmltrack.findall(self.xmlns + "Trackpoint"):
-					try:
-						cad = float(xmltp.find(self.xmlns + "Cadence").text)
-						distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-					except AttributeError:
-						pass
-					else:
-						cad_data.append((distance, cad))
 		if samples > 0:
-			if len(cad_data) > samples:
-				sample_size = len(cad_data) / samples
-				s = list(zip(*[iter(cad_data)]*sample_size))
+			if len(self.track_data["cad"]) > samples:
+				sample_size = len(self.track_data["cad"]) / samples
+				s = list(zip(*[iter(self.track_data["cad"])]*sample_size))
 				return map(avg, s)
-		return cad_data
+		return self.track_data["cad"]
 		
 	
 	def get_hf(self, samples=-1):
@@ -98,26 +141,12 @@ class TCXTrack:
 		@returns (distance, heartrate) tuples
 		@rtype: list
 		"""
-		hf_data = []
-		# take only first activity from file
-		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
-
-		for xmllap in xmlactivity.findall(self.xmlns + "Lap"):
-			for xmltrack in xmllap.findall(self.xmlns + "Track"):
-				for xmltp in xmltrack.findall(self.xmlns + "Trackpoint"):
-					try:
-						hf = int(xmltp.find(self.xmlns + "HeartRateBpm")[0].text)
-						distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-					except (TypeError, AttributeError):
-						pass
-					else:
-						hf_data.append((distance, hf))
 		if samples > 0:
-			if len(hf_data) > samples:
-				sample_size = len(hf_data) / samples
-				s = list(zip(*[iter(hf_data)]*sample_size))
+			if len(self.track_data["hf"]) > samples:
+				sample_size = len(self.track_data["hf"]) / samples
+				s = list(zip(*[iter(self.track_data["hf"])]*sample_size))
 				return map(avg, s)
-		return hf_data
+		return self.track_data["hf"]
 	
 	def get_speed(self, samples=-1, pace=False):
 		"""Returns list of (distance, heartrate) tuples with optional given max length
@@ -130,41 +159,31 @@ class TCXTrack:
 		last_time = None
 		last_distance = None
 		
-		print "Speed as pace: %s" % pace
+		#print "Speed as pace: %s" % pace
 		seconds_sum = 0		
 
-		# take only first activity from file
-		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
-
-		for xmllap in xmlactivity.findall(self.xmlns + "Lap"):
-			for xmltrack in xmllap.findall(self.xmlns + "Track"):
-				for xmltp in xmltrack.findall(self.xmlns + "Trackpoint"):
-					try:
-						time = parse_xsd_timestamp(xmltp.find(self.xmlns + "Time").text)
-						distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-					except (TypeError, AttributeError):
-						pass
+		
+		for (distance,time) in self.track_data["speed_gps"]:
+			if time and last_time and distance != None and last_distance != None:
+				td = (time - last_time)
+				td_seconds = (td.seconds + td.days * 24 * 3600)
+				seconds_sum = seconds_sum + td_seconds
+				dist = (distance - last_distance)
+				if td_seconds > 0 and dist > 0:
+					if pace:
+						speed = 1000.0/60.0 * td_seconds / dist
 					else:
-						if time and last_time and distance != None and last_distance != None:
-							td = (time - last_time)
-							td_seconds = (td.seconds + td.days * 24 * 3600)
-							seconds_sum = seconds_sum + td_seconds
-							dist = (distance - last_distance)
-							if td_seconds > 0 and dist > 0:
-								if pace:
-									speed = 1000.0/60.0 * td_seconds / dist
-								else:
-									speed = dist * 3.6 / td_seconds
-								# discard spikes
-								if pace and speed > 20:
-									continue
-									
-								speed_data.append((distance, speed))
-								last_distance = distance
-								last_time = time
-						if not last_time and not last_distance:
-							last_time = time
-							last_distance = distance
+						speed = dist * 3.6 / td_seconds
+					# discard spikes #FIXME: if we implement a filter in the display, we might not neglect this
+					if pace and speed > 20:
+						continue
+						
+					speed_data.append((distance, speed))
+					last_distance = distance
+					last_time = time
+			if not last_time and not last_distance:
+				last_time = time
+				last_distance = distance
 
 		if samples > 0:
 			if len(speed_data) > samples:
@@ -172,6 +191,19 @@ class TCXTrack:
 				s = list(zip(*[iter(speed_data)]*sample_size))
 				return map(avg, s)
 		return speed_data
+
+	def get_speed_foot(self, samples=-1):
+		#TODO: use this unified for all dict keys
+		key="speed_foot"
+		if samples > 0:
+			if len(self.track_data[key]):
+				sample_size = len(self.track_data[key]) / samples
+				s = list(zip(*[iter(self.track_data[key])]*sample_size))
+				return map(avg, s)
+		return self.track_data[key]
+
+	def get_speed_gps(self, samples=-1, pace=False):
+		return get_speed(samples,pace)
 
 def activities_summary(activities):
 	"""returns summary dictionary for list of activities

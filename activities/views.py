@@ -740,7 +740,7 @@ def settings(request):
 			logging.exception("Exception occured in settings")
 
 		if activity_time > 0:
-			equipment.speed = round(float(activity_distance) * 3600.0 / activity_time, 2)
+			equipment.speed = round(float(activity_distance['distance__sum']) * 3600.0 / activity_time['time__sum'], 2)
 		else:
 			equipment.speed = "-"
 

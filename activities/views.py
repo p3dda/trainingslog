@@ -555,7 +555,7 @@ def detail(request, activity_id):
 			else:
 				weight = None
 	
-			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplastes': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'public': public})
+			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'public': public})
 		else:
 			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': tcx, 'public': public})
 	if param == 'plots':

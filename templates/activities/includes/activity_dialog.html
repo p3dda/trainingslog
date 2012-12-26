@@ -349,7 +349,7 @@
 		}
 		
 		function onDataReceived(data) {
-			
+			// Populate dialog with received data if data is not null
 			var fields = data[0].fields;
 			regexp = /(\d{4})-(\d{2})-(\d{2})[T| ](\d{2}):(\d{2}):(\d{2})/g;
 			dateArray = regexp.exec(fields.date); 
@@ -366,36 +366,76 @@
 				$("#new_act_datetime").timepicker("setTime", dateArray[4] + ':' + dateArray[5] + ':' + dateArray[6])
 			}
 			
-			$("#new_act_name").val(fields.name);
-			$("#new_act_comment").val(fields.comment);
-			$("#new_act_time").val(secondsToTime(fields.time));
-			$("#new_act_distance").val(fields.distance);
-			$("#new_act_calories").val(fields.calories);
+			if(fields.name != null){
+				$("#new_act_name").val(fields.name);
+			}
+			if(fields.comment != null){
+				$("#new_act_comment").val(fields.comment);
+			}
+			if(fields.time != null){
+				$("#new_act_time").val(secondsToTime(fields.time));
+			}
+			if(fields.distance != null){
+				$("#new_act_distance").val(fields.distance);
+			}
+			if(fields.calories != null){
+				$("#new_act_calories").val(fields.calories);
+			}
 
 			$("#new_act_sport").val(fields.sport)
 			$("#new_act_event").val(fields.event)
 
 			for( var i in fields.equipment) {
-				$("#new_act_equipment option[value="+fields.equipment[i]+"]").attr('selected',true);
+				$('#new_act_equipment option').filter(function(){
+					return this.value == fields.equipment[i];
+				}).prop("selected", true);
 			}
 			
-			$("#new_act_cadence_avg").val(fields.cadence_avg); 
-			$("#new_act_cadence_max").val(fields.cadence_max); 
-			$("#new_act_elevation_gain").val(fields.elevation_gain); 
-			$("#new_act_elevation_loss").val(fields.elevation_loss); 
-			$("#new_act_elevation_min").val(fields.elevation_min); 
-			$("#new_act_elevation_max").val(fields.elevation_max); 
-			$("#new_act_hr_max").val(fields.hf_max); 
-			$("#new_act_hr_avg").val(fields.hf_avg); 
+			if(fields.time != null){
+				$("#new_act_cadence_avg").val(fields.cadence_avg); 
+			}
+			if(fields.cadence_max != null){
+				$("#new_act_cadence_max").val(fields.cadence_max); 
+			}
+			if(fields.elevation_gain != null){
+				$("#new_act_elevation_gain").val(fields.elevation_gain); 
+			}
+			if(fields.elevation_loss != null){
+				$("#new_act_elevation_loss").val(fields.elevation_loss); 
+			}
+			if(fields.elevation_min != null){
+				$("#new_act_elevation_min").val(fields.elevation_min); 
+			}
+			if(fields.elevation_max != null){
+				$("#new_act_elevation_max").val(fields.elevation_max); 
+			}
+			if(fields.hf_max != null){
+				$("#new_act_hr_max").val(fields.hf_max); 
+			}
+			if(fields.hf_avg != null){
+				$("#new_act_hr_avg").val(fields.hf_avg); 
+			}
 			
 			if(sport_data[fields.sport]["pace"]){
-				$("#new_act_speed_max").val(speedToPace(fields.speed_max)); 
-				$("#new_act_speed_avg").val(speedToPace(fields.speed_avg)); 
-				$("#new_act_speed_avg_movement").val(speedToPace(fields.speed_avg_movement));
+				if(fields.speed_max != null){
+					$("#new_act_speed_max").val(speedToPace(fields.speed_max)); 
+				}
+				if(fields.speed_avg != null){
+					$("#new_act_speed_avg").val(speedToPace(fields.speed_avg)); 
+				}
+				if(fields.speed_avg_movement != null){
+					$("#new_act_speed_avg_movement").val(speedToPace(fields.speed_avg_movement));
+				}
 			} else {
-				$("#new_act_speed_max").val(fields.speed_max); 
-				$("#new_act_speed_avg").val(fields.speed_avg); 
-				$("#new_act_speed_avg_movement").val(fields.speed_avg_movement);
+				if(fields.speed_max != null){
+					$("#new_act_speed_max").val(fields.speed_max); 
+				}
+				if(fields.speed_avg != null){
+					$("#new_act_speed_avg").val(fields.speed_avg); 
+				}
+				if(fields.speed_avg_movement != null){
+					$("#new_act_speed_avg_movement").val(fields.speed_avg_movement);
+				}
 			}
 			if(fields.time_elapsed != null) {
 				$("#new_act_elapsed_time").val(secondsToTime(fields.time_elapsed));

@@ -11,8 +11,10 @@
 <script type="text/javascript">
 	{% if activity.sport.speed_as_pace %}
 		var speed_as_pace = true;
+		var speed_unit = "Minuten/km";
 	{% else %}
 		var speed_as_pace = false;
+		var speed_unit = "km/h";
 	{% endif %}
 	
 	var distanceSuffixFormatter = function(val, axis) {
@@ -22,6 +24,19 @@
 				return val.toFixed(axis.tickDecimals) + "m";
 		};
 
+{% if tcx %}
+        var graphs = [
+               { "name": "hf", "dataname": "hf", "label": "HF", "rounding": 0, "unit": "/ Minute"},
+               { "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "rounding": 1, "unit": speed_unit},
+               { "name": "alt", "dataname": "altitude", "label": "Hoehe", "rounding": 0, "unit": "m"},
+               { "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "rounding": 0, "unit": "/ Minute"}
+           ];	
+{% else %}
+	var graphs = [];
+}
+console.debug("Graph is now "+graphs);
+{% endif %}
+
 	$(document).ready(function() {
 		$( "#details_overview" ).accordion({collapsible: true});
 		$( "#details_details" ).accordion({collapsible: true});
@@ -29,62 +44,46 @@
 		$( "#details_tabs" ).tabs();
 {% if tcx %}
 		$( "#details_map" ).accordion({collapsible: true});
-		$( "#details_hf" ).accordion({collapsible: true});
-		$( "#details_speed" ).accordion({collapsible: true});
-		$( "#details_alt" ).accordion({collapsible: true});
-		$( "#details_cad" ).accordion({collapsible: true});
+		for (var i in graphs) {
+			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
+		}
 		init_map();
 		plot_graphs();
 {% endif %}
 	});
 
 {% if tcx %}
+	plot_data = new Object();
 	var plot_graphs = function() {
 		var url = "/activities/{{ activity.id }}/?p=plots";
+	function cloneObject(obj) {
+        	var clone = {};
+        	for(var i in obj) {
+            	if(typeof(obj[i])=="object")
+                	clone[i] = cloneObject(obj[i]);
+            	else
+                	clone[i] = obj[i];
+        	}
+        	return clone;
+    	}
+	function ticks_generator_pace(axis) {
+		return secondsToTime(axis*60, with_hours=false);
+	}
 
 		function onDataReceived(data) {
-			plothf_data = new Object();
-			plothf_data["data"] = data["hf"];
-			plothf_data["label"] = "HF = 0.0";
-			plothf_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
-			plothf_data["points"] = {"show": false};
-			plothf_data["color"] = "#0070A3";
-
-			plotcad_data = new Object();
-			plotcad_data["data"] = data["cadence"];
-			plotcad_data["label"] = "Cadence = 0.0";
-			plotcad_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
-			plotcad_data["points"] = {"show": false};
-			plotcad_data["color"] = "#0070A3";
-
-			plotalt_data = new Object();
-			plotalt_data["data"] = data["altitude"];
-			plotalt_data["label"] = "Hoehe = 0.0";
-			plotalt_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
-			plotalt_data["points"] = {"show": false};
-			plotalt_data["color"] = "#0070A3";
-
-			plotspeed_data = new Object();
-			plotspeed_data["data"] = data["speed"];
-			plotspeed_data["label"] = "Geschwindigkeit = 0.0";
-			plotspeed_data["lines"] = {"show": true, "lineWidth": 1, "fill": 0.2};
-			plotspeed_data["points"] = {"show": false};
-			plotspeed_data["color"] = "#0070A3";
-
-			if (plothf_data["data"].length == 0) {
-				$("#details_hf").hide();
+			console.log("onDataReceived called graphs is "+graphs);
+			for (i in graphs) {
+				plot_data[graphs[i]["name"]]=new Object();
+				plot_data[graphs[i]["name"]]["data"]=data[graphs[i]["dataname"]];
+				plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
+				plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
+				plot_data[graphs[i]["name"]]["points"]={"show": false};
+				plot_data[graphs[i]["name"]]["color"]="#0070A3";
+				if (plot_data[graphs[i]["name"]].length == 0) {
+					$("#details_"+graphs[i]["name"]).hide();
+				}
 			}
-			if (plotspeed_data["data"].length == 0) {
-				$("#details_speed").hide();
-			}
-			if (plotcad_data["data"].length == 0) {
-				$("#details_cad").hide();
-			}
-			if (plotalt_data["data"].length == 0) {
-				$("#details_alt").hide();
-			}
-
-			var plotalt = $.plot($("#details_alt_container"), [plotalt_data], {
+			plot_default_options = {
 				xaxis : {
 					tickDecimals: "1",
 					tickFormatter: distanceSuffixFormatter
@@ -96,69 +95,39 @@
 					hoverable : true,
 					autoHighlight : false
 				},
-			});
-			var plotcad = $.plot($("#details_cad_container"), [plotcad_data], {
-				xaxis : {
-					tickDecimals: "1",
-					tickFormatter: distanceSuffixFormatter
-				},
-				crosshair : {
-					mode : "x"
-				},
-				grid : {
-					hoverable : true,
-					autoHighlight : false
-				},
-			});
-			var plothf = $.plot($("#details_hf_container"), [plothf_data], {
-				xaxis : {
-					tickDecimals: "1",
-					tickFormatter: distanceSuffixFormatter
-				},
-				crosshair : {
-					mode : "x"
-				},
-				grid : {
-					hoverable : true,
-					autoHighlight : false
-				},
-			});
-			var plotspeed = $.plot($("#details_speed_container"), [plotspeed_data], {
-				xaxis : {
-					tickDecimals: "1",
-					tickFormatter: distanceSuffixFormatter
-				},
-				crosshair : {
-					mode : "x"
-				},
-				grid : {
-					hoverable : true,
-					autoHighlight : false
-				},
-			});
+				selection: { mode: "x" }
+			}
 
-			var legend_hf = $("#details_hf_container .legendLabel");
-			legend_hf.each(function() {
-				// fix the widths so they don't jump around
-				$(this).css('width', $(this).width());
-			});
-			var legend_speed = $("#details_speed_container .legendLabel");
-			legend_speed.each(function() {
-				// fix the widths so they don't jump around
-				$(this).css('width', $(this).width());
-			});
-			var legend_alt = $("#details_alt_container .legendLabel");
-			legend_alt.each(function() {
-				// fix the widths so they don't jump around
-				$(this).css('width', $(this).width());
-			});
-			var legend_cad = $("#details_cad_container .legendLabel");
-			legend_cad.each(function() {
-				// fix the widths so they don't jump around
-				$(this).css('width', $(this).width());
-			});
+			pace_plot = {
+				transform: function(v) { return -v; },
+				inverseTransform: function (v) { return -v; },
+				ticks: function (axis) {
+					var res = [], i = Math.floor(axis.min);
+					do {
+						res.push([i,secondsToTime(i*60, with_hours=false)]);
+						i=i+0.5;
+					} while (i<axis.max);
+					return res;
+				},
+				min: 2,
+				max: 8
+			}
+				
+			var plots = new Object();
+			var legends = new Object();
+			for (var i in graphs) {
+				plot_options = cloneObject(plot_default_options);
 
-
+				if ((graphs[i]["name"]=="speed") && speed_as_pace) {
+					plot_options["yaxis"]=pace_plot;
+				}
+				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
+				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
+				legends[graphs[i]["name"]].each(function() {
+					$(this).css('width', $(this).width());
+				});
+			}
+			
 			var updateLegendTimeout = null;
 			var latestPosition = null;
 
@@ -167,10 +136,9 @@
 
 				var pos = latestPosition;
 				
-				var plotlist = [[plothf, legend_hf], [plotspeed, legend_speed], [plotcad, legend_cad], [plotalt, legend_alt]];
-				for (var p = 0; p < plotlist.length; p++) {
-					plot = plotlist[p][0];
-					legend = plotlist[p][1];
+				for (var graph in graphs) {
+					plot = plots[graphs[graph]["name"]];
+					legend = legends[graphs[graph]["name"]];
 
 					plot.setCrosshair(pos);
 					axes = plot.getAxes();
@@ -194,36 +162,22 @@
 							y = p1[1];
 						else
 							y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
-							
-						if(plot == plotspeed && speed_as_pace){
-							legend.eq(i).text(series.label.replace(/=.*/, "= " + secondsToTime(y*60, with_hours=false)));
-						} else {
-							legend.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
+						if (graphs[graph]["unit"]=="Minuten/km") {
+							newvalue = secondsToTime(y*60, with_hours=false);
+						} else {
+							newvalue = y.toFixed(graphs[graph]["rounding"]);
 						}
+						legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
 					}
 				}
 			}
-
-			$("#details_hf_container").bind("plothover", function(event, pos, item) {
-				latestPosition = pos;
-				if(!updateLegendTimeout)
-					updateLegendTimeout = setTimeout(updateLegend, 50);
-			});
-			$("#details_speed_container").bind("plothover", function(event, pos, item) {
-				latestPosition = pos;
-				if(!updateLegendTimeout)
-					updateLegendTimeout = setTimeout(updateLegend, 50);
-			});
-			$("#details_alt_container").bind("plothover", function(event, pos, item) {
-				latestPosition = pos;
-				if(!updateLegendTimeout)
-					updateLegendTimeout = setTimeout(updateLegend, 50);
-			});
-			$("#details_cad_container").bind("plothover", function(event, pos, item) {
-				latestPosition = pos;
-				if(!updateLegendTimeout)
-					updateLegendTimeout = setTimeout(updateLegend, 50);
-			});
+			for (var graph in graphs) {
+				$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
+					latestPosition = pos;
+					if(!updateLegendTimeout)
+						updateLegendTimeout = setTimeout(updateLegend, 50);
+				});
+			}
 			return data;
 
 		}

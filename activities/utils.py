@@ -192,15 +192,26 @@ class TCXTrack:
 				return map(avg, s)
 		return speed_data
 
-	def get_speed_foot(self, samples=-1):
-		#TODO: use this unified for all dict keys
-		key="speed_foot"
+	def get_speed_foot(self, samples=-1, pace=False, calib=1.0):
+		speed_data = []
+		for (distance,speed) in self.track_data["speed_foot"]:
+			if pace:
+				if speed==0:
+					speed=0
+				else:
+					speed = 60 / (speed*3.6) * calib # m/s => min/km
+			else:
+				speed = speed * 3.6 * calib  # to km/h 
+				if pace and speed> 20:
+					continue
+			speed_data.append((distance,speed))
+
 		if samples > 0:
-			if len(self.track_data[key]):
-				sample_size = len(self.track_data[key]) / samples
-				s = list(zip(*[iter(self.track_data[key])]*sample_size))
+			if len(speed_data):
+				sample_size = len(speed_data) / samples
+				s = list(zip(*[iter(speed_data)]*sample_size))
 				return map(avg, s)
-		return self.track_data[key]
+		return speed_data
 
 	def get_speed_gps(self, samples=-1, pace=False):
 		return get_speed(samples,pace)

@@ -565,10 +565,11 @@ def detail(request, activity_id):
 			data = {'altitude': tcxtrack.get_alt(200),
 					'cadence': tcxtrack.get_cad(200),
 					'hf': tcxtrack.get_hf(200),
-					'speed': tcxtrack.get_speed(200, act.sport.speed_as_pace)
+					'speed': tcxtrack.get_speed(200, act.sport.speed_as_pace),
+					'speed_foot': tcxtrack.get_speed_foot(200, act.sport.speed_as_pace) # TODO: calibration factor configurable
 					}
 			
-			return HttpResponse(simplejson.dumps(data))
+			return HttpResponse(json.dumps(data, sort_keys=True, indent=4),content_type="text/plain")
 	
 	# last resort
 	return Http404()
@@ -769,7 +770,7 @@ def importtrack(request, newtrack):
 
 	# create new activity from file
 	# Event/sport is only dummy for now, make selection after import
-	event = Event.objects.filter(user=request.user)[0]
+	event = Event.objects.filter(user=request.user)[0] #FIXME: there must always be a event and sport definied
 	sport = Sport.objects.filter(user=request.user)[0]
 	
 	activity = Activity(name="")

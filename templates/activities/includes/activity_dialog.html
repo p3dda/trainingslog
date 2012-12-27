@@ -216,8 +216,10 @@
 					$.post("/activities/delete/", {
 							id: $("#activity_delete_id_input").val()
 						}, function(data) {
-						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
-					}, "json");
+							location.href="/activities/";
+							//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
+							
+						}, "json");
 					$( this ).dialog( "close" );
 				},
 				"Abbrechen": function() {
@@ -572,9 +574,10 @@
 					
 					console.debug(data);
 					if (data["success"]) {
-//						noty({text: "Aktivitaet gespeichert", type: 'success', timeout: 5000});
 						$("#activity_dialog").dialog("close");
-						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax 
+
+						// redirect to activity in non-edit mode
+						location.href = window.location.pathname;
 					} else {
 						noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
 					}

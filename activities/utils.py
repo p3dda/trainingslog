@@ -72,7 +72,7 @@ class TCXTrack:
 			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
 			if not hrt is None:
 				if hrt.get(self.xml_instance+"type")!="HeartRateInBeatsPerMinute_t":
-					logger.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
+					logging.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
 				else:
 					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
 						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)

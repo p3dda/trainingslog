@@ -77,13 +77,10 @@ class TCXTrack:
 			# Locate heart rate in beats per minute
 			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
 			if not hrt is None:
-				if hrt.get(self.xml_instance+"type")!="HeartRateInBeatsPerMinute_t":
-					logging.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
-				else:
-					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
-						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
-						self.track_by_distance[distance]["hf"]=hf
-						hf_data.append((distance,hf))
+				if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
+					hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
+					self.track_by_distance[distance]["hf"]=hf
+					hf_data.append((distance,hf))
 
 			# Locate time stamps for speed calculation based on GPS
 			if hasattr(xmltp.find(self.xmlns + "Time"),"text"):

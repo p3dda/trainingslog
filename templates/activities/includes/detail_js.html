@@ -105,9 +105,7 @@ console.debug("Graph is now "+graphs);
 						i=i+0.5;
 					} while (i<axis.max);
 					return res;
-				},
-				min: 2,
-				max: 8
+				}
 			}
 				
 			var plots = new Object();
@@ -117,6 +115,17 @@ console.debug("Graph is now "+graphs);
 
 				if ((graphs[i]["name"]=="speed") && speed_as_pace) {
 					plot_options["yaxis"]=pace_plot;
+					var avg=0;
+					var min=plot_data[graphs[i]["dataname"]]["data"][0][1];
+					for (var j=0; j<plot_data[graphs[i]["dataname"]]["data"].length; j++) {
+						avg=avg+plot_data[graphs[i]["dataname"]]["data"][j][1];
+						if (plot_data[graphs[i]["dataname"]]["data"][j][1]<min)
+							min=plot_data[graphs[i]["dataname"]]["data"][j][1];
+					}
+					avg=avg/plot_data[graphs[i]["dataname"]]["data"].length;
+					console.debug("Speed average is "+avg);
+					plot_options["yaxis"]["min"]=Math.floor(min);
+					plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
 				}
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");

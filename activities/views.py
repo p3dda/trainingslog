@@ -3,6 +3,7 @@ from base64 import b64decode
 import json
 import copy
 import datetime
+import dateutil.parser
 import os
 import tempfile
 import time
@@ -33,7 +34,7 @@ if not found_xml_parser:
 from activities.extras import tcx2gpx
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
 from activities.forms import ActivityForm,  EventForm, EquipmentForm
-from activities.utils import activities_summary, int_or_none, float_or_none, str_float_or_none, pace_to_speed, speed_to_pace, parse_xsd_timestamp, seconds_to_time, TCXTrack
+from activities.utils import activities_summary, int_or_none, float_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time, TCXTrack
 
 
 from health.models import Desease, Weight, Goal
@@ -562,11 +563,11 @@ def detail(request, activity_id):
 		if act.track:
 			tcxtrack = TCXTrack(act.track)
 			
-			data = {'altitude': tcxtrack.get_alt(200),
-					'cadence': tcxtrack.get_cad(200),
-					'hf': tcxtrack.get_hf(200),
-					'speed': tcxtrack.get_speed(200, act.sport.speed_as_pace),
-					'speed_foot': tcxtrack.get_speed_foot(200, act.sport.speed_as_pace) # TODO: calibration factor configurable
+			data = {'altitude': tcxtrack.get_alt(),
+					'cadence': tcxtrack.get_cad(),
+					'hf': tcxtrack.get_hf(),
+					'speed': tcxtrack.get_speed(act.sport.speed_as_pace),
+					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace)
 					}
 			
 			return HttpResponse(json.dumps(data, sort_keys=True, indent=4),content_type="text/plain")
@@ -770,8 +771,16 @@ def importtrack(request, newtrack):
 
 	# create new activity from file
 	# Event/sport is only dummy for now, make selection after import
-	event = Event.objects.filter(user=request.user)[0] #FIXME: there must always be a event and sport definied
-	sport = Sport.objects.filter(user=request.user)[0]
+	events = Event.objects.filter(user=request.user) #FIXME: there must always be a event and sport definied
+	sports = Sport.objects.filter(user=request.user)
+
+	if events is None or len(event)==0:
+		raise RuntimeError("There must be a event type defined. Please define one first.")
+	if sports is None or len(sport)==0:
+		raise RuntimeError("There must be a sport type defined. Please define one first.")
+
+	event = events[0]
+	sport = sports[0]
 	
 	activity = Activity(name="")
 	activity.user = request.user
@@ -781,8 +790,7 @@ def importtrack(request, newtrack):
 	
 	laps = []
 	for xmllap in xmlactivity.findall(xmlns + "Lap"):
-		#date = datetime.datetime.strptime(xmllap.get("StartTime"), "%Y-%m-%dT%H:%M:%SZ")
-		date = parse_xsd_timestamp(xmllap.get("StartTime"))
+		date = dateutil.parser.parse(xmllap.get("StartTime"))
 		time = int(float(xmllap.find(xmlns+"TotalTimeSeconds").text))
 		distance = str(float(xmllap.find(xmlns+"DistanceMeters").text)/1000)
 		if xmllap.find(xmlns+"MaximumSpeed") is None:

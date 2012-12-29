@@ -1,4 +1,5 @@
 import datetime
+import dateutil.parser
 import logging
 import re
 import time
@@ -39,6 +40,7 @@ class TCXTrack:
 		#logging.debug("Trackfile %r closed" % tcxfile.trackfile)
 
 		self.track_data={}
+		self.track_by_distance={}
 		self.parse_trackpoints()
 
 	def parse_trackpoints(self):
@@ -58,13 +60,17 @@ class TCXTrack:
 				continue
 
 			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)	
+			if not self.track_by_distance.has_key(distance):
+				self.track_by_distance[distance]={}
 			# Get altitude
 			if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
 				alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
+				self.track_by_distance[distance]["alt"]=alt
 				alt_data.append((distance,alt))
 			# Get Cadence data (from Bike cadence sensor)
 			if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
 				cad = int(xmltp.find(self.xmlns + "Cadence").text)
+				self.track_by_distance[distance]["cad"]=cad
 				cad_data.append((distance,cad))
 
 			# Locate heart rate in beats per minute
@@ -75,12 +81,16 @@ class TCXTrack:
 				else:
 					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
 						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
+						self.track_by_distance[distance]["hf"]=hf
 						hf_data.append((distance,hf))
 
 			# Locate time stamps for speed calculation based on GPS
 			if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-				time = parse_xsd_timestamp(xmltp.find(self.xmlns + "Time").text)
+				time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text) 
+				self.track_by_distance[distance]["gps"]=time
 				speed_gps_data.append((distance,time))
+
+			#FIXME: gather positions also
 
 			# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
 			ext=xmltp.find(self.xmlns + "Extensions")
@@ -91,11 +101,13 @@ class TCXTrack:
 				if not xmltpx is None and xmltpx.get("CadenceSensor")=="Footpod":
 					if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
 						speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
+						self.track_by_distance[distance]["speed_footpod"]=speed
 						speed_foot_data.append((distance,speed))
 					if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
 						# Only copy cadence data if no other Cadence data (from bike) is present
 						if cad is None:
 							cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
+							self.track_by_distance[distance]["cad"]=cad
 							cad_data.append((distance,cad))
 				#TODO: Watts sensors ???
 
@@ -105,115 +117,148 @@ class TCXTrack:
 		self.track_data["cad"]=cad_data
 		self.track_data["hf"]=hf_data
 		
-	def get_alt(self, samples=-1):
+	def get_alt(self):
 		"""Returns list of (distance, altitude) tuples with optional given max length
-		@param samples: Max number of samples
-		@type samples: int
 		@returns (distance, altitude) tuples
 		@rtype: list
 		"""
-		if samples > 0:
-			if len(self.track_data["alt"]) > samples:
-				sample_size = len(self.track_data["alt"]) / samples
-				s = list(zip(*[iter(self.track_data["alt"])]*sample_size))
-				return map(avg, s)
 		return self.track_data["alt"]
 	
-	def get_cad(self, samples=-1):
+	def get_cad(self):
 		"""Returns list of (distance, cadence) tuples with optional given max length
-		@param samples: Max number of samples
-		@type samples: int
 		@returns (distance, cadence) tuples
 		@rtype: list
 		"""
-		if samples > 0:
-			if len(self.track_data["cad"]) > samples:
-				sample_size = len(self.track_data["cad"]) / samples
-				s = list(zip(*[iter(self.track_data["cad"])]*sample_size))
-				return map(avg, s)
 		return self.track_data["cad"]
 		
 	
-	def get_hf(self, samples=-1):
+	def get_hf(self):
 		"""Returns list of (distance, heartrate) tuples with optional given max length
-		@param samples: Max number of samples
-		@type samples: int
 		@returns (distance, heartrate) tuples
 		@rtype: list
 		"""
-		if samples > 0:
-			if len(self.track_data["hf"]) > samples:
-				sample_size = len(self.track_data["hf"]) / samples
-				s = list(zip(*[iter(self.track_data["hf"])]*sample_size))
-				return map(avg, s)
 		return self.track_data["hf"]
 	
-	def get_speed(self, samples=-1, pace=False):
+	def get_speed(self, pace=False):
 		"""Returns list of (distance, heartrate) tuples with optional given max length
-		@param samples: Max number of samples
-		@type samples: int
 		@returns (distance, heartrate) tuples
 		@rtype: list
 		"""
-		speed_data = []
-		last_time = None
-		last_distance = None
-		
-		#print "Speed as pace: %s" % pace
-		seconds_sum = 0		
 
-		
-		for (distance,time) in self.track_data["speed_gps"]:
-			if time and last_time and distance != None and last_distance != None:
-				td = (time - last_time)
-				td_seconds = (td.seconds + td.days * 24 * 3600)
-				seconds_sum = seconds_sum + td_seconds
-				dist = (distance - last_distance)
-				if td_seconds > 0 and dist > 0:
-					if pace:
-						speed = 1000.0/60.0 * td_seconds / dist
-					else:
-						speed = dist * 3.6 / td_seconds
-					# discard spikes #FIXME: if we implement a filter in the display, we might not neglect this
-					if pace and speed > 20:
+		MAX_OFFSET=10
+		MAX_OFFSET_AVG=20
+		MAX_DIST=100.0
+		MAX_DIST_AVG=100.0
+		speed_data_pos=[]
+		speed_data=[]
+
+		# Get all distances recorded, which are keys
+		dist_points=self.track_by_distance.keys()
+		# Sort them
+		dist_points.sort()
+
+		speed_avg=0.0
+		count_avg=0
+
+		# Go through all distances in the sorted list
+		for i in range(0,len(dist_points)):
+			# get the current (fixed) position, for which we calculate the speed from GPS time information
+			fix_pos=dist_points[i]
+			# if no GPS time recorded, skip the current fix_pos
+			if not self.track_by_distance[fix_pos].has_key("gps"):
+				continue
+			min_pos=i-MAX_OFFSET
+
+			if min_pos<0:
+				min_pos=0
+
+			speed=count=0
+			# Go through previous points and calculate speed using all the previous positions
+			for pos in range(i,min_pos,-1):
+				if i==fix_pos:
+					continue
+				new_pos=dist_points[pos]
+				if not self.track_by_distance[new_pos].has_key("gps"):
+					continue
+				dist_diff=fix_pos-new_pos
+				if dist_diff>MAX_DIST:
+					break
+				#logging.debug("Current fix_pos num %i is %f and new_pos num %i is %f" % (i,fix_pos,pos,new_pos))
+				assert dist_diff>=0
+				time_diff=self.track_by_distance[fix_pos]["gps"]-self.track_by_distance[new_pos]["gps"]
+				time_diff_s=time_diff.seconds + time_diff.days*24*3600 #FIXME: month and year changes are not calculated here
+				if time_diff_s > 0 and dist_diff > 0:
+					speed=speed+dist_diff/time_diff_s
+					count+=1
+			# if we have at least one position, store it as gps_speed
+			if count>0:
+				speed=speed/count
+				self.track_by_distance[fix_pos]["gps_speed"]=speed
+				count_avg+=1
+				speed_avg=speed_avg+speed
+		speed_avg=speed_avg/count_avg
+
+		max_speedchange_avg=speed_avg/3.6 # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
+
+		logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
+
+		# now average over all speed using speed info in forward and backward direction
+		for i in range(0,len(dist_points)):
+			fix_pos=dist_points[i]
+			if not self.track_by_distance[fix_pos].has_key("gps"):
+				continue
+			min_pos=i-MAX_OFFSET_AVG
+			max_pos=i+MAX_OFFSET_AVG
+			if min_pos<0:
+				min_pos=0
+			if max_pos>=len(dist_points):
+				max_pos=len(dist_points)-1
+			speed=count=0
+			if self.track_by_distance[fix_pos].has_key("gps_speed"):
+				cur_speed=self.track_by_distance[fix_pos]["gps_speed"]
+			else:
+				cur_speed=None
+			for pos in range(min_pos,max_pos):
+				new_pos=dist_points[pos]
+				if not self.track_by_distance[new_pos].has_key("gps_speed"):
+					continue
+				# If we reached the maximum difference in distance, skip these points
+				if new_pos-fix_pos>MAX_DIST_AVG:
+					break
+				if abs(new_pos-fix_pos)>MAX_DIST_AVG:
+					continue
+				if cur_speed!=None:
+					if abs(cur_speed-self.track_by_distance[new_pos]["gps_speed"])>max_speedchange_avg:
 						continue
-						
-					speed_data.append((distance, speed))
-					last_distance = distance
-					last_time = time
-			if not last_time and not last_distance:
-				last_time = time
-				last_distance = distance
 
-		if samples > 0:
-			if len(speed_data) > samples:
-				sample_size = len(speed_data) / samples
-				s = list(zip(*[iter(speed_data)]*sample_size))
-				return map(avg, s)
+				speed=speed+self.track_by_distance[new_pos]["gps_speed"]
+				count=count+1
+			if count>0:
+				speed=speed/count
+				if pace:
+					speed = 1000.0/60.00/speed # convert to min/km
+				else:
+					speed = speed*3.6 # convert to km/h
+				speed_data.append((fix_pos,speed))
 		return speed_data
 
-	def get_speed_foot(self, samples=-1, pace=False, calib=1.0):
+		
+	def get_speed_foot(self, pace=False):
 		speed_data = []
 		for (distance,speed) in self.track_data["speed_foot"]:
 			if pace:
 				if speed==0:
 					speed=0
 				else:
-					speed = 60 / (speed*3.6) * calib # m/s => min/km
+					speed = 60 / (speed*3.6) 
 			else:
-				speed = speed * 3.6 * calib  # to km/h 
+				speed = speed * 3.6
 				if pace and speed> 20:
 					continue
 			speed_data.append((distance,speed))
-
-		if samples > 0:
-			if len(speed_data):
-				sample_size = len(speed_data) / samples
-				s = list(zip(*[iter(speed_data)]*sample_size))
-				return map(avg, s)
 		return speed_data
 
-	def get_speed_gps(self, samples=-1, pace=False):
+	def get_speed_gps(self, pace=False):
 		return get_speed(samples,pace)
 
 def activities_summary(activities):
@@ -306,25 +351,3 @@ def speed_to_pace(speed):
 	"""
 	seconds = 3600 / speed
 	return seconds_to_time(seconds)
-
-def parse_xsd_timestamp(s):
-	"""Returns datetime in minutes or None."""
-	m = re.match(""" ^(?P<year>-?[0-9]{4}) - (?P<month>[0-9]{2}) - (?P<day>[0-9]{2})T (?P<hour>[0-9]{2}) : (?P<minute>[0-9]{2}) : (?P<second>[0-9]{2})(?P<microsecond>\.[0-9]{1,6})?((?P<tz>Z) | (?P<tz_hr>[-+][0-9]{2}) : (?P<tz_min>[0-9]{2}))?$ """, s, re.X)
-	if m is not None:
-		values = m.groupdict()
-			
-		if values["microsecond"] is None:
-			values["microsecond"] = 0
-		else:
-			values["microsecond"] = values["microsecond"][1:]
-			values["microsecond"] += "0" * (6 - len(values["microsecond"]))
-		values = dict((k, int(v)) for k, v in values.iteritems() if not k.startswith("tz"))
-		try:
-			timestamp = datetime.datetime(**values)
-			timestamp = timestamp - datetime.timedelta(seconds=time.altzone)
-##			if values["tz"] == "Z":
-
-			return timestamp
-		except ValueError:
-			pass
-	return None

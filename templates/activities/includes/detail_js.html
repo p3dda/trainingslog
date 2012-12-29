@@ -66,9 +66,6 @@ console.debug("Graph is now "+graphs);
         	}
         	return clone;
     	}
-	function ticks_generator_pace(axis) {
-		return secondsToTime(axis*60, with_hours=false);
-	}
 
 		function onDataReceived(data) {
 			console.log("onDataReceived called graphs is "+graphs);
@@ -79,7 +76,7 @@ console.debug("Graph is now "+graphs);
 				plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
 				plot_data[graphs[i]["name"]]["points"]={"show": false};
 				plot_data[graphs[i]["name"]]["color"]="#0070A3";
-				if (plot_data[graphs[i]["name"]].length == 0) {
+				if (plot_data[graphs[i]["name"]]["data"].length == 0) {
 					$("#details_"+graphs[i]["name"]).hide();
 				}
 			}

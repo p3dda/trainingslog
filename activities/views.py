@@ -795,9 +795,9 @@ def importtrack(request, newtrack):
 	events = Event.objects.filter(user=request.user) #FIXME: there must always be a event and sport definied
 	sports = Sport.objects.filter(user=request.user)
 
-	if events is None or len(event)==0:
+	if events is None or len(events)==0:
 		raise RuntimeError("There must be a event type defined. Please define one first.")
-	if sports is None or len(sport)==0:
+	if sports is None or len(sports)==0:
 		raise RuntimeError("There must be a sport type defined. Please define one first.")
 
 	event = events[0]

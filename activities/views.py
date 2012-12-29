@@ -8,6 +8,7 @@ import os
 import tempfile
 import time
 import traceback
+import urllib2
 import logging
 
 found_xml_parser=False
@@ -50,6 +51,7 @@ from django.db.models import Sum
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.files.base import File
+from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings as django_settings
 
 @login_required
@@ -503,10 +505,29 @@ def detail(request, activity_id):
 		else:
 			return HttpResponseForbidden()
 
+	try:
+		fb_app_id = django_settings.FACEBOOK_APP_ID
+	except AttributeError:
+		fb_app_id = False
+
 	if act.track:
 		tcx = act.track.trackfile
+		
+		#check if preview image is missing
+		if not act.track.preview_img:
+			logging.debug("No preview image found")
+			create_preview(act.track)
+
+		# build absolute URL with domain part for preview image
+		# https seems not to be supported by facebook
+		if act.track.preview_img:
+			preview_img = request.build_absolute_uri(act.track.preview_img.url).replace("https://", "http://")
+		else:
+			preview_img = None
+			
 	else:
 		tcx = None
+		preview_img = None
 	
 	if not param:
 		# no parameter given, reply with activity detail template
@@ -555,8 +576,8 @@ def detail(request, activity_id):
 				weight = weight[0]
 			else:
 				weight = None
-	
-			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'public': public})
+			
+			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
 		else:
 			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': tcx, 'public': public})
 	if param == 'plots':
@@ -934,11 +955,32 @@ def importtrack(request, newtrack):
 	for lap in laps:
 		lap.activity = activity
 		lap.save()
-	#return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
+	
+	# generate preview image for track
+	create_preview(activity.track)
 
 	return activity
-#	tracks = Track.objects.all()
-#	
-#	return render_to_response('activities/import.html',
-#			{'tracks': tracks},
-#			context_instance = RequestContext(request))
+
+def create_preview(track):
+	logging.debug("Creating preview image for track")
+	if track:
+		tcxtrack = TCXTrack(track)
+
+		pos_list = tcxtrack.get_pos(100)
+		gmap_coords = []
+		for (lat, lon) in pos_list:
+			gmap_coords.append("%s,%s" % (round(lat, 3), round(lon, 3)))
+		gmap_path = "|".join(gmap_coords)
+		
+		url = "http://maps.google.com/maps/api/staticmap?size=480x480&path=color:0xff0000ff|"+gmap_path+"&sensor=true"
+		logging.debug("Fetching file from %s" % url)
+		try:
+			img_temp = NamedTemporaryFile(delete=True)
+			img_temp.write(urllib2.urlopen(url).read())
+			img_temp.flush()
+			name=os.path.splitext(os.path.split(track.trackfile.name)[1])[0]
+			logging.debug("Saving as %s.jpg" % name)
+			
+			track.preview_img.save("%s.jpg" % name, File(img_temp), save=True)
+		except urllib2.URLError, exc:
+			logging.error("Exception occured when creating preview image: %s" % exc)

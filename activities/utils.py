@@ -50,6 +50,7 @@ class TCXTrack:
 		alt_data=[]
 		cad_data=[]
 		hf_data=[]
+		pos_data=[]
 		speed_gps_data=[]
 		speed_foot_data=[]
 		#logging.debug("Parsing TCX Track file in first activity")
@@ -77,7 +78,7 @@ class TCXTrack:
 			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
 			if not hrt is None:
 				if hrt.get(self.xml_instance+"type")!="HeartRateInBeatsPerMinute_t":
-					logger.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
+					logging.warn("HeartRateBpm is not of type HeartRateInBeatsPerMinute_t")
 				else:
 					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
 						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
@@ -90,7 +91,14 @@ class TCXTrack:
 				self.track_by_distance[distance]["gps"]=time
 				speed_gps_data.append((distance,time))
 
-			#FIXME: gather positions also
+			# Get position coordinates
+			pos = xmltp.find(self.xmlns + "Position")
+			if not pos is None:
+				if hasattr(pos.find(self.xmlns + "LatitudeDegrees"), "text") and hasattr(pos.find(self.xmlns + "LongitudeDegrees"), "text"):
+					lat = float(pos.find(self.xmlns + "LatitudeDegrees").text)
+					lon = float(pos.find(self.xmlns + "LongitudeDegrees").text)
+					
+				pos_data.append((lat, lon)) 
 
 			# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
 			ext=xmltp.find(self.xmlns + "Extensions")
@@ -111,11 +119,12 @@ class TCXTrack:
 							cad_data.append((distance,cad))
 				#TODO: Watts sensors ???
 
-		self.track_data["speed_gps"]=speed_gps_data
-		self.track_data["speed_foot"]=speed_foot_data
 		self.track_data["alt"]=alt_data
 		self.track_data["cad"]=cad_data
 		self.track_data["hf"]=hf_data
+		self.track_data["pos"]=pos_data
+		self.track_data["speed_gps"]=speed_gps_data
+		self.track_data["speed_foot"]=speed_foot_data
 		
 	def get_alt(self):
 		"""Returns list of (distance, altitude) tuples with optional given max length
@@ -138,6 +147,19 @@ class TCXTrack:
 		@rtype: list
 		"""
 		return self.track_data["hf"]
+	
+	def get_pos(self, samples=-1):
+		"""Returns list of (lat, lon) tuples with trackpoint gps coordinates
+		@param samples: Max number of samples
+		@type samples: int
+		@returns (lat, lon) tuples
+		@rtype: list
+		"""
+		if samples > 0:
+			if len(self.track_data["pos"]) > samples:
+				sample_size = len(self.track_data["pos"]) / samples
+				return self.track_data["pos"][0::sample_size]			
+		return self.track_data["pos"]
 	
 	def get_speed(self, pace=False):
 		"""Returns list of (distance, heartrate) tuples with optional given max length

@@ -40,7 +40,7 @@ class Sport(models.Model):
 	
 class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
-	
+	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
 	
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)

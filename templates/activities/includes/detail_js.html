@@ -248,3 +248,47 @@ console.debug("Graph is now "+graphs);
 	}
 {% endif %}
 </script>
+
+{% if not public %}
+	{% if fb_app_id %}
+		<script>
+			window.fbAsyncInit = function() {
+				// init the FB JS SDK
+				FB.init({
+					appId: "{{fb_app_id}}",
+					status : false, // check the login status upon init?
+				});
+			};
+		
+			var postToFeed = function() {
+				var obj = {
+					method: 'feed',
+					link: '{{ full_url }}',
+					name: '{{ activity.name }}',
+					caption: '{{ activity.comment|linebreaksbr }}',
+					picture: '{{ preview_img }}',
+					description: '',
+				};
+			
+				function callback(response) {
+					document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
+				}
+				
+				FB.ui(obj, callback);
+			};
+		
+		  // Load the SDK's source Asynchronously
+		  // Note that the debug version is being actively developed and might 
+		  // contain some type checks that are overly strict. 
+		  // Please report such bugs using the bugs tool.
+		  (function(d, debug){
+		     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+		     if (d.getElementById(id)) {return;}
+		     js = d.createElement('script'); js.id = id; js.async = true;
+		     js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
+		     ref.parentNode.insertBefore(js, ref);
+		   }(document, /*debug*/ false));
+		</script>
+
+	{% endif %}
+{% endif %}

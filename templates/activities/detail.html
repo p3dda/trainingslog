@@ -39,12 +39,16 @@
 		Sportart: <b>{{ activity.sport }}</b> | Ereignistyp: <b>{{ activity.event }}</b> <br/>
 		{% if activity.comment != "" %}
 			<hr>
-			{{ activity.comment }}
+			{{ activity.comment|linebreaksbr }}
 		{% endif %}
 		{% if not public %}
-		<br/><br/>
-		<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{ activity.id }})"/>&nbsp;&nbsp;
-		<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{ activity.id }})">
+			<br/>
+			<br/>
+			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{ activity.id }})"/>&nbsp;&nbsp;
+			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{ activity.id }})">&nbsp;&nbsp;
+			{% if fb_app_id %}
+				<img src="/media/img/facebook-icon.png" alt="Share on facebook" onclick="postToFeed()"/>
+			{% endif %}
 		{% endif %}
 	</div>
 </div>
@@ -160,6 +164,8 @@
 </div>
 {% if not public %}
 {% include "activities/includes/activity_dialog.html" %}
+
+
 {% endif %}
 
 {% endblock %}

@@ -623,7 +623,8 @@ def reports(request):
 def get_report_data(request):
 	data = {}
 	
-	timespan = request.GET.get('timespan', '')
+	startdate_timestamp = request.GET.get('startdate', '')
+	enddate_timestamp = request.GET.get('enddate', '')
 	mode = request.GET.get('mode', '')
 	param_b64 = request.GET.get('param', None)
 	if param_b64:
@@ -634,9 +635,10 @@ def get_report_data(request):
 		event_pks = []
 		sport_pks = []
 	try:
-		timespan = int(timespan)
+		start_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(startdate_timestamp)/1000), timezone.get_default_timezone())
+		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp)/1000), timezone.get_default_timezone())
 	except ValueError:
-		timespan = -1
+		return HttpResponse(simplejson.dumps((False, "Invalid timestamps")))
 
 	events_filter = []
 	for event_pk in event_pks:
@@ -650,9 +652,7 @@ def get_report_data(request):
 		for sport in sports:
 			total_time = 0
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter)
-			if timespan != -1:
-				start_date = timezone.make_aware(datetime.datetime.today()-datetime.timedelta(days=timespan), timezone.get_default_timezone())
-				activities = activities.filter(date__gte = start_date)
+			activities = activities.filter(date__gte = start_date, date__lte = end_date)
 	
 			data[sport.name] = activities_summary(activities)
 			data[sport.name]['color'] = sport.color
@@ -677,13 +677,7 @@ def get_report_data(request):
 			
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter).order_by('date')
 			if len(activities)>0:
-				if timespan != -1:
-					start_date = timezone.make_aware(datetime.datetime.today()-datetime.timedelta(days=timespan), timezone.get_default_timezone())
-					end_date = activities[len(activities)-1].date
-					activities = activities.filter(date__gte = start_date)
-				else:
-					start_date = activities[0].date
-					end_date = activities[len(activities)-1].date
+				activities = activities.filter(date__gte = start_date, date__lte = end_date)
 				
 				# days ago to last monday
 				delta = datetime.timedelta(days = (start_date.timetuple().tm_wday) % 7)

@@ -45,6 +45,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.context_processors import csrf
 from django.utils import simplejson
+from django.utils import timezone
 from django.core import serializers
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -650,7 +651,7 @@ def get_report_data(request):
 			total_time = 0
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter)
 			if timespan != -1:
-				start_date = datetime.datetime.today()-datetime.timedelta(days=timespan)
+				start_date = timezone.make_aware(datetime.datetime.today()-datetime.timedelta(days=timespan), timezone.get_default_timezone())
 				activities = activities.filter(date__gte = start_date)
 	
 			data[sport.name] = activities_summary(activities)
@@ -677,7 +678,7 @@ def get_report_data(request):
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter).order_by('date')
 			if len(activities)>0:
 				if timespan != -1:
-					start_date = datetime.datetime.today()-datetime.timedelta(days=timespan)
+					start_date = timezone.make_aware(datetime.datetime.today()-datetime.timedelta(days=timespan), timezone.get_default_timezone())
 					end_date = activities[len(activities)-1].date
 					activities = activities.filter(date__gte = start_date)
 				else:
@@ -686,7 +687,7 @@ def get_report_data(request):
 				
 				# days ago to last monday
 				delta = datetime.timedelta(days = (start_date.timetuple().tm_wday) % 7)
-				week_start = datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta
+				week_start = timezone.make_aware(datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta, timezone.get_default_timezone())
 
 				while week_start < end_date:
 					week_activities = activities.filter(date__gte=week_start, date__lt=(week_start+datetime.timedelta(days=7)))

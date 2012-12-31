@@ -274,14 +274,46 @@ console.debug("Graph is now "+graphs);
 			};
 		
 			var postToFeed = function() {
+				var desc = new Array();
+				{% if activity.time %}
+				desc.push('Zeit: {{ activity.time }}');
+				{% endif %}
+                                {% if activity.distance %}
+                                desc.push('Distanz: {{ activity.distance }} km');
+                                {% endif %}
+                                {% if activity.speed_avg  %}
+                                desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
+                                {% endif %}
+                                {% if activity.speed_max  %}
+                                desc.push('Geschwindigkeit max.: {{ activity.speed_max }} '+speed_unit);
+                                {% endif %}
+                                {% if activity.hf_avg  %}
+                                desc.push('HF Ø: {{ activity.hf_avg }}');
+                                {% endif %}
+                                {% if activity.hf_max  %}
+                                desc.push('HF max: {{ activity.hf_max }}');
+                                {% endif %}
+				{% if activity.cadence_avg  %}
+                                desc.push('Trittfrequenz Ø: {{ activity.cadence_avg }}');
+                                {% endif %}
+                                {% if activity.calories  %}
+                                desc.push('Kalorien: {{ activity.calories }}');
+                                {% endif %}
+	
+
 				var obj = {
 					method: 'feed',
 					link: '{{ full_url }}',
 					name: '{{ activity.name }}',
+					{% if activity.comment  %}
 					caption: '{{ activity.comment|linebreaksbr }}',
+					{% else %}
+					caption: ' ',
+					{% endif %}
 					picture: '{{ preview_img }}',
-					description: '',
+					description: desc.join(" - ")
 				};
+
 			
 				function callback(response) {
 					document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];

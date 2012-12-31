@@ -3,4 +3,6 @@
 .pydevproject
 trainingslog.db
 *~
-
+*.swp
+django.log
+media/uploads

@@ -284,17 +284,8 @@ console.debug("Graph is now "+graphs);
                                 {% if activity.speed_avg  %}
                                 desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
                                 {% endif %}
-                                {% if activity.speed_max  %}
-                                desc.push('Geschwindigkeit max.: {{ activity.speed_max }} '+speed_unit);
-                                {% endif %}
                                 {% if activity.hf_avg  %}
                                 desc.push('HF Ø: {{ activity.hf_avg }}');
-                                {% endif %}
-                                {% if activity.hf_max  %}
-                                desc.push('HF max: {{ activity.hf_max }}');
-                                {% endif %}
-				{% if activity.cadence_avg  %}
-                                desc.push('Trittfrequenz Ø: {{ activity.cadence_avg }}');
                                 {% endif %}
                                 {% if activity.calories  %}
                                 desc.push('Kalorien: {{ activity.calories }}');

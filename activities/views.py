@@ -748,16 +748,20 @@ def settings(request):
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
 		activity_time = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('time'))
 		try:
-			equipment.distance = equipment.distance + activity_distance['distance__sum']
+			if activity_distance['distance__sum']:
+				equipment.distance = equipment.distance + activity_distance['distance__sum']
 		except TypeError, exc:
 			logging.exception("Exception occured in settings")
 
 		try:
-			equipment.time = equipment.time + activity_time['time__sum']
+			if activity_time['time__sum']:
+				equipment.time = equipment.time + activity_time['time__sum']
 		except TypeError, exc:
 			logging.exception("Exception occured in settings")
+			equipment.time = 0
 
-		if activity_time > 0:
+		if activity_time > 0 and activity_distance['distance__sum']:
+			logging.debug("Distance: %s" % activity_distance['distance__sum'])
 			equipment.speed = round(float(activity_distance['distance__sum']) * 3600.0 / activity_time['time__sum'], 2)
 		else:
 			equipment.speed = "-"

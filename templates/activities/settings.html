@@ -255,7 +255,7 @@
 	var equipment_send = function() {
 		var name = $("#equipment_name_input").val();
 		var description = $("#equipment_description_input").val();
-		var distance = $("#equipment_distance_input").val();
+		var distance = $("#equipment_distance_input").val().replace( /,/,"." );
 
 		if ($("#equipment_archived_input:checked").val() != undefined){
 			var archived = 1;

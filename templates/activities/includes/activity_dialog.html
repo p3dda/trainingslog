@@ -352,7 +352,8 @@
 		
 		function onDataReceived(data) {
 			// Populate dialog with received data if data is not null
-			var fields = data[0].fields;
+			act = eval(data.activity);
+			var fields = act[0].fields;
 			regexp = /(\d{4})-(\d{2})-(\d{2})[T| ](\d{2}):(\d{2}):(\d{2})/g;
 			dateArray = regexp.exec(fields.date); 
 			if(dateArray !== null){

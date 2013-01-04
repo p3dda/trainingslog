@@ -360,8 +360,22 @@ def get_activity(request):
 		activity = Activity.objects.get(pk=int(act_id))
 
 	if activity.user == request.user:
-		return HttpResponse(serializers.serialize('json', [activity]), mimetype='application/json');
-#		return HttpResponse(simplejson.dumps(activity))
+		data = serializers.serialize('json', [activity])
+		result = {}
+		result["activity"] = data
+		
+		if activity.track:
+			tcx = activity.track.trackfile
+			
+			# build absolute URL with domain part for preview image
+			# https seems not to be supported by facebook
+			if activity.track.preview_img:
+				result['preview_img'] = activity.track.preview_img.url
+		
+		print result
+
+#		return HttpResponse(serializers.serialize('json', [activity]), mimetype='application/json');
+		return HttpResponse(json.dumps(result), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
 

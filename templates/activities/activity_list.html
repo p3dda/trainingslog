@@ -37,6 +37,8 @@
 
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
 
+<link rel='stylesheet' type='text/css' href='/media/css/activitypopup.css'/>
+
 <script>
 	var garmincontrol;
 	
@@ -51,7 +53,7 @@
 			// $("#myTable").show("slow");
 			$("#myTable tbody").empty();
 			$.each(data, function(i, item) {
-				$("#myTable tbody").append('<tr><td><a href="/activities/' + item.id + '/">' + item.name 
+				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '">' + item.name 
 					+ '</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(' + item.id + ')"/>&nbsp;&nbsp;'
 					+ '<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(' + item.id + ')"/></td><td>' 
 					+ item.sport + '</td><td>'+ item.date + '</td><td>' + item.duration + '</td></tr>');
@@ -137,8 +139,94 @@
 		{%  endif %}	
 		$("#activity_add").click(function(){show_activity_dialog();});
 		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
+		
 	});
-
+	
+	
+	// some tooltip fanciness
+	$(function() {
+		var hideDelay = 500;
+		var hideTimer = null;
+		
+		var container = $('<div id="activityPopupContainer">'
+			+ '<table width="" border="0" cellspacing="0" cellpadding="0" align="center" class="activityPopupPopup">'
+			+ '<tr>'
+			+ '   <td class="corner topLeft"></td>'
+			+ '   <td class="top"></td>'
+			+ '   <td class="corner topRight"></td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '   <td class="left">&nbsp;</td>'
+			+ '   <td><div id="activityPopupContent"></div></td>'
+			+ '   <td class="right">&nbsp;</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '   <td class="corner bottomLeft">&nbsp;</td>'
+			+ '   <td class="bottom">&nbsp;</td>'
+			+ '   <td class="corner bottomRight"></td>'
+			+ '</tr>'
+			+ '</table>'
+			+ '</div>');
+		
+		$('body').append(container);
+		
+		$('.activityPopupTrigger').live('mouseover', function(){
+			// format of 'rel' tag: pageid,personguid
+			var activity_id = $(this).attr('rel');
+		
+			if (hideTimer)
+				clearTimeout(hideTimer);
+		
+			var pos = $(this).offset();
+			var width = $(this).width();
+			container.css({
+				left: (pos.left + width) + 'px',
+				top: pos.top - 5 + 'px'
+			});
+		
+			$('#activityPopupContent').html('&nbsp;');
+		
+			$.ajax({
+				type: 'GET',
+				url: '/activities/get_json',
+				data: 'id=' + activity_id,
+				success: function(data)
+				{
+					act = eval(data.activity);
+					console.debug(act);
+					var fields = act[0].fields;
+					console.debug(fields);
+	
+					var text = "<b>" + fields.name + "</b><table><tr>";
+					if(data.hasOwnProperty('preview_img')){
+						text = text + '<td><img width=150 src="' + data.preview_img + '" /></td>';
+					}
+					text = text + "<td> " 
+						+ "<table><tr><td>Distance</td><td>" + fields.distance +"</td></tr>" 
+						+ "<tr><td>Dauer</td><td>" + fields.time + "</td></tr>"
+						+ "<tr><td>Ø Geschwindigkeit</td><td>" + fields.speed_avg + " km/h</td></tr>"
+						+ "</table>"
+						+ "</td></tr></table>"
+					
+					console.debug("Text is " + text);
+					$('#activityPopupContent').html(text);
+				}
+			});
+		
+			container.css('display', 'block');
+	
+		});
+			
+	
+		$('.activityPopupTrigger').live('mouseout', function(){
+			if (hideTimer)
+				clearTimeout(hideTimer);
+			hideTimer = setTimeout(function(){
+				container.css('display', 'none');
+			}, hideDelay);
+			console.debug("Hide tooltip");
+		});
+	});
 </script>
 {% endblock %}
 {% block content %}

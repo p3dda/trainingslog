@@ -982,11 +982,12 @@ def create_preview(track):
 		pos_list = tcxtrack.get_pos(100)
 		gmap_coords = []
 		for (lat, lon) in pos_list:
-			gmap_coords.append("%s,%s" % (round(lat, 3), round(lon, 3)))
+			gmap_coords.append("%s,%s" % (round(lat, 4), round(lon, 4)))
 		gmap_path = "|".join(gmap_coords)
 		
 		url = "http://maps.google.com/maps/api/staticmap?size=480x480&path=color:0xff0000ff|"+gmap_path+"&sensor=true"
 		logging.debug("Fetching file from %s" % url)
+		logging.debug("Length of url is %s chars" % len(url))
 		try:
 			img_temp = NamedTemporaryFile(delete=True)
 			img_temp.write(urllib2.urlopen(url).read())

@@ -41,6 +41,7 @@
 
 <script>
 	var garmincontrol;
+	var sport_data = Array();
 	
 	$(document).ready(function() {
 		// Initialize tablesorter
@@ -142,7 +143,15 @@
 		
 	});
 	
-	
+	// Initialize sport_data array with speed / pace unit information
+	{% for sport in sports %}
+		{% if sport.speed_as_pace %}
+			sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
+		{% else %}
+			sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
+		{% endif %}
+	{% endfor %}
+
 	// some tooltip fanciness
 	$(function() {
 		var hideDelay = 500;
@@ -201,10 +210,36 @@
 					if(data.hasOwnProperty('preview_img')){
 						text = text + '<td><img width=150 src="' + data.preview_img + '" /></td>';
 					}
+					
+					if( fields.distance ){
+						var distance = parseFloat(fields.distance).toFixed(2).replace(/\./,",") + " km";
+					} else {
+						var distance = "-";
+					}
+					if( fields.time ) {
+						var time = secondsToTime(fields.time);
+					} else {
+						var time = "-";
+					}
+					if( fields.speed_avg ){
+						var speed_avg = parseFloat(fields.speed_avg);
+						if(sport_data[fields.sport]["pace"]){
+							console.debug("This is with pace");
+							speed_avg = speedToPace(speed_avg) + " min/km";
+						} else {
+							console.debug("This is with speed");
+							speed_avg = speed_avg.toFixed(2).replace( /\./,"," ) + " km/h";
+						}
+
+
+					} else {
+						var speed_avg = "-"
+					}
+					console.debug(distance);
 					text = text + "<td> " 
-						+ "<table><tr><td>Distance</td><td>" + fields.distance +"</td></tr>" 
-						+ "<tr><td>Dauer</td><td>" + fields.time + "</td></tr>"
-						+ "<tr><td>Ø Geschwindigkeit</td><td>" + fields.speed_avg + " km/h</td></tr>"
+						+ "<table><tr><td>Distanz</td><td>" + distance +"</td></tr>" 
+						+ "<tr><td>Dauer</td><td>" + time + "</td></tr>"
+						+ "<tr><td>Ø Geschwindigkeit</td><td>" + speed_avg + "</td></tr>"
 						+ "</table>"
 						+ "</td></tr></table>"
 					

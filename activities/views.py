@@ -345,7 +345,7 @@ def list_activities(request):
 @login_required
 def get_activities(request):
 	act_list = []
-	for activity in Activity.objects.filter(user=request.user):
+	for activity in Activity.objects.select_related('sport').filter(user=request.user):
 		act_list.append({'id': activity.id, 'name': activity.name, 'sport': activity.sport.name, 'date': activity.date.strftime("%d.%m.%Y %H:%M"), 'duration': str(datetime.timedelta(days=0,seconds=activity.time))})
 	return HttpResponse(simplejson.dumps(act_list))
 
@@ -722,7 +722,7 @@ def calendar_get_events(request):
 	end_datetime = datetime.datetime.fromtimestamp(float(request.GET.get('end')))
 	start_date = datetime.date.fromtimestamp(float(request.GET.get('start')))
 	end_date = datetime.date.fromtimestamp(float(request.GET.get('end')))
-	activity_list = Activity.objects.filter(user=request.user).filter(date__gte=str(start_datetime)).filter(date__lt=str(end_datetime))
+	activity_list = Activity.objects.select_related('sport').filter(user=request.user).filter(date__gte=str(start_datetime)).filter(date__lt=str(end_datetime))
 	desease_list = Desease.objects.filter(user=request.user).filter(end_date__gt=start_date).filter(start_date__lt=end_date)
 	weight_list = Weight.objects.filter(user=request.user).filter(date__gt=start_date).filter(date__lt=end_date)
 	weightgoal_list = Goal.objects.filter(user=request.user).filter(due_date__gt=start_date).filter(due_date__lt=end_date)

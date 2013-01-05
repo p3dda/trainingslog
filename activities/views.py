@@ -789,7 +789,7 @@ def importtrack(request, newtrack):
 	"""
 	Process garmin tcx file import
 	"""
-	logging.debug("importtrack calles with request %r" % request)
+	logging.debug("importtrack called")
 
 	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
 	# create additional gpx file from track

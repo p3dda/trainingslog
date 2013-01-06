@@ -79,12 +79,14 @@
 <div id="activity_delete_dialog">
 	Aktivit&auml;t wirklich l&ouml;schen?
 	<input id="activity_delete_id_input" type="hidden" />
+	<input id="activity_template_delete_id_input" type="hidden" />
 </div>
 
 <script type="application/javascript">
 	var sport_data = new Array();
 	var calformula_data = new Array();
 	var act_id = null;
+	var act_tmpl_id = null;
 	var pace = false;
 	
 	var override_speed_avg = false;
@@ -214,7 +216,8 @@
 			buttons: {
 				"Ok": function() {
 					$.post("/activities/delete/", {
-							id: $("#activity_delete_id_input").val()
+							id: $("#activity_delete_id_input").val(),
+							tmpl_id: $("#activity_template_delete_id_input").val()
 						}, function(data) {
 							location.href="/activities/";
 							//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
@@ -334,7 +337,21 @@
 	
 	var show_activity_dialog = function(activity_id) {
 		if(typeof(activity_id) != "undefined") {
-			populate_activity_dialog(activity_id, is_template=false);
+			if(activity_id != null){
+				populate_activity_dialog(activity_id, is_template=false);
+			}
+		}
+		$("#activity_dialog").dialog("open");
+	}
+	
+	var show_activity_template_dialog = function(activity_id) {
+		console.debug("Enforcing template mode");
+		$("#new_act_save").hide();
+
+		if(typeof(activity_id) != "undefined") {
+			if(activity_id != null){
+				populate_activity_dialog(activity_id, is_template=true);
+			}
 		}
 		$("#activity_dialog").dialog("open");
 	};
@@ -348,6 +365,8 @@
 		var url = "/activities/get_json/?id=" + activity_id + "&template=" + is_template;
 		if(!is_template) {
 			act_id = activity_id;
+		} else {
+			act_tmpl_id = activity_id;
 		}
 		
 		function onDataReceived(data) {
@@ -468,9 +487,6 @@
 	
 	
 	var submit_activitytemplate_clicked = function () {
-		// Cleanup data
-		act_id = null;
-		
 		submit_activity(true);
 	}
 	
@@ -480,11 +496,16 @@
 	
 	var submit_activity = function(is_template) {
 		// FIXME: Review validations in submit_activity
-		// FIXME: report to view.py if template or not
 		var new_act_data = new Array();
 
-		if(act_id != null){
-			new_act_data.update_id = act_id;
+		if(is_template) {
+			if(act_tmpl_id != null) {
+				new_act_data.update_id = act_tmpl_id;
+			}
+		} else {
+			if(act_id != null){
+				new_act_data.update_id = act_id;
+			}
 		}
 		
 		new_act_data.name = $("#new_act_name").val();
@@ -693,6 +714,15 @@
 
 	var show_activity_delete_dialog = function(activity_id) {
 		$("#activity_delete_id_input").val(activity_id);
+		$("#activity_template_delete_id_input").val(null);
+		
 		$("#activity_delete_dialog").dialog("open");
 	};
+	
+	var show_activity_template_delete_dialog = function(activity_id) {
+		$("#activity_delete_id_input").val(null);
+		$("#activity_template_delete_id_input").val(activity_id);
+		
+		$("#activity_delete_dialog").dialog("open");
+	}
 </script>

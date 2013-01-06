@@ -89,7 +89,7 @@
 							<col width="100">
 						</colgroup>
 {% if not public %}
-						<tr><td>Ausr&uuml;stung</td><td>{% for equ in activity.equipment.all %}{{ equ }}, {% endfor %}</td></tr>
+						<tr><td>Ausr&uuml;stung</td><td>{{ activity.equipment.all|join:", " }}</td></tr>
 {% endif %}
 						<tr><td>Ø Trittfrequenz</td><td>{{ activity.cadence_avg|default_if_none:"-" }} / min</td></tr>
 						<tr><td>Max. Trittfrequenz</td><td>{{ activity.cadence_max|default_if_none:"-" }} / min</td></tr>

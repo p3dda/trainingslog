@@ -398,8 +398,16 @@ def delete_activity(request):
 	if request.method == 'POST':
 		print "In POST request"
 		print request.POST.items()
+		act_id = int_or_none(request.POST.get('id'))
+		tmpl_id = int_or_none(request.POST.get('tmpl_id'))
 		
-		act = Activity.objects.get(id=int(request.POST.get('id')))
+		if act_id:
+			act = Activity.objects.get(id=act_id)
+		elif tmpl_id:
+			act = ActivityTemplate.objects.get(id=tmpl_id)
+		else:
+			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Missing ID"}))
+			
 		if act.user == request.user:
 			act.delete()
 			return HttpResponse(simplejson.dumps({'success': True}))
@@ -412,7 +420,13 @@ def add_activity(request):
 		logging.debug("In add_activity post request with parameters %s" % repr(request.POST.items()))
 		is_template = request.POST.get('is_template')
 		if is_template == 'true':
-			act = ActivityTemplate(user = request.user)
+			if request.POST.has_key('update_id'):
+				act = ActivityTemplate.objects.get(pk=int(request.POST.get('update_id')))
+				# If selected_by_id activityTemplate does not belong to current user, create new activityTemplate
+				if act.user != request.user:
+					act = ActivityTempalte( user=request.user )
+			else:
+				act = ActivityTemplate(user = request.user)
 		else:
 			if request.POST.has_key('update_id'):
 				act = Activity.objects.get(pk=int(request.POST.get('update_id')))
@@ -750,14 +764,14 @@ def calendar_get_events(request):
 
 @login_required
 def settings(request):
-	event_list = Event.objects.filter(user=request.user)
-	equipment_list = Equipment.objects.filter(user=request.user).filter(archived=False)
-	equipment_archived_list = Equipment.objects.filter(user=request.user).filter(archived=True)
-	sport_list = Sport.objects.filter(user=request.user)
-	calformula_list = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
+	events = Event.objects.filter(user=request.user)
+	equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
+	equipments_archived = Equipment.objects.filter(user=request.user).filter(archived=True)
+	sports = Sport.objects.filter(user=request.user)
+	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
+	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 	
-	for equipment in equipment_list:
-		print equipment
+	for equipment in equipments:
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
 		activity_time = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('time'))
@@ -783,7 +797,7 @@ def settings(request):
 		equipment.time = seconds_to_time(equipment.time, force_hour=True)
 		
 	
-	return render_to_response('activities/settings.html', {'calformula_list': calformula_list, 'event_list': event_list, 'equipment_list': equipment_list, 'equipment_archived_list': equipment_archived_list, 'sport_list': sport_list, 'username': request.user})
+	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
 	
 def importtrack(request, newtrack):
 	"""

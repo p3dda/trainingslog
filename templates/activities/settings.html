@@ -7,13 +7,19 @@
 <script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.core.js"></script>
 <script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.widget.js"></script>
 <script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.tabs.js"></script>
 <script type="text/javascript" src="/media/js/colorpicker.js"></script>
+<script type="text/javascript" src="/media/js/common.js"></script>
 
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
 <link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.all.css"></link>
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpickerlayout.css" />
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
 
 
 <script>
@@ -165,6 +171,8 @@
 		$("#sport_add").click(function(){show_sport_dialog();});
 		$("#calformula_add").click(function(){show_calformula_dialog();});
 		$("#calformula_send").click(calformula_send);
+		
+		$("#acttmp_add").click(function(){show_activity_template_dialog(null, true);});
 	});
 	
 	var get_data = function(url, onDataReceived) {
@@ -384,13 +392,13 @@
 
 {% block content %}
 <h1>Equipment</h1>
-{% if equipment_list %}
+{% if equipments %}
 	<table id="equipment_table" class="tablesorter">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
 		<tbody>
-		{% for equ in equipment_list %}
+		{% for equ in equipments %}
 			<tr>
 				<td>
 					{{equ.name}}&nbsp;&nbsp;
@@ -409,14 +417,14 @@
 {%endif%}
 <input type="submit" id="equipment_add" value="Neues Equipment...">
 
-{% if equipment_archived_list %}
+{% if equipments_archived %}
 <h2>Archiv</h2>
 	<table id="equipment_table" class="tablesorter">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
 		<tbody>
-		{% for equ in equipment_archived_list %}
+		{% for equ in equipments_archived %}
 			<tr>
 				<td>
 					{{equ.name}}&nbsp;&nbsp;
@@ -433,7 +441,7 @@
 {%endif%}
 
 <h1>Events</h1>
-{% if event_list %}
+{% if events %}
 	<table id="event_table" class="tablesorter">
 		<thead>
 			<tr>
@@ -441,7 +449,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for event in event_list %}
+			{% for event in events %}
 				<tr>
 					<td>
 						{{event.name}}
@@ -458,8 +466,35 @@
 {%endif%}
 <input type="submit" id="event_add" value="Neues Event...">
 
+<h1>Vorlagen</h1>
+{% if activitytemplates %}
+	<table id="activitytemplates_table" class="tablesorter">
+		<thead>
+			<tr>
+				<th>Name</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for acttmp in activitytemplates %}
+				<tr>
+					<td>
+						{{acttmp.name}}
+						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_template_dialog({{acttmp.id}}, onlytemplate = true)"/>
+						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_template_delete_dialog({{acttmp.id}})"/>
+					</td>
+				</tr>
+			{%endfor %}
+		</tbody>
+	
+	</table>
+{% else %}
+	<p>Keine Vorlagen vorhanden</p>
+{%endif%}
+<input type="submit" id="acttmp_add" value="Neue Vorlage...">
+
+
 <h1>Sportarten</h1>
-{% if sport_list %}
+{% if sports %}
 	<table id="sport_table" class="tablesorter">
 		<thead>
 			<tr>
@@ -469,7 +504,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for sport in sport_list %}
+			{% for sport in sport %}
 				<tr>
 					<td>
 						{{sport.name}}
@@ -499,7 +534,7 @@
 <input type="submit" id="sport_add" value="Neue Sportart...">
 
 <h1>Kalorienformeln</h1>
-{% if calformula_list %}
+{% if calformulas %}
 	<table id="sport_table" class="tablesorter">
 		<thead>
 			<tr>
@@ -508,7 +543,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for calformula in calformula_list %}
+			{% for calformula in calformulas %}
 				<tr>
 					<td>
 						{{calformula.name}}
@@ -542,7 +577,7 @@
 			<td>
 				<select id="sport_calformula_input">
 					<option name="-" value = -1> - </option>
-					{% for calformula in calformula_list %}
+					{% for calformula in calformulas %}
 						<option name={{ calformula.name }} value={{calformula.id}}>{{calformula.name}}</option>
 					{% endfor %}
 				</select>
@@ -607,5 +642,7 @@
 	Kalorienformel wirklich l&ouml;schen?
 	<input id="calformula_delete_id_input" type="hidden" />
 </div>
+
+{% include "activities/includes/activity_dialog.html" %}
 
 {% endblock %}

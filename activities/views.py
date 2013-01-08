@@ -993,7 +993,7 @@ def create_preview(track):
 	if track:
 		tcxtrack = TCXTrack(track)
 
-		pos_list = tcxtrack.get_pos(100)
+		pos_list = tcxtrack.get_pos(90)
 		gmap_coords = []
 		for (lat, lon) in pos_list:
 			gmap_coords.append("%s,%s" % (round(lat, 4), round(lon, 4)))

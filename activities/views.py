@@ -664,10 +664,13 @@ def get_report_data(request):
 		sport_pks = []
 	try:
 		start_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(startdate_timestamp)/1000), timezone.get_default_timezone())
-		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp)/1000), timezone.get_default_timezone())
+		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp)/1000), timezone.get_default_timezone()).replace(hour=23, minute=59, second=59)
+		# make shure we include the current day
+		
 	except ValueError:
 		return HttpResponse(simplejson.dumps((False, "Invalid timestamps")))
 
+	logging.debug("Filter activities between %s and %s" % (start_date, end_date))
 	events_filter = []
 	for event_pk in event_pks:
 		events_filter.append(Event.objects.get(pk=int(event_pk)))

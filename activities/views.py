@@ -846,9 +846,11 @@ def importtrack(request, newtrack):
 		distance = str(float(xmllap.find(xmlns+"DistanceMeters").text)/1000)
 		if xmllap.find(xmlns+"MaximumSpeed") is None:
 			logging.debug("MaximumSpeed is None")
-		logging.debug("MaximumSpeed xml is %r" % xmllap.find(xmlns+"MaximumSpeed"))
-		speed_max = str(float(xmllap.find(xmlns+"MaximumSpeed").text)*3.6)	# Given as meters per second in tcx file
-		logging.debug("speed_max is %s" % speed_max)
+			speed_max = None
+		else:
+			logging.debug("MaximumSpeed xml is %r" % xmllap.find(xmlns+"MaximumSpeed"))
+			speed_max = str(float(xmllap.find(xmlns+"MaximumSpeed").text)*3.6)	# Given as meters per second in tcx file
+			logging.debug("speed_max is %s" % speed_max)
 		calories = int(xmllap.find(xmlns+"Calories").text)
 		try:
 			hf_avg = int(xmllap.find(xmlns+"AverageHeartRateBpm").find(xmlns+"Value").text)
@@ -923,7 +925,8 @@ def importtrack(request, newtrack):
 				hf_avg = hf_avg)
 
 		laps.append(lap)
-
+	
+	# FIXME: Values should be None instead of 0 / 65535 if no values found in XML file
 	cadence_avg = 0
 	cadence_max = 0
 	calories_sum = 0
@@ -951,9 +954,11 @@ def importtrack(request, newtrack):
 		if lap.hf_max > hf_max:
 			hf_max = lap.hf_max
 			logging.debug("New global hf_max: %s" % hf_max)
-		if float(lap.speed_max) > speed_max:
-			speed_max = float(lap.speed_max)
-			logging.debug("New global speed_max: %s" % speed_max)
+		logging.debug("Lap speed_max is %s" % lap.speed_max)
+		if lap.speed_max is not None:
+			if float(lap.speed_max) > speed_max:
+				speed_max = float(lap.speed_max)
+				logging.debug("New global speed_max: %s" % speed_max)
 		
 		if lap.cadence_max > cadence_max:
 			cadence_max = lap.cadence_max

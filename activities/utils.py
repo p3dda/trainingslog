@@ -215,7 +215,10 @@ class TCXTrack:
 				self.track_by_distance[fix_pos]["gps_speed"]=speed
 				count_avg+=1
 				speed_avg=speed_avg+speed
-		speed_avg=speed_avg/count_avg
+		if count_avg>0:
+			speed_avg=speed_avg/count_avg
+		else:
+			speed_avg=speed_avg
 
 		max_speedchange_avg=speed_avg/3.6 # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
 

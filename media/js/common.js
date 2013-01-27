@@ -175,6 +175,15 @@ Date.prototype.getWeek = function() {
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
 }
 
+
+/**
+ * Transpose 2-dimensional array
+ */
+function transpose(a)
+{
+  return Object.keys(a[0]).map(function (c) { return a.map(function (r) { return r[c]; }); });
+}
+
 /**
  * Encode string to base64
  * @param inp String to encode

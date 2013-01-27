@@ -54,25 +54,38 @@ class TCXTrack:
 		speed_gps_data=[]
 		speed_foot_data=[]
 		#logging.debug("Parsing TCX Track file in first activity")
+		first_lap = xmlactivity.find(self.xmlns + "Lap")
+		start_time = dateutil.parser.parse(first_lap.get("StartTime"))
+
 		for xmltp in xmlactivity.findall(self.xmlns+"Lap/"+self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
-			distance=alt=cad=hf=time=None
+			distance=alt=cad=hf=trackpoint_time=None
 
 			if not hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
 				continue
+			if not hasattr(xmltp.find(self.xmlns + "Time"),"text"):
+				continue
 
-			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)	
+			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
+			delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
+			trackpoint_time = (delta.seconds + 86400 * delta.days) * 1000
+			
 			if not self.track_by_distance.has_key(distance):
 				self.track_by_distance[distance]={}
+			
+			self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
+			
 			# Get altitude
 			if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
 				alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
 				self.track_by_distance[distance]["alt"]=alt
-				alt_data.append((distance,alt))
+#				alt_data.append((trackpoint_time,alt))
+				alt_data.append((distance,trackpoint_time,alt))
 			# Get Cadence data (from Bike cadence sensor)
 			if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
 				cad = int(xmltp.find(self.xmlns + "Cadence").text)
 				self.track_by_distance[distance]["cad"]=cad
-				cad_data.append((distance,cad))
+#				cad_data.append((trackpoint_time,cad))
+				cad_data.append((distance,trackpoint_time,cad))
 
 			# Locate heart rate in beats per minute
 			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
@@ -80,14 +93,14 @@ class TCXTrack:
 				if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
 					hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
 					self.track_by_distance[distance]["hf"]=hf
-					hf_data.append((distance,hf))
+#					hf_data.append((trackpoint_time,hf))
+					hf_data.append((distance,trackpoint_time,hf))
 
 			# Locate time stamps for speed calculation based on GPS
 			if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-				time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text) 
-				self.track_by_distance[distance]["gps"]=time
-				speed_gps_data.append((distance,time))
-
+				track_time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)
+				self.track_by_distance[distance]["gps"]=track_time
+				speed_gps_data.append((distance,track_time))
 			# Get position coordinates
 			pos = xmltp.find(self.xmlns + "Position")
 			if not pos is None:
@@ -107,13 +120,13 @@ class TCXTrack:
 					if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
 						speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
 						self.track_by_distance[distance]["speed_footpod"]=speed
-						speed_foot_data.append((distance,speed))
+						speed_foot_data.append((distance,trackpoint_time,speed))
 					if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
 						# Only copy cadence data if no other Cadence data (from bike) is present
 						if cad is None:
 							cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
 							self.track_by_distance[distance]["cad"]=cad
-							cad_data.append((distance,cad))
+							cad_data.append((distance,trackpoint_time,cad))
 				#TODO: Watts sensors ???
 
 		self.track_data["alt"]=alt_data
@@ -261,13 +274,14 @@ class TCXTrack:
 					speed = 1000.0/60.00/speed # convert to min/km
 				else:
 					speed = speed*3.6 # convert to km/h
-				speed_data.append((fix_pos,speed))
+					
+				speed_data.append((fix_pos,self.track_by_distance[fix_pos]["trackpoint_time"],speed))
 		return speed_data
 
 		
 	def get_speed_foot(self, pace=False):
 		speed_data = []
-		for (distance,speed) in self.track_data["speed_foot"]:
+		for (distance,trackpoint_time,speed) in self.track_data["speed_foot"]:
 			if pace:
 				if speed==0:
 					speed=0
@@ -277,7 +291,7 @@ class TCXTrack:
 				speed = speed * 3.6
 				if pace and speed> 20:
 					continue
-			speed_data.append((distance,speed))
+			speed_data.append((distance,trackpoint_time,speed))
 		return speed_data
 
 	def get_speed_gps(self, pace=False):

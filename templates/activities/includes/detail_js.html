@@ -16,13 +16,15 @@
 		var speed_as_pace = false;
 		var speed_unit = "km/h";
 	{% endif %}
-	
+	var plot_base="distance";
+		
 	var distanceSuffixFormatter = function(val, axis) {
-			if (val > 1000)
+			if (val >= 1000)
 				return (val / 1000).toFixed(axis.tickDecimals) + "km";
 			else
 				return val.toFixed(axis.tickDecimals) + "m";
 		};
+
 
 {% if tcx %}
         var graphs = [
@@ -46,6 +48,7 @@
 		for (var i in graphs) {
 			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
 		}
+		$( "#plot_xaxis").change(plot_xaxis_changed);
 		init_map();
 		plot_graphs();
 {% endif %}
@@ -53,148 +56,17 @@
 
 {% if tcx %}
 	plot_data = new Object();
+	var plot_data_raw;
+	
 	var plot_graphs = function() {
 		var url = "/activities/{{ activity.id }}/?p=plots";
-	function cloneObject(obj) {
-        	var clone = {};
-        	for(var i in obj) {
-            	if(typeof(obj[i])=="object")
-                	clone[i] = cloneObject(obj[i]);
-            	else
-                	clone[i] = obj[i];
-        	}
-        	return clone;
-    	}
-
+	
 		function onDataReceived(data) {
-			console.log("onDataReceived called graphs is "+graphs);
-			for (i in graphs) {
-				plot_data[graphs[i]["name"]]=new Object();
-				plot_data[graphs[i]["name"]]["data"]=data[graphs[i]["dataname"]];
-				plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
-				plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
-				plot_data[graphs[i]["name"]]["points"]={"show": false};
-				plot_data[graphs[i]["name"]]["color"]="#0070A3";
-				if (plot_data[graphs[i]["name"]]["data"].length == 0) {
-					$("#details_"+graphs[i]["name"]).hide();
-				}
-			}
-			plot_default_options = {
-				xaxis : {
-					tickDecimals: "1",
-					tickFormatter: distanceSuffixFormatter
-				},
-				crosshair : {
-					mode : "x"
-				},
-				grid : {
-					hoverable : true,
-					autoHighlight : false
-				},
-				selection: { mode: "x" }
-			}
-
-			pace_plot = {
-				transform: function(v) { return -v; },
-				inverseTransform: function (v) { return -v; },
-				ticks: function (axis) {
-					var res = [], i = Math.floor(axis.min);
-					do {
-						res.push([i,secondsToTime(i*60, with_hours=false)]);
-						i=i+0.5;
-					} while (i<axis.max);
-					return res;
-				}
-			}
-				
-			var plots = new Object();
-			var legends = new Object();
-			for (var i in graphs) {
-				plot_options = cloneObject(plot_default_options);
-				console.debug("Parsing data "+graphs[i]["name"]);
-				if (plot_data[graphs[i]["name"]]["data"].length>0) {
-					var avg=0;
-					var min=plot_data[graphs[i]["name"]]["data"][0][1];
-					var max=plot_data[graphs[i]["name"]]["data"][0][1];
-					for (var j=0; j<plot_data[graphs[i]["name"]]["data"].length; j++) {
-						avg=avg+plot_data[graphs[i]["name"]]["data"][j][1];
-						if (plot_data[graphs[i]["name"]]["data"][j][1]<min)
-							min=plot_data[graphs[i]["name"]]["data"][j][1];
-						if (plot_data[graphs[i]["name"]]["data"][j][1]>max)
-							max=plot_data[graphs[i]["name"]]["data"][j][1];
-					}
-					avg=avg/plot_data[graphs[i]["name"]]["data"].length;
-				}
-				if ((graphs[i]["name"]=="speed") && speed_as_pace) {
-					plot_options["yaxis"]=pace_plot;
-					plot_options["yaxis"]["min"]=Math.floor(min);
-					plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
-				} else {
-					plot_options["yaxis"]=new Object();
-					plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
-					plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
-				}
-
-				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
-				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
-				legends[graphs[i]["name"]].each(function() {
-					$(this).css('width', $(this).width());
-				});
-			}
-			
-			var updateLegendTimeout = null;
-			var latestPosition = null;
-
-			function updateLegend() {
-				updateLegendTimeout = null;
-
-				var pos = latestPosition;
-				
-				for (var graph in graphs) {
-					plot = plots[graphs[graph]["name"]];
-					legend = legends[graphs[graph]["name"]];
-
-					plot.setCrosshair(pos);
-					axes = plot.getAxes();
-					if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
-						continue;
-
-					var i, j, dataset = plot.getData();
-					for( i = 0; i < dataset.length; ++i) {
-						var series = dataset[i];
-
-						// find the nearest points, x-wise
-						for( j = 0; j < series.data.length; ++j)
-							if(series.data[j][0] > pos.x)
-								break;
-
-						// now interpolate
-						var y, p1 = series.data[j - 1], p2 = series.data[j];
-						if(p1 == null)
-							y = p2[1];
-						else if(p2 == null)
-							y = p1[1];
-						else
-							y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
-						if (graphs[graph]["unit"]=="Minuten/km") {
-							newvalue = secondsToTime(y*60, with_hours=false);
-						} else {
-							newvalue = y.toFixed(graphs[graph]["rounding"]);
-						}
-						legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
-					}
-				}
-			}
-			for (var graph in graphs) {
-				$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
-					latestPosition = pos;
-					if(!updateLegendTimeout)
-						updateLegendTimeout = setTimeout(updateLegend, 50);
-				});
-			}
-			return data;
-
+			plot_data_raw = data;
+			update_plots();
 		}
+
+
 		$.ajax({
 			async : true,
 			url : url,
@@ -203,6 +75,172 @@
 		});
 
 	};
+	
+	
+	var update_plots = function() {
+		function cloneObject(obj) {
+			var clone = {};
+			for(var i in obj) {
+				if(typeof(obj[i])=="object")
+					clone[i] = cloneObject(obj[i]);
+				else
+					clone[i] = obj[i];
+			}
+			return clone;
+		}
+
+		var data = plot_data_raw;
+		
+		console.log("update_plots called graphs is "+graphs);
+
+		plot_default_options = {
+			xaxis : {
+				tickDecimals: "1",
+				tickFormatter: distanceSuffixFormatter
+			},
+			crosshair : {
+				mode : "x"
+			},
+			grid : {
+				hoverable : true,
+				autoHighlight : false
+			},
+			selection: { mode: "x" }
+		}
+
+		for (i in graphs) {
+			plot_data[graphs[i]["name"]]=new Object();
+			plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
+			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
+			plot_data[graphs[i]["name"]]["points"]={"show": false};
+			plot_data[graphs[i]["name"]]["color"]="#0070A3";
+			
+			if(data[graphs[i]["dataname"]].length == 0) {
+				plot_data[graphs[i]["name"]]["data"] = [];
+				$("#details_"+graphs[i]["name"]).hide();
+			} else {
+				var gdata=transpose(data[graphs[i]["dataname"]]);
+				if(plot_base == "time"){
+					var graphdata=transpose([gdata[1], gdata[2]]);
+					plot_data[graphs[i]["name"]]["data"]=graphdata;
+					
+					plot_default_options["xaxis"] = {
+						mode: "time",
+						timeformat: "%H:%Mh"
+					};
+				} else {
+					var graphdata=transpose([gdata[0], gdata[2]]);
+					plot_data[graphs[i]["name"]]["data"]=graphdata;
+					
+					plot_default_options["xaxis"] = {
+						tickDecimals: "1",
+						tickFormatter: distanceSuffixFormatter
+					}
+				}
+			}
+		}
+
+		pace_plot = {
+			transform: function(v) { return -v; },
+			inverseTransform: function (v) { return -v; },
+			ticks: function (axis) {
+				var res = [], i = Math.floor(axis.min);
+				do {
+					res.push([i,secondsToTime(i*60, with_hours=false)]);
+					i=i+0.5;
+				} while (i<axis.max);
+				return res;
+			}
+		}
+			
+		var plots = new Object();
+		var legends = new Object();
+		for (var i in graphs) {
+			plot_options = cloneObject(plot_default_options);
+			console.debug("Parsing data "+graphs[i]["name"]);
+			if (plot_data[graphs[i]["name"]]["data"].length>0) {
+				var avg=0;
+				var min=plot_data[graphs[i]["name"]]["data"][0][1];
+				var max=plot_data[graphs[i]["name"]]["data"][0][1];
+				for (var j=0; j<plot_data[graphs[i]["name"]]["data"].length; j++) {
+					avg=avg+plot_data[graphs[i]["name"]]["data"][j][1];
+					if (plot_data[graphs[i]["name"]]["data"][j][1]<min)
+						min=plot_data[graphs[i]["name"]]["data"][j][1];
+					if (plot_data[graphs[i]["name"]]["data"][j][1]>max)
+						max=plot_data[graphs[i]["name"]]["data"][j][1];
+				}
+				avg=avg/plot_data[graphs[i]["name"]]["data"].length;
+			}
+			if ((graphs[i]["name"]=="speed") && speed_as_pace) {
+				plot_options["yaxis"]=pace_plot;
+				plot_options["yaxis"]["min"]=Math.floor(min);
+				plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
+			} else {
+				plot_options["yaxis"]=new Object();
+				plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
+				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+			}
+
+			plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
+			legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
+			legends[graphs[i]["name"]].each(function() {
+				$(this).css('width', $(this).width());
+			});
+		}
+		
+		var updateLegendTimeout = null;
+		var latestPosition = null;
+
+		function updateLegend() {
+			updateLegendTimeout = null;
+
+			var pos = latestPosition;
+			
+			for (var graph in graphs) {
+				plot = plots[graphs[graph]["name"]];
+				legend = legends[graphs[graph]["name"]];
+
+				plot.setCrosshair(pos);
+				axes = plot.getAxes();
+				if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
+					continue;
+
+				var i, j, dataset = plot.getData();
+				for( i = 0; i < dataset.length; ++i) {
+					var series = dataset[i];
+
+					// find the nearest points, x-wise
+					for( j = 0; j < series.data.length; ++j)
+						if(series.data[j][0] > pos.x)
+							break;
+
+					// now interpolate
+					var y, p1 = series.data[j - 1], p2 = series.data[j];
+					if(p1 == null)
+						y = p2[1];
+					else if(p2 == null)
+						y = p1[1];
+					else
+						y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+					if (graphs[graph]["unit"]=="Minuten/km") {
+						newvalue = secondsToTime(y*60, with_hours=false);
+					} else {
+						newvalue = y.toFixed(graphs[graph]["rounding"]);
+					}
+					legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
+				}
+			}
+		}
+		for (var graph in graphs) {
+			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
+				latestPosition = pos;
+				if(!updateLegendTimeout)
+					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+		}
+		return data;
+
+	}
 	
 	// Start position for the map (hardcoded here for simplicity,
 	// but maybe you want to get this from the URL params)
@@ -259,6 +297,18 @@
 		var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
 	}
 {% endif %}
+
+
+	var plot_xaxis_changed = function () {
+		console.debug($("#plot_xaxis").val());
+		if( $("#plot_xaxis").val() == 0) {
+			plot_base = "distance";
+		} else {
+			plot_base = "time"
+		}
+		update_plots();
+	}
+
 </script>
 
 {% if not public %}

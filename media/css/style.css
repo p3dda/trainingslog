@@ -162,7 +162,11 @@ div #details_cad_container {
 	height: 250px;
 	overflow: hidden;
 }
-
+div #plotbase_form {
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
 div #tabs-laps {
 	font-size: small;
 }

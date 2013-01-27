@@ -15,7 +15,7 @@
 
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
-<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.all.css"></link>
+<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.all.css" />
 <link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpickerlayout.css" />
@@ -519,7 +519,7 @@
 						{% endif %}
 					</td>
 					<td>
-						<div id="colordisplay">
+						<div class="colordisplay">
 							<div style="background-color: {{sport.color}}"></div>
 						</div>
 					</td>
@@ -535,7 +535,7 @@
 
 <h1>Kalorienformeln</h1>
 {% if calformulas %}
-	<table id="sport_table" class="tablesorter">
+	<table id="calories_table" class="tablesorter">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -576,9 +576,9 @@
 			<td>Kalorienformel</td>
 			<td>
 				<select id="sport_calformula_input">
-					<option name="-" value = -1> - </option>
+					<option value = -1> - </option>
 					{% for calformula in calformulas %}
-						<option name={{ calformula.name }} value={{calformula.id}}>{{calformula.name}}</option>
+						<option value={{calformula.id}}>{{calformula.name}}</option>
 					{% endfor %}
 				</select>
 			</td>

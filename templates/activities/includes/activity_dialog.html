@@ -8,9 +8,9 @@
 			<table>
 				<tr><td>Vorlage: </td><td>
 					<select id="new_act_template">
-						<option name="-" value = -1> - </option>
+						<option value = -1> - </option>
 						{% for template in activitytemplates %}
-							<option name={{ template.name }} value={{template.id}}>{{template.name}}</option>
+							<option value={{template.id}}>{{template.name}}</option>
 						{% endfor %}
 					</select>
 				</td></tr>
@@ -21,15 +21,15 @@
 				<tr><td>Sportart:</td><td>
 					<select id="new_act_sport">
 						{% for sport in sports %}
-							<option name={{ sport.name }} value={{sport.id}}>{{sport.name}}</option>
+							<option value={{sport.id}}>{{sport.name}}</option>
 						{% endfor %}
 					</select>
 				</td></tr>
 				<tr><td>Kalorienformel:</td><td>
 					<select id="new_act_calformula">
-						<option name="-" value = -1> - </option>
+						<option value = -1> - </option>
 						{% for calformula in calformulas %}
-							<option name={{ calformula.name }} value={{calformula.id}}>{{calformula.name}}</option>
+							<option value={{calformula.id}}>{{calformula.name}}</option>
 						{% endfor %}
 					</select>
 				</td></tr>
@@ -41,7 +41,7 @@
 				<tr><td>Ereignis:</td><td>
 					<select id="new_act_event">
 						{% for event in events %}
-							<option name={{ event.name }} value={{event.id}}>{{event.name}}</option>
+							<option value={{event.id}}>{{event.name}}</option>
 						{% endfor %}
 					</select>
 				</td></tr>
@@ -52,7 +52,7 @@
 			<tr><td>Ausr&uuml;stung</td><td>
 				<select id="new_act_equipment" size=3 multiple>
 					{% for equipment in equipments %}
-						<option name={{ equipment.name }} value={{equipment.id}}>{{equipment.name}}</option>
+						<option value={{equipment.id}}>{{equipment.name}}</option>
 					{% endfor %}
 				</select>
 			</td></tr>

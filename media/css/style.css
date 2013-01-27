@@ -18,7 +18,7 @@
 }
 
 
-#colordisplay div {
+.colordisplay div {
 	width: 16px;
 	height: 16px;
 }
@@ -32,7 +32,7 @@ div .speed_unit {
 	display: inline;
 }
 
-div #plot_container {
+div .plot_container {
 	padding: 10px;
 }
 

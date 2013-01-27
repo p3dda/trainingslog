@@ -37,9 +37,9 @@ div #plot_container {
 }
 
 div#result{ background-color: #E6E6E6;font-weight: bold;color: #FF0000;}
-body { /*height: 10px;*/font-family: verdana;font-size: small;color: #9CA9CB}*/
-p#head{ color: #0F35FF}
-input#mes{ border-style: solid; border-width: thin;color: #FF0000}
+body { /*height: 10px;*/font-family: verdana;font-size: small;color: #9CA9CB;}*/
+p#head{ color: #0F35FF;}
+input#mes{ border-style: solid; border-width: thin;color: #FF0000;}
 
 
 /* tables */

@@ -271,19 +271,19 @@
 <div id="timespanform">
 	<p>
 		<select id="timespan">
-			<option name='-1' value='-1'>Alle Tage</option>
-			<option name='{% now "z" %}' value = '{% now "z" %}'>Aktuelles Jahr</option>
-			<option name='7' value='7'>Letzte 7 Tage</option>
-			<option name='30' value='30'>Letzter Monat</option>
-			<option name='90' value='90' selected>Letzte 3 Monate</option>
-			<option name='365' value='365'>Letzte 365 Tage</option>
-			<option name='-2' value='-2'>Benutzerdefiniert</option>
+			<option value='-1'>Alle Tage</option>
+			<option value = '{% now "z" %}'>Aktuelles Jahr</option>
+			<option value='7'>Letzte 7 Tage</option>
+			<option value='30'>Letzter Monat</option>
+			<option value='90' selected>Letzte 3 Monate</option>
+			<option value='365'>Letzte 365 Tage</option>
+			<option value='-2'>Benutzerdefiniert</option>
 		</select>
+	</p>
 		<div id="custom_timespan" style="display: none">
 			<input type="text" id="custom_start_date" /> - <input type="text" id="custom_end_date" />
 			<input type="button" id="custom_date_submit" value="Ok"/>
 		</div>
-	</p>
 	<table>
 		<tr>
 			<td valign="top">
@@ -309,15 +309,16 @@
 </div>
 <table>
 	<tr>
-		<td><div id="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div></td>
+		<td><div class="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div></td>
+		<td></td>
 	</tr>
 	<tr>
-		<td><div id="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
-		<td><div id="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
+		<td><div class="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
+		<td><div class="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
 	</tr>
 	<tr>
-		<td><div id="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
-		<td><div id="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
+		<td><div class="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
+		<td><div class="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
 	</tr>
 </table>
 

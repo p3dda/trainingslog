@@ -274,29 +274,32 @@ def list_equipment(request):
 @login_required
 def list_activities(request):
 	if request.method == 'POST':
+		is_saved=False
 		if len(request.FILES)>0:
+			# This is a direct manual file upload
 			logging.debug("Creating activity from tcx file upload");
 			try:
-				try:
-					newtrack = Track(trackfile=request.FILES['trackfile'])
-				except Exception:
-					print "Exception occured in file upload"
-					raise
-			
+				newtrack = Track(trackfile=request.FILES['trackfile'])
 				newtrack.save()
-
+				is_saved=True
 				activity = importtrack(request, newtrack)
+			except Exception, msg:
+				logging.error("Exception occured in import with message %s" % msg)
+				if is_saved:
+					newtrack.delete()
+				for line in traceback.format_exc().splitlines():
+					logging.error(line.strip())
+				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(exc)}))
+			else:
 				return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
-			except Exception, exc:
-				print "Exception raised in importtrack"
-				raise
-				#return HttpResponse(simplejson.dumps((False, )))
 		elif request.POST.has_key('content'):
+			# This is a Garmin Communicator plugin upload
 			logging.debug("Creating activity from text upload");
 			try:
 				filename = "%s.tcx" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
 				newtrack = Track()
 
+				# create a temp file from Garmin Communicator Plugin Content
 				tmpfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
 				tmpfilename = tmpfile.name
 
@@ -304,9 +307,9 @@ def list_activities(request):
 				tmpfile.write(content)
 				tmpfile.close()
 
-				#create tcx file 
+				#create new trackfile 
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
-
+				is_saved=True
 				logging.debug("Filename: %s" % filename)
 	
 				activity = importtrack(request, newtrack)
@@ -314,10 +317,11 @@ def list_activities(request):
 				os.remove(tmpfilename)
 				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
 			except Exception, exc:
-				logging.debug( "Exception raised in importtrack: %s" %str(exc))
+				logging.error("Exception raised in importtrack: %s" %str(exc))
+				if is_saved:
+					newtrack.delete()
 				for line in traceback.format_exc().splitlines():
-					logging.debug(line.strip())
-				
+					logging.error(line.strip())
 				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(exc)}))
 			
 		else:
@@ -812,7 +816,7 @@ def importtrack(request, newtrack):
 	# create additional gpx file from track
 	logging.debug("Calling tcx2gpx.convert with track object %s" % newtrack)
 	tcx2gpx.convert(newtrack)
-
+	
 	newtrack.trackfile.open()
 	xmltree = ElementTree(file = newtrack.trackfile)
 	newtrack.trackfile.close()

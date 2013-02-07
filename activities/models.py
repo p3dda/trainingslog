@@ -73,7 +73,7 @@ class ActivityBaseClass(models.Model):
 	weather_rain = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
 	weather_hum = models.IntegerField(blank=True, null=True)
 	weather_windspeed = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
-	weather_winddir = models.TextField(max_length=20, blank=True, null=True)
+	weather_winddir = models.CharField(max_length=20, blank=True, null=True)
 	
 	def __unicode__(self):
 		return self.name

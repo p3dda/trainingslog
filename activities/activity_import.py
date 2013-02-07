@@ -243,11 +243,11 @@ def importtrack_from_tcx(request, newtrack):
 			for observation in weather_observations:
 				obs_date = datetime.datetime(year = int(observation["utcdate"]["year"]), month = int(observation["utcdate"]["mon"]), day = int(observation["utcdate"]["mday"]), hour = int(observation["utcdate"]["hour"]), minute = int(observation["utcdate"]["min"])).replace(tzinfo=utc)
 				if obs_date >= date:
-					activity.weather_temp = float(observation["tempm"])
-					activity.weather_hum = int(observation["hum"])
+					activity.weather_temp = observation["tempm"]
+					activity.weather_hum = observation["hum"]
 					activity.weather_winddir = observation["wdire"]
-					activity.weather_windspeed = float(observation["wspdm"])
-					activity.weather_rain = float(observation["precip_ratem"])
+					activity.weather_windspeed = observation["wspdm"]
+					activity.weather_rain = observation["precip_ratem"]
 					break
 		except Exception, exc:
 			logging.error("Failed to load weather data: %s" % exc)

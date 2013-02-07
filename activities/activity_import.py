@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
+import datetime
 import dateutil
+import json
 import logging
+import urllib2
+
+from django.conf import settings as django_settings
+from django.utils.timezone import utc
 
 from activities.extras import tcx2gpx
 from activities.models import Activity, Event, Sport, Lap
 from activities.preview import create_preview
+
 
 found_xml_parser=False
 
@@ -109,8 +116,19 @@ def importtrack_from_tcx(request, newtrack):
 		elev_loss = 0
 		last_elev = None
 		
+		position_start = None
+		
 		for xmltrack in xmllap.findall(xmlns + "Track"):
 			for xmltp in xmltrack.findall(xmlns + "Trackpoint"):
+				if not position_start:
+					xmlpos = xmltp.find(xmlns + "Position")
+					if xmlpos:
+						if xmlpos.find(xmlns + "LatitudeDegrees") != None:
+							if xmlpos.find(xmlns + "LongitudeDegrees") != None:
+								lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
+								lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)
+								position_start = (lat, lon)
+							
 				if xmltp.find(xmlns + "AltitudeMeters") != None:
 					elev = int(round(float(xmltp.find(xmlns + "AltitudeMeters").text)))
 				else:
@@ -196,6 +214,43 @@ def importtrack_from_tcx(request, newtrack):
 		
 		print hf_avg
 		print cadence_avg
+	
+	try:
+		wunderground_key = django_settings.WUNDERGROUND_KEY
+	except AttributeError:
+		wunderground_key = False
+	
+	if wunderground_key:
+		try:
+			(lat, lon) = position_start
+			weather_url = "http://api.wunderground.com/api/%s/geolookup/q/%s,%s.json" % (wunderground_key, lat, lon)
+			f = urllib2.urlopen(weather_url)
+			json_string = f.read()
+			parsed_geolookup = json.loads(json_string)
+			if len(parsed_geolookup["location"]["nearby_weather_stations"]["pws"]["station"]) > 0:
+				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["pws"]["station"][0]
+				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/pws:%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["id"])
+			elif len(parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"]) > 0:
+				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"][0]
+				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["icao"])
+	
+			activity.weather_stationname = weather_station["city"]
+		
+			f = urllib2.urlopen(weather_url)
+			json_string = f.read(f)
+			weather_observations = json.loads(json_string)["history"]["observations"]
+			
+			for observation in weather_observations:
+				obs_date = datetime.datetime(year = int(observation["utcdate"]["year"]), month = int(observation["utcdate"]["mon"]), day = int(observation["utcdate"]["mday"]), hour = int(observation["utcdate"]["hour"]), minute = int(observation["utcdate"]["min"])).replace(tzinfo=utc)
+				if obs_date >= date:
+					activity.weather_temp = float(observation["tempm"])
+					activity.weather_hum = int(observation["hum"])
+					activity.weather_winddir = observation["wdire"]
+					activity.weather_windspeed = float(observation["wspdm"])
+					activity.weather_rain = float(observation["precip_ratem"])
+					break
+		except Exception, exc:
+			logging.error("Failed to load weather data: %s" % exc)
 		
 	activity.cadence_avg = int(cadence_avg / time_sum)
 	activity.cadence_max = cadence_max

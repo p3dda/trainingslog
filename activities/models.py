@@ -68,6 +68,13 @@ class ActivityBaseClass(models.Model):
 	time_elapsed = models.IntegerField(blank=True, null=True)
 	time_movement = models.IntegerField(blank=True, null=True)
 	
+	weather_stationname = models.CharField(max_length=200, blank=True, null=True)
+	weather_temp = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
+	weather_rain = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
+	weather_hum = models.IntegerField(blank=True, null=True)
+	weather_windspeed = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
+	weather_winddir = models.TextField(max_length=20, blank=True, null=True)
+	
 	def __unicode__(self):
 		return self.name
 	

@@ -105,6 +105,25 @@
 					</table>
 				</div>
 			</div>
+{% if activity.weather_stationname  %}
+			<div class="details_left_tables" id="details_weather">
+				<h3><a href="#">Wetter</a></h3>
+				<div>
+					<table class = "activity_weather">
+						<colgroup>
+							<col width="200">
+							<col width="100">
+						</colgroup>
+						<tr><td>Station</td><td>{{ activity.weather_stationname|default_if_none:"-" }}</td></tr>
+						<tr><td>Temperatur</td><td>{{ activity.weather_temp|default_if_none:"-" }} &deg;C</td></tr>
+						<tr><td>Windgeschwindigkeit</td><td>{{ activity.weather_windspeed|default_if_none:"-"}} km/h</td></tr>
+						<tr><td>Windrichtung</td><td>{{ activity.weather_winddir}}</td></tr>
+						<tr><td>Luftfeuchtigkeit</td><td>{{ activity.weather_hum|default_if_none:"-"}} %</td></tr>
+						<tr><td>Niederschlag</td><td>{{ activity.weather_rain|default_if_none:"-"}} mm</td></tr>
+					</table>
+				</div>
+			</div>
+{% endif %}
 		</div>
 		{% if tcx %}
 		<div id="details_map">

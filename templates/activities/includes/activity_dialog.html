@@ -3,6 +3,7 @@
 		<ul>
 			<li><a href="#tabs-1">Basics</a></li>
 			<li><a href="#tabs-2">Details</a></li>
+			<li><a href="#tabs-3">Wetter</a></li>
 		</ul>
 		<div id="tabs-1">
 			<table>
@@ -69,6 +70,16 @@
 			<tr><td>Durchschnittsgeschwindigkeit in Bewegung</td><td><input type="text" id="new_act_speed_avg_movement"><div class="speed_unit">km/h</div></td></tr>
 			<tr><td>&Ouml;ffentlich</td><td><input type="checkbox" id="new_act_public"/></td></tr>
 			</table>	
+		</div>
+		<div id="tabs-3">
+			<table>
+				<tr><td>Station</td><td><input type="text" id="new_act_weather_stationname"/></tr></td>
+				<tr><td>Temperatur</td><td><input type="text" id="new_act_weather_temp"/>&deg;C</td></tr>
+				<tr><td>Luftfeuchtigkeit</td><td><input type="text" id="new_act_weather_hum"/>%</td></tr>
+				<tr><td>Windrichtung</td><td><input type="text" id="new_act_weather_winddir"/></td></tr>
+				<tr><td>Windgeschwindigkeit</td><td><input type="text" id="new_act_weather_windspeed"/>km/h</td></tr>
+				<tr><td>Niederschlag</td><td><input type="text" id="new_act_weather_rain"/>mm</td></tr>
+			</table>
 		</div>
 	</div>
 	
@@ -471,8 +482,28 @@
 			override_calories = true;	// avoid existing calorie values to be overridden
 			change_sport();
 			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after change_sport for not being overwritten
-
 			override_calories = false;
+			
+			// Populate weather data
+			if(fields.weather_stationname != null) {
+				$("#new_act_weather_stationname").val(fields.weather_stationname);
+			}
+			if(fields.weather_temp != null) {
+				$("#new_act_weather_temp").val(fields.weather_temp);
+			}
+			if(fields.weather_rain != null) {
+				$("#new_act_weather_rain").val(fields.weather_rain);
+			}
+			if(fields.weather_hum != null) {
+				$("#new_act_weather_hum").val(fields.weather_hum);
+			}
+			if(fields.weather_windspeed != null) {
+				$("#new_act_weather_windspeed").val(fields.weather_windspeed);
+			}
+			if(fields.weather_winddir != null) {
+				$("#new_act_weather_winddir").val(fields.weather_winddir);
+			}
+			
 		}
 		
 		$.ajax({
@@ -538,11 +569,23 @@
 		new_act_data.time = $("#new_act_time").val();
 		new_act_data.elapsed_time = $("#new_act_elapsed_time").val();
 		new_act_data.time_movement = $("#new_act_time_movement").val();
+
+		new_act_data.weather_stationname = $("#new_act_weather_stationname").val()
+		new_act_data.weather_temp = $("#new_act_weather_temp").val()
+		new_act_data.weather_hum = $("#new_act_weather_hum").val()
+		new_act_data.weather_rain = $("#new_act_weather_rain").val()
+		new_act_data.weather_windspeed = $("#new_act_weather_windspeed").val()
+		new_act_data.weather_winddir = $("#new_act_weather_winddir").val()
+		
 		
 		new_act_data.distance = new_act_data.distance.replace( /,/,"." );
 		new_act_data.speed_max = new_act_data.speed_max.replace( /,/,"." );
 		new_act_data.speed_avg = new_act_data.speed_avg.replace( /,/,"." );
 		new_act_data.speed_avg_movement = new_act_data.speed_avg_movement.replace( /,/,"." );
+		new_act_data.weather_temp = new_act_data.weather_temp.replace( /,/,"." );
+		new_act_data.weather_rain = new_act_data.weather_rain.replace( /,/,"." );
+		new_act_data.weather_windspeed = new_act_data.weather_windspeed.replace( /,/,"." );
+
 
 		if ($("#new_act_public:checked").val() != undefined){
 			new_act_data.public = 1;
@@ -591,6 +634,12 @@
 				time_movement: new_act_data.time_movement,
 				public: new_act_data.public,
 				update_id: new_act_data.update_id,
+				weather_stationname: new_act_data.weather_stationname,
+				weather_temp: new_act_data.weather_temp,
+				weather_hum: new_act_data.weather_hum,
+				weather_rain: new_act_data.weather_rain,
+				weather_windspeed: new_act_data.weather_windspeed,
+				weather_winddir: new_act_data.weather_winddir,
 				is_template: is_template
 				}, function(data) {
 					
@@ -672,6 +721,19 @@
 			errors.push("Zeit in Bewegung ung&uuml;ltig");
 		}
 		
+		if(data.weather_temp != "" && !isNum(data.weather_temp)){
+			errors.push("Temperatur ung&uuml;ltig");
+		}
+		if(data.weather_rain != "" && !isNum(data.weather_rain)){
+			errors.push("Niederschlag ung&uuml;ltig");
+		}
+		if(data.weather_hum != "" && !isInt(data.weather_hum)){
+			errors.push("Luftfeuchtigkeit ung&uuml;ltig");
+		}
+		if(data.weather_windspeed != "" && !isNum(data.weather_windspeed)){
+			errors.push("Windgeschwindigkeit ung&uuml;ltig");
+		}
+
 		if(errors.length > 0){
 			return [false, errors];
 		} else {
@@ -710,6 +772,13 @@
 		if(data.speed_avg_movement=="") data.speed_avg_movement = null;
 		if(data.elapsed_time=="") data.elapsed_time = null;
 		if(data.time_movement=="") data.time_movement = null;
+		
+		if(data.weather_temp=="") data.weather_temp = null;
+		if(data.weather_hum=="") data.weather_hum = null;
+		if(data.weather_rain=="") data.weather_rain = null;
+		if(data.weather_windspeed=="") data.weather_windspeed = null;
+		if(data.weather_winddir=="") data.weather_winddir = null;
+		
 	}
 
 	var show_activity_delete_dialog = function(activity_id) {

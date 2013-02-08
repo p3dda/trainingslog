@@ -485,6 +485,14 @@ def add_activity(request):
 				act.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
 			else:
 				act.calorie_formula = None
+				
+			act.weather_stationname = request.POST.get('weather_stationname')
+			act.temp = str_float_or_none(request.POST.get('weather_temp'))
+			act.rain = str_float_or_none(request.POST.get('weather_rain'))
+			act.hum = int_or_none(request.POST.get('weather_hum'))
+			act.windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
+			act.winddir = request.POST.get('weather_winddir')
+		
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")
 			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))

@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -41,6 +43,24 @@ class Sport(models.Model):
 class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
 	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
+	
+	def delete(self):
+		files = []
+		if self.trackfile:
+			files.append(self.trackfile.path)
+			files.append(self.trackfile.path + ".gpx")
+				
+		if self.preview_img:
+			files.append(self.preview_img.path)
+		
+		for file in files:
+			if os.path.exists(file):
+				try:
+					os.remove(file)
+				except OSError:
+					pass
+		
+		models.Model.delete(self)
 	
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)
@@ -88,6 +108,12 @@ class Activity(ActivityBaseClass):
 	
 	class Meta:
 		verbose_name_plural = "Activities"
+		
+	def delete(self):
+		if self.track:
+			self.track.delete()
+		
+		ActivityBaseClass.delete(self)
 
 class ActivityTemplate(ActivityBaseClass):
 	date = models.DateTimeField('date', blank=True, null=True)

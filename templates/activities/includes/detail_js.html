@@ -50,8 +50,10 @@
 			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
 		}
 		$( "#plot_xaxis").change(plot_xaxis_changed);
-		init_map();
 		plot_graphs();
+{% endif %}
+{% if gpx_url %}
+		init_map();
 {% endif %}
 	});
 
@@ -280,14 +282,14 @@
 		map.addLayer(layerMarkers);
 
 		// Add the Layer with the GPX Track
-		{%  if tcx %}
-		var lgpx = new OpenLayers.Layer.GML("Track", "{{ tcx.url }}.gpx", {
+		{%  if gpx_url %}
+		var lgpx = new OpenLayers.Layer.GML("Track", "{{ gpx_url }}", {
 			format: OpenLayers.Format.GPX,
 			style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
 			projection: new OpenLayers.Projection("EPSG:4326")
 		});
 		map.addLayer(lgpx);
-		{% endif %}
+		{% endif %} // gpx_url
 		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		map.setCenter(lonLat, zoom);
 		lgpx.events.register('loadend', details_map, function(){this.zoomToExtent(lgpx.getDataExtent())});

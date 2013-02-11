@@ -534,27 +534,35 @@ def detail(request, activity_id):
 	except AttributeError:
 		fb_app_id = False
 
-	if act.track:
-		tcx = act.track.trackfile
-		
-		#check if preview image is missing
-		if not act.track.preview_img:
-			logging.debug("No preview image found")
-			create_preview(act.track)
-
-		# build absolute URL with domain part for preview image
-		# https seems not to be supported by facebook
-		if act.track.preview_img:
-			preview_img = request.build_absolute_uri(act.track.preview_img.url).replace("https://", "http://")
-		else:
-			preview_img = None
-			
-	else:
-		tcx = None
-		preview_img = None
 	
 	if not param:
 		# no parameter given, reply with activity detail template
+		
+		if act.track:
+			tcx = act.track.trackfile
+			
+			if os.path.isfile(tcx.path + ".gpx"):
+				gpx_url = tcx.url + ".gpx"
+			else:
+				gpx_url = None
+				
+			#check if preview image is missing
+			if not act.track.preview_img:
+				logging.debug("No preview image found")
+				create_preview(act.track)
+	
+			# build absolute URL with domain part for preview image
+			# https seems not to be supported by facebook
+			if act.track.preview_img:
+				preview_img = request.build_absolute_uri(act.track.preview_img.url).replace("https://", "http://")
+			else:
+				preview_img = None
+				
+		else:
+			tcx = None
+			gpx_url = None
+			preview_img = None
+
 		
 		if act.sport.speed_as_pace:
 			print "Speed_as_pace"
@@ -601,9 +609,9 @@ def detail(request, activity_id):
 			else:
 				weight = None
 			
-			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
+			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
 		else:
-			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': tcx, 'public': public})
+			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': tcx, 'gpx_url': gpx_url, 'public': public})
 	if param == 'plots':
 		if act.track:
 			tcxtrack = TCXTrack(act.track)

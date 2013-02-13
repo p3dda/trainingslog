@@ -333,8 +333,8 @@ def list_activities(request):
 def get_activities(request):
 	act_list = []
 	for activity in Activity.objects.select_related('sport').filter(user=request.user):
-		act_list.append({'id': activity.id, 'name': activity.name, 'sport': activity.sport.name, 'date': activity.date.strftime("%d.%m.%Y %H:%M"), 'duration': str(datetime.timedelta(days=0,seconds=activity.time))})
-	return HttpResponse(simplejson.dumps(act_list))
+		act_list.append({'id': activity.id, 'name': activity.name, 'sport': activity.sport.name, 'date': activity.date.isoformat(), 'duration': str(datetime.timedelta(days=0,seconds=activity.time))})
+	return HttpResponse(json.dumps(act_list), mimetype='application/json')
 
 @login_required
 def get_activity(request):

@@ -54,10 +54,13 @@
 			// $("#myTable").show("slow");
 			$("#myTable tbody").empty();
 			$.each(data, function(i, item) {
+				var act_date=new Date(item.date);
+				// why does js not just have strftime??
+				var act_date_string = pad(act_date.getDate(),2) + "." + pad(act_date.getMonth() + 1,2) + "." + act_date.getFullYear() + " " + pad(act_date.getHours(),2) + ":" + pad(act_date.getMinutes(),2); 
 				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '">' + item.name 
 					+ '</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(' + item.id + ')"/>&nbsp;&nbsp;'
 					+ '<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(' + item.id + ')"/></td><td>' 
-					+ item.sport + '</td><td>'+ item.date + '</td><td>' + item.duration + '</td></tr>');
+					+ item.sport + '</td><td>'+ act_date_string + '</td><td>' + item.duration + '</td></tr>');
 			});
 			$.tablesorter.addParser({
 				id: 'datestring',

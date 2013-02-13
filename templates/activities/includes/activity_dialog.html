@@ -384,19 +384,12 @@
 			// Populate dialog with received data if data is not null
 			act = eval(data.activity);
 			var fields = act[0].fields;
-			regexp = /(\d{4})-(\d{2})-(\d{2})[T| ](\d{2}):(\d{2}):(\d{2})/g;
-			dateArray = regexp.exec(fields.date); 
-			if(dateArray !== null){
-				dateObject = new Date(
-					(+dateArray[1]),
-					(+dateArray[2])-1, // Careful, month starts at 0!
-					(+dateArray[3]),
-					(+dateArray[4]),
-					(+dateArray[5]),
-					(+dateArray[6])
-				);
+			if(fields.date != null ){
+				var dateObject = new Date(fields.date);
+				console.debug(dateObject.toString());
+				console.debug(dateObject.toLocaleTimeString());
 				$("#new_act_date").datepicker("setDate", dateObject);
-				$("#new_act_datetime").timepicker("setTime", dateArray[4] + ':' + dateArray[5] + ':' + dateArray[6])
+				$("#new_act_datetime").timepicker("setTime", dateObject.toLocaleTimeString());
 			}
 			
 			if(fields.name != null){

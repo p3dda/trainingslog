@@ -33,6 +33,8 @@ class MyHandler(sax.handler.ContentHandler):
 		self.max_lat = 0
 		self.min_lon = 1000.0
 		self.max_lon = 0
+		
+		self.gpsfixes = 0
 
 	def startDocument(self):
 		self.w("""<gpx xmlns="http://www.topografix.com/GPX/1/1"
@@ -85,6 +87,7 @@ class MyHandler(sax.handler.ContentHandler):
 						self.w('    <time>%s</time>\n' % self.time)
 					self.w('   </trkpt>\n')
 					sys.stdout.flush()
+					self.gpsfixes = self.gpsfixes + 1
 		elif name == 'LatitudeDegrees':
 			self.lat = self.content
 		elif name == 'LongitudeDegrees':
@@ -102,5 +105,10 @@ def convert(tcxtrack):
 			w = f.write
 			handler = MyHandler(w)
 			sax.parse(tcxtrack.trackfile.path, handler)
+			
+		# do not keep empty gpx files (occurs when having .tcx recordings without GPS enabled)
+		if handler.gpsfixes == 0:
+			file = tcxtrack.trackfile.path+".gpx"
+			os.remove(file)
 	except Exception, msg:
 		logging.debug("Exception occured in convert: %s" % msg)

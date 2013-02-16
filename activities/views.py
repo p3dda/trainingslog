@@ -487,11 +487,11 @@ def add_activity(request):
 				act.calorie_formula = None
 				
 			act.weather_stationname = request.POST.get('weather_stationname')
-			act.temp = str_float_or_none(request.POST.get('weather_temp'))
-			act.rain = str_float_or_none(request.POST.get('weather_rain'))
-			act.hum = int_or_none(request.POST.get('weather_hum'))
-			act.windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
-			act.winddir = request.POST.get('weather_winddir')
+			act.weather_temp = str_float_or_none(request.POST.get('weather_temp'))
+			act.weather_rain = str_float_or_none(request.POST.get('weather_rain'))
+			act.weather_hum = int_or_none(request.POST.get('weather_hum'))
+			act.weather_windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
+			act.weather_winddir = request.POST.get('weather_winddir')
 		
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")

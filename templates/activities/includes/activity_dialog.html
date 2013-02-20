@@ -582,8 +582,10 @@
 
 		if ($("#new_act_public:checked").val() != undefined){
 			new_act_data.public = 1;
+            var act_is_public = true;
 		} else {
 			new_act_data.public = 0;
+            var act_is_public = false;
 		}
 
 		res = validate_act_data(new_act_data, is_template);

@@ -17,7 +17,12 @@
 		var speed_unit = "km/h";
 	{% endif %}
 	var plot_base="distance";
-		
+    console.debug( "{{ activity.public }}")
+    {%  if activity.public %}
+	    var act_is_public = true;
+    {%  else %}
+        var act_is_public = false;
+    {%  endif %}
 	var distanceSuffixFormatter = function(val, axis) {
 			if (val >= 1000)
 				return (val / 1000).toFixed(axis.tickDecimals) + "km";
@@ -326,43 +331,47 @@
 			};
 		
 			var postToFeed = function() {
-				var desc = new Array();
-				{% if activity.time %}
-				desc.push('Zeit: {{ activity.time }}');
-				{% endif %}
-                                {% if activity.distance %}
-                                desc.push('Distanz: {{ activity.distance }} km');
-                                {% endif %}
-                                {% if activity.speed_avg  %}
-                                desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
-                                {% endif %}
-                                {% if activity.hf_avg  %}
-                                desc.push('HF Ø: {{ activity.hf_avg }}');
-                                {% endif %}
-                                {% if activity.calories  %}
-                                desc.push('Kalorien: {{ activity.calories }}');
-                                {% endif %}
-	
+                if( act_is_public ){
+                    var desc = new Array();
+                    {% if activity.time %}
+                    desc.push('Zeit: {{ activity.time }}');
+                    {% endif %}
+                                    {% if activity.distance %}
+                                    desc.push('Distanz: {{ activity.distance }} km');
+                                    {% endif %}
+                                    {% if activity.speed_avg  %}
+                                    desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
+                                    {% endif %}
+                                    {% if activity.hf_avg  %}
+                                    desc.push('HF Ø: {{ activity.hf_avg }}');
+                                    {% endif %}
+                                    {% if activity.calories  %}
+                                    desc.push('Kalorien: {{ activity.calories }}');
+                                    {% endif %}
 
-				var obj = {
-					method: 'feed',
-					link: '{{ full_url }}',
-					name: '{{ activity.name }}',
-					{% if activity.comment  %}
-					caption: '{{ activity.comment|linebreaksbr }}',
-					{% else %}
-					caption: ' ',
-					{% endif %}
-					picture: '{{ preview_img }}',
-					description: desc.join(" - ")
-				};
+
+                    var obj = {
+                        method: 'feed',
+                        link: '{{ full_url }}',
+                        name: '{{ activity.name }}',
+                        {% if activity.comment  %}
+                        caption: '{{ activity.comment|linebreaksbr }}',
+                        {% else %}
+                        caption: ' ',
+                        {% endif %}
+                        picture: '{{ preview_img }}',
+                        description: desc.join(" - ")
+                    };
 
 			
-				function callback(response) {
-					document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
-				}
+                    function callback(response) {
+                        document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
+                    }
 				
-				FB.ui(obj, callback);
+				    FB.ui(obj, callback);
+                } else {
+                    noty({text: "Aktivit&auml;t ist nicht &ouml;ffentlich", type: 'error', timeout: 5000});
+                }
 			};
 		
 		  // Load the SDK's source Asynchronously

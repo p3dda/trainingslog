@@ -4,6 +4,8 @@ import datetime
 import dateutil
 import json
 import logging
+import sys
+import traceback
 import urllib2
 
 from django.conf import settings as django_settings
@@ -223,15 +225,18 @@ def importtrack_from_tcx(request, newtrack):
 	if wunderground_key:
 		try:
 			(lat, lon) = position_start
+			logging.debug("Getting weather data for position %r %r" % (lat,lon))
 			weather_url = "http://api.wunderground.com/api/%s/geolookup/q/%s,%s.json" % (wunderground_key, lat, lon)
 			f = urllib2.urlopen(weather_url)
 			json_string = f.read()
 			parsed_geolookup = json.loads(json_string)
 			if len(parsed_geolookup["location"]["nearby_weather_stations"]["pws"]["station"]) > 0:
 				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["pws"]["station"][0]
+				logging.debug("Found nearby weather station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/pws:%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["id"])
 			elif len(parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"]) > 0:
 				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"][0]
+				logging.debug("Found nearby airport station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["icao"])
 	
 			activity.weather_stationname = weather_station["city"]
@@ -244,13 +249,23 @@ def importtrack_from_tcx(request, newtrack):
 				obs_date = datetime.datetime(year = int(observation["utcdate"]["year"]), month = int(observation["utcdate"]["mon"]), day = int(observation["utcdate"]["mday"]), hour = int(observation["utcdate"]["hour"]), minute = int(observation["utcdate"]["min"])).replace(tzinfo=utc)
 				if obs_date >= date:
 					activity.weather_temp = observation["tempm"]
+					logging.debug("Weather temperature is %r" % observation["tempm"])
 					activity.weather_hum = observation["hum"]
+					logging.debug("Weather hum is %r" % observation["hum"])
 					activity.weather_winddir = observation["wdire"]
+					logging.debug("Weather winddir is %r" % observation["wdire"])
 					activity.weather_windspeed = observation["wspdm"]
-					activity.weather_rain = observation["precip_ratem"]
+					logging.debug("Weather windspeed is %r" % observation["wspdm"])
+					if observation["precip_ratem"]>=0:
+						activity.weather_rain = observation["precip_ratem"]
+						logging.debug("Weather rain is %r" % observation["precip_ratem"])
+					else:
+						activity.weather_rain = None
 					break
 		except Exception, exc:
 			logging.error("Failed to load weather data: %s" % exc)
+			for line in traceback.format_exc(sys.exc_info()[2]).splitlines():
+				logging.error(line)
 		
 	activity.cadence_avg = int(cadence_avg / time_sum)
 	activity.cadence_max = cadence_max

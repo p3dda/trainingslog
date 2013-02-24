@@ -424,8 +424,12 @@
 
 		// Add the Layer with the GPX Track
 		{%  if gpx_url %}
-		var lgpx = new OpenLayers.Layer.GML("Track", "{{ gpx_url }}", {
-			format: OpenLayers.Format.GPX,
+		var lgpx = new OpenLayers.Layer.Vector("Track", {
+			protocol: new OpenLayers.Protocol.HTTP({
+				url: "{{ gpx_url }}",
+				format: new OpenLayers.Format.GPX({extractWaypoints: true, extractRoutes: true, extractAttributes:true})
+			}),
+			strategies: [ new OpenLayers.Strategy.Fixed()],
 			style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
 			projection: new OpenLayers.Projection("EPSG:4326")
 		});
@@ -433,12 +437,17 @@
 		{% endif %} // gpx_url
 		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		map.setCenter(lonLat, zoom);
-		lgpx.events.register('loadend', details_map, function(){this.zoomToExtent(lgpx.getDataExtent())});
+		lgpx.events.register('loadend', details_map, function(){
+			this.zoomToExtent(lgpx.getDataExtent())
+		});
 		map.setCenter(null, null);
 
 		var size = new OpenLayers.Size(21, 25);
 		var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
 		var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
+
+		// show map
+		$("#details_map_container").css('visibility', 'visible');
 	}
 {% endif %}
 

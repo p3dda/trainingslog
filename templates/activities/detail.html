@@ -64,7 +64,7 @@
 		<li><a href="#tabs-laps">Zwischenzeiten</a></li>
 		{% endif %}
 	</ul>
-	
+
 	<div id="tabs-details" >
 		<div id="details_left_tables">
 			<div class="details_left_tables" id="details_overview">
@@ -108,7 +108,15 @@
 					</table>
 				</div>
 			</div>
-{% if activity.weather_stationname  %}
+{%  if tcx %}
+			<div class = "details_left_tables" id="details_selection">
+				<h3><a href="#">Selektion</a></h3>
+				<div id="plot_selection">
+				W&auml;hle einen Bereich in den Graphen
+				</div>
+			</div>
+{%  endif %}
+			{% if activity.weather_stationname  %}
 			<div class="details_left_tables" id="details_weather">
 				<h3><a href="#">Wetter</a></h3>
 				<div>
@@ -182,7 +190,7 @@
 						<td>{{ lap.hf_max }}</td>
 						<td>{{ lap.hf_avg }}</td>
 						<td>{{ lap.calories }}</td>
-				
+
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -190,7 +198,7 @@
 		</div>
 	</div>
 	{% endif %}
-	
+
 </div>
 {% if not public %}
 {% include "activities/includes/activity_dialog.html" %}

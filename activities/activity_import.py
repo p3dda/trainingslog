@@ -256,7 +256,7 @@ def importtrack_from_tcx(request, newtrack):
 					logging.debug("Weather winddir is %r" % observation["wdire"])
 					activity.weather_windspeed = observation["wspdm"]
 					logging.debug("Weather windspeed is %r" % observation["wspdm"])
-					if observation["precip_ratem"]>=0:
+					if float(observation["precip_ratem"])>=0:
 						activity.weather_rain = observation["precip_ratem"]
 						logging.debug("Weather rain is %r" % observation["precip_ratem"])
 					else:

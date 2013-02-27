@@ -50,6 +50,7 @@
 		$( "#laps_laps").accordion();
 		$( "#details_tabs" ).tabs();
 {% if tcx %}
+		$( "#details_selection").accordion({collapsible: true, active:false});
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) {
 			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
@@ -65,7 +66,7 @@
 {% if tcx %}
 	plot_data = new Object();
 	var plot_data_raw;
-	
+	var plot_lock_selection_cb = false;
 	var plot_graphs = function() {
 		var url = "/activities/{{ activity.id }}/?p=plots";
 	
@@ -83,8 +84,65 @@
 		});
 
 	};
-	
-	
+
+	var range_data = function(data){
+		var min = false;
+		var max = false;
+
+		for(var i in data){
+			var x = data[i][0];
+			var y= data[i][1];
+
+			if(min == false || min > y)
+				min = y;
+			if( max == false || max < y)
+				max = y;
+		}
+		res = new Object();
+		res.min = min;
+		res.max = max;
+		return res;
+	}
+
+	var range_edge_samples = function(range_min, range_max) {
+		// find first and last samples
+		for(var graph in graphs){
+			var dataname = graphs[graph]["dataname"];
+			if(plot_data_raw[dataname].length > 0){
+				for(var i in plot_data_raw[dataname]) {
+					var sample = plot_data_raw[dataname][i];
+					if(plot_base == "distance" ){
+						if( sample[0] >= range_min ) {
+							var range_start = i;
+							break;
+						}
+					} else {
+						if( sample[1] >= range_min ) {
+							var range_start = i;
+							break;
+						}
+					}
+				}
+				for(var i in plot_data_raw[dataname]) {
+					sample = plot_data_raw[dataname][i];
+					if(plot_base == "distance" ){
+						if( sample[0] >= range_max ) {
+							var range_end = i;
+							break;
+						}
+					} else {
+						if( sample[1] >= range_max ) {
+							var range_end = i;
+							break;
+						}
+					}
+				}
+				break;
+			}
+		}
+		return [range_start, range_end]
+	}
+
 	var update_plots = function() {
 		function cloneObject(obj) {
 			var clone = {};
@@ -244,6 +302,73 @@
 				latestPosition = pos;
 				if(!updateLegendTimeout)
 					updateLegendTimeout = setTimeout(updateLegend, 50);
+			});
+
+			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
+				if (plot_lock_selection_cb==false){
+					plot_lock_selection_cb = true;
+					var text = "<table>";
+
+					var range_edges = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
+
+					for(var graph2 in graphs){
+						var dataname = graphs[graph2]["dataname"];
+						if(plot_data_raw[dataname].length > range_edges[1]){
+							var distance = plot_data_raw[dataname][range_edges[1]][0] - plot_data_raw[dataname][range_edges[0]][0]
+							var duration = plot_data_raw[dataname][range_edges[1]][1] - plot_data_raw[dataname][range_edges[0]][1]
+							text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
+							text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
+							break;
+						}
+					}
+
+					for( var graph2 in graphs ){
+						plot = plots[graphs[graph2]["name"]];
+						plot.setSelection({ xaxis: { from: ranges.xaxis.from, to: ranges.xaxis.to }});
+
+						console.debug("Range is " + range_edges);
+						var range_values = range_data(plot_data[graphs[graph2]["name"]]["data"].slice(range_edges[0], range_edges[1]));
+
+
+						if (range_values.min != false && range_values.max != false) {
+							console.debug("Label: " + graphs[graph2]["label"])
+							console.debug("Min - Max: " + range_values.min + " - " + range_values.max);
+
+							if (graphs[graph2]["unit"]=="Minuten/km") {
+								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
+							} else {
+								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
+							}
+						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
+						}
+					}
+					text = text + "</table>"
+					$("#plot_selection").html(text);
+//					$("#plot_sel_range").text(ranges.xaxis.from.toFixed(1) + " - " + ranges.xaxis.to.toFixed(1));
+					var active = $( "#details_selection" ).accordion( "option", "active" );
+					if($( "#details_selection" ).accordion( "option", "active" ) === false)
+						$( "#details_selection" ).accordion( "option", "active", 0 );
+					plot_lock_selection_cb = false;
+				}
+			});
+
+			$("#details_"+graphs[graph]["name"]+"_container").bind("plotunselected", function (event) {
+				if (plot_lock_selection_cb == false ) {
+					plot_lock_selection_cb = true;
+					//deselect range in other graphs
+					for (var graph2 in graphs){
+						plot = plots[graphs[graph2]["name"]];
+						plot.clearSelection();
+					}
+					// close accordion
+					if($( "#details_selection" ).accordion( "option", "active" ) !== false)
+						$( "#details_selection" ).accordion( "option", "active", false );
+					$("#plot_selection").html("W&auml;hle einen Bereich in den Graphen");
+
+					plot_lock_selection_cb = false;
+				}
 			});
 		}
 		return data;

@@ -112,6 +112,9 @@ div #details_left_tables {
 	float: left;
 	font-size: small;
 }
+div #plot_selection{
+	height: 200px;
+}
 div #details_map{
 	font-size: small;
 	width: 600px;

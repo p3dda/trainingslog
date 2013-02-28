@@ -86,6 +86,7 @@
 	};
 
 	var range_data = function(data){
+		// TODO Calculate average over time
 		var min = false;
 		var max = false;
 
@@ -318,6 +319,16 @@
 							var duration = plot_data_raw[dataname][range_edges[1]][1] - plot_data_raw[dataname][range_edges[0]][1]
 							text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
 							text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
+							if(duration > 0 && distance > 0) {
+								console.debug(duration);
+								console.debug(distance);
+								if(speed_as_pace){
+									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
+								} else {
+									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
+								}
+							}
+							
 							break;
 						}
 					}

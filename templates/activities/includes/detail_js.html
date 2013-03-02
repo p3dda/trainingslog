@@ -343,6 +343,16 @@
 						var start_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[0]][1], plot_data_raw["pos"][range_edges[0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
 						var end_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[1]][1], plot_data_raw["pos"][range_edges[1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
 
+						// Remove markers from previous selection
+						if(start_marker){
+							layerMarkers.removeMarker(start_marker);
+							start_marker = null;
+						}
+						if(end_marker){
+							layerMarkers.removeMarker(end_marker);
+							end_marker = null;
+						}
+
 						start_marker = new OpenLayers.Marker(start_lonLat,start_icon)
 						end_marker = new OpenLayers.Marker(end_lonLat,end_icon)
 						layerMarkers.addMarker(start_marker);

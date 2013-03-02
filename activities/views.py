@@ -619,6 +619,7 @@ def detail(request, activity_id):
 			data = {'altitude': tcxtrack.get_alt(),
 					'cadence': tcxtrack.get_cad(),
 					'hf': tcxtrack.get_hf(),
+					'pos': tcxtrack.get_pos(),
 					'speed': tcxtrack.get_speed(act.sport.speed_as_pace),
 					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace)
 					}

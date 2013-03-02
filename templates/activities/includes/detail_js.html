@@ -89,19 +89,39 @@
 		// TODO Calculate average over time
 		var min = false;
 		var max = false;
-
+		var avg = false;
+		var last_ts = false;
+		var avg_count = 0;
 		for(var i in data){
-			var x = data[i][0];
-			var y= data[i][1];
+			var x = data[i][1];
+			var y= data[i][2];
 
+			// calculation of min/max
 			if(min == false || min > y)
 				min = y;
 			if( max == false || max < y)
 				max = y;
+
+			// calculation of average
+			if(last_ts != false ) {
+				avg = avg + y * (x - last_ts);
+				avg_count = avg_count + (x - last_ts);
+				last_ts = x;
+			} else {
+				// first sample...
+				last_ts = x;
+				avg = 0;
+			}
 		}
+
+		if(avg_count > 0) {
+			avg = avg / avg_count;
+		}
+		
 		res = new Object();
 		res.min = min;
 		res.max = max;
+		res.avg = avg;
 		return res;
 	}
 
@@ -312,6 +332,22 @@
 
 					var range_edges = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
 
+					console.debug("Range starts at " + plot_data_raw["pos"][range_edges[0]]);
+					console.debug("Range ends at " + plot_data_raw["pos"][range_edges[1]]);
+
+					if(layerMarkers) {
+						var size = new OpenLayers.Size(21,25);
+						var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+						var start_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-green.png', size, offset);
+						var end_icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size.clone(), offset.clone());
+						var start_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[0]][1], plot_data_raw["pos"][range_edges[0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
+						var end_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[1]][1], plot_data_raw["pos"][range_edges[1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
+
+						start_marker = new OpenLayers.Marker(start_lonLat,start_icon)
+						end_marker = new OpenLayers.Marker(end_lonLat,end_icon)
+						layerMarkers.addMarker(start_marker);
+						layerMarkers.addMarker(end_marker);
+					}
 					for(var graph2 in graphs){
 						var dataname = graphs[graph2]["dataname"];
 						if(plot_data_raw[dataname].length > range_edges[1]){
@@ -337,20 +373,18 @@
 						plot = plots[graphs[graph2]["name"]];
 						plot.setSelection({ xaxis: { from: ranges.xaxis.from, to: ranges.xaxis.to }});
 
-						console.debug("Range is " + range_edges);
-						var range_values = range_data(plot_data[graphs[graph2]["name"]]["data"].slice(range_edges[0], range_edges[1]));
-
+						var range_values = range_data(plot_data_raw[graphs[graph2]["dataname"]].slice(range_edges[0], range_edges[1]));
 
 						if (range_values.min != false && range_values.max != false) {
-							console.debug("Label: " + graphs[graph2]["label"])
-							console.debug("Min - Max: " + range_values.min + " - " + range_values.max);
 
 							if (graphs[graph2]["unit"]=="Minuten/km") {
 								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
 							} else {
 								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
 							}
 						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 						}
@@ -378,6 +412,15 @@
 						$( "#details_selection" ).accordion( "option", "active", false );
 					$("#plot_selection").html("W&auml;hle einen Bereich in den Graphen");
 
+					// Remove markers from map
+					if(start_marker){
+						layerMarkers.removeMarker(start_marker);
+						start_marker = null;
+					}
+					if(end_marker){
+						layerMarkers.removeMarker(end_marker);
+						end_marker = null;
+					}
 					plot_lock_selection_cb = false;
 				}
 			});
@@ -422,6 +465,9 @@
 		layerMarkers = new OpenLayers.Layer.Markers("Markers");
 		map.addLayer(layerMarkers);
 
+		start_marker = null;
+		end_marker = null;
+
 		// Add the Layer with the GPX Track
 		{%  if gpx_url %}
 		var lgpx = new OpenLayers.Layer.Vector("Track", {
@@ -435,16 +481,13 @@
 		});
 		map.addLayer(lgpx);
 		{% endif %} // gpx_url
+
 		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		map.setCenter(lonLat, zoom);
 		lgpx.events.register('loadend', details_map, function(){
 			this.zoomToExtent(lgpx.getDataExtent())
 		});
 		map.setCenter(null, null);
-
-		var size = new OpenLayers.Size(21, 25);
-		var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-		var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
 
 		// show map
 		$("#details_map_container").css('visibility', 'visible');

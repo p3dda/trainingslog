@@ -514,8 +514,8 @@
 		map.addLayer(layerSelection);
 		map.addLayer(layerMarkers);
 
-		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-		map.setCenter(lonLat, zoom);
+//		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+//		map.setCenter(lonLat, zoom);
 		layerGPX.events.register('loadend', details_map, function(){
 			this.zoomToExtent(layerGPX.getDataExtent())
 		});

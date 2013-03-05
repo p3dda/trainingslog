@@ -17,12 +17,12 @@
 		var speed_unit = "km/h";
 	{% endif %}
 	var plot_base="distance";
-    console.debug( "{{ activity.public }}")
-    {%  if activity.public %}
-	    var act_is_public = true;
-    {%  else %}
-        var act_is_public = false;
-    {%  endif %}
+	console.debug( "{{ activity.public }}")
+	{%	if activity.public %}
+		var act_is_public = true;
+	{%	else %}
+		var act_is_public = false;
+	{%	endif %}
 	var distanceSuffixFormatter = function(val, axis) {
 			if (val >= 1000)
 				return (val / 1000).toFixed(axis.tickDecimals) + "km";
@@ -32,12 +32,12 @@
 
 
 {% if tcx %}
-        var graphs = [
-               { "name": "hf", "dataname": "hf", "label": "HF", "rounding": 0, "unit": "/ Minute"},
-               { "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "rounding": 1, "unit": speed_unit},
-               { "name": "alt", "dataname": "altitude", "label": "Hoehe", "rounding": 0, "unit": "m"},
-               { "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "rounding": 0, "unit": "/ Minute"}
-           ];	
+	var graphs = [
+		{ "name": "hf", "dataname": "hf", "label": "HF", "rounding": 0, "unit": "/ Minute"},
+		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "rounding": 1, "unit": speed_unit},
+		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "rounding": 0, "unit": "m"},
+		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "rounding": 0, "unit": "/ Minute"}
+	];	
 {% else %}
 	var graphs = [];
 	console.debug("Graph is now "+graphs);
@@ -352,11 +352,30 @@
 							layerMarkers.removeMarker(end_marker);
 							end_marker = null;
 						}
-
 						start_marker = new OpenLayers.Marker(start_lonLat,start_icon)
 						end_marker = new OpenLayers.Marker(end_lonLat,end_icon)
 						layerMarkers.addMarker(start_marker);
 						layerMarkers.addMarker(end_marker);
+					}
+					if(layerSelection) {
+						// Remove previous selection features
+						layerSelection.removeAllFeatures();
+						
+						var selection_points = plot_data_raw["pos"].slice(range_edges[0], range_edges[1]);
+						var points = new Array();
+						for(var i in selection_points){
+							var cur_point = new OpenLayers.Geometry.Point(selection_points[i][1], selection_points[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
+							points.push(cur_point);
+						}
+
+						var line = new OpenLayers.Geometry.LineString(points);
+						var style = { 
+							strokeColor: '#0000ff', 
+							strokeOpacity: 0.5,
+							strokeWidth: 10
+						};
+						var lineFeature = new OpenLayers.Feature.Vector(line, null, style);
+						layerSelection.addFeatures([lineFeature]);
 					}
 					for(var graph2 in graphs){
 						var dataname = graphs[graph2]["dataname"];
@@ -474,13 +493,14 @@
 		map.addLayer(layerCycleMap);
 		layerMarkers = new OpenLayers.Layer.Markers("Markers");
 		map.addLayer(layerMarkers);
-
+		layerSelection = new OpenLayers.Layer.Vector("Selection");
+		map.addLayer(layerSelection);
 		start_marker = null;
 		end_marker = null;
 
 		// Add the Layer with the GPX Track
 		{%  if gpx_url %}
-		var lgpx = new OpenLayers.Layer.Vector("Track", {
+		var layerGPX = new OpenLayers.Layer.Vector("Track", {
 			protocol: new OpenLayers.Protocol.HTTP({
 				url: "{{ gpx_url }}",
 				format: new OpenLayers.Format.GPX({extractWaypoints: true, extractRoutes: true, extractAttributes:true})
@@ -489,13 +509,13 @@
 			style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
 			projection: new OpenLayers.Projection("EPSG:4326")
 		});
-		map.addLayer(lgpx);
+		map.addLayer(layerGPX);
 		{% endif %} // gpx_url
 
 		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		map.setCenter(lonLat, zoom);
-		lgpx.events.register('loadend', details_map, function(){
-			this.zoomToExtent(lgpx.getDataExtent())
+		layerGPX.events.register('loadend', details_map, function(){
+			this.zoomToExtent(layerGPX.getDataExtent())
 		});
 		map.setCenter(null, null);
 
@@ -529,60 +549,60 @@
 			};
 		
 			var postToFeed = function() {
-                if( act_is_public ){
-                    var desc = new Array();
-                    {% if activity.time %}
-                    desc.push('Zeit: {{ activity.time }}');
-                    {% endif %}
-                                    {% if activity.distance %}
-                                    desc.push('Distanz: {{ activity.distance }} km');
-                                    {% endif %}
-                                    {% if activity.speed_avg  %}
-                                    desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
-                                    {% endif %}
-                                    {% if activity.hf_avg  %}
-                                    desc.push('HF Ø: {{ activity.hf_avg }}');
-                                    {% endif %}
-                                    {% if activity.calories  %}
-                                    desc.push('Kalorien: {{ activity.calories }}');
-                                    {% endif %}
+				if( act_is_public ){
+					var desc = new Array();
+					{% if activity.time %}
+					desc.push('Zeit: {{ activity.time }}');
+					{% endif %}
+									{% if activity.distance %}
+									desc.push('Distanz: {{ activity.distance }} km');
+									{% endif %}
+									{% if activity.speed_avg  %}
+									desc.push('Geschwindigkeit Ø: {{ activity.speed_avg }} '+speed_unit);
+									{% endif %}
+									{% if activity.hf_avg  %}
+									desc.push('HF Ø: {{ activity.hf_avg }}');
+									{% endif %}
+									{% if activity.calories	 %}
+									desc.push('Kalorien: {{ activity.calories }}');
+									{% endif %}
 
 
-                    var obj = {
-                        method: 'feed',
-                        link: '{{ full_url }}',
-                        name: '{{ activity.name }}',
-                        {% if activity.comment  %}
-                        caption: '{{ activity.comment|linebreaksbr }}',
-                        {% else %}
-                        caption: ' ',
-                        {% endif %}
-                        picture: '{{ preview_img }}',
-                        description: desc.join(" - ")
-                    };
+					var obj = {
+						method: 'feed',
+						link: '{{ full_url }}',
+						name: '{{ activity.name }}',
+						{% if activity.comment	%}
+						caption: '{{ activity.comment|linebreaksbr }}',
+						{% else %}
+						caption: ' ',
+						{% endif %}
+						picture: '{{ preview_img }}',
+						description: desc.join(" - ")
+					};
 
 			
-                    function callback(response) {
-                        document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
-                    }
+					function callback(response) {
+						document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
+					}
 				
-				    FB.ui(obj, callback);
-                } else {
-                    noty({text: "Aktivit&auml;t ist nicht &ouml;ffentlich", type: 'error', timeout: 5000});
-                }
+					FB.ui(obj, callback);
+				} else {
+					noty({text: "Aktivit&auml;t ist nicht &ouml;ffentlich", type: 'error', timeout: 5000});
+				}
 			};
 		
-		  // Load the SDK's source Asynchronously
-		  // Note that the debug version is being actively developed and might 
-		  // contain some type checks that are overly strict. 
-		  // Please report such bugs using the bugs tool.
-		  (function(d, debug){
-		     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-		     if (d.getElementById(id)) {return;}
-		     js = d.createElement('script'); js.id = id; js.async = true;
-		     js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
-		     ref.parentNode.insertBefore(js, ref);
-		   }(document, /*debug*/ false));
+		// Load the SDK's source Asynchronously
+		// Note that the debug version is being actively developed and might 
+		// contain some type checks that are overly strict. 
+		// Please report such bugs using the bugs tool.
+		(function(d, debug){
+			var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+			if (d.getElementById(id)) {return;}
+			js = d.createElement('script'); js.id = id; js.async = true;
+			js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
+			ref.parentNode.insertBefore(js, ref);
+		}(document, /*debug*/ false));
 		</script>
 
 	{% endif %}

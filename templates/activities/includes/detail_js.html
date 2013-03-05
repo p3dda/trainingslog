@@ -487,8 +487,11 @@
 	var populate_map = function(map) {
 		// Define the map layer
 		// Here we use a predefined layer that will be kept up to date with URL changes
-		layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-		layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
+		layerMapnik = new OpenLayers.Layer.OSM("Mapnik");
+		layerCycleMap = new OpenLayers.Layer.OSM("OpenCycleMap",
+				  ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+				   "http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+				    "http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"]);
 		layerMarkers = new OpenLayers.Layer.Markers("Markers");
 		layerSelection = new OpenLayers.Layer.Vector("Selection");
 		map.addLayer(layerMapnik);

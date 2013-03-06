@@ -49,6 +49,8 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
+WUNDERGROUND_KEY = '8424e446a37c8faf'
+
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')

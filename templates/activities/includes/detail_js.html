@@ -275,15 +275,27 @@
 			});
 		}
 		
-		var updateLegendTimeout = null;
+		var updateCursorTimeout = null;
 		var latestPosition = null;
-
-		function updateLegend() {
-			updateLegendTimeout = null;
+		
+		function updateCursor() {
+			updateCursorTimeout = null;
 
 			var pos = latestPosition;
-			
-			for (var graph in graphs) {
+			var sample = range_edge_samples(pos.x, pos.x)[0];
+			if( sample !== undefined ) {
+				if(cursor_marker) {
+					layerCursor.removeMarker(cursor_marker);
+				}
+				var size = new OpenLayers.Size(21,25);
+				var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+				var cursor_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-blue.png', size, offset);
+				var cursor_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][sample][1], plot_data_raw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
+				cursor_marker = new OpenLayers.Marker(cursor_lonLat,cursor_icon)
+				layerCursor.addMarker(cursor_marker);
+			}
+
+		for (var graph in graphs) {
 				plot = plots[graphs[graph]["name"]];
 				legend = legends[graphs[graph]["name"]];
 
@@ -321,8 +333,8 @@
 		for (var graph in graphs) {
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
-				if(!updateLegendTimeout)
-					updateLegendTimeout = setTimeout(updateLegend, 50);
+				if(!updateCursorTimeout)
+					updateCursorTimeout = setTimeout(updateCursor, 50);
 			});
 
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
@@ -494,12 +506,14 @@
 				   "http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
 				    "http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"]);
 		layerMarkers = new OpenLayers.Layer.Markers("Markers");
+		layerCursor = new OpenLayers.Layer.Markers("Cursor");
 		layerSelection = new OpenLayers.Layer.Vector("Selection");
 		map.addLayer(layerMapnik);
 		map.addLayer(layerCycleMap);
 
 		start_marker = null;
 		end_marker = null;
+		cursor_marker = null;
 
 		// Add the Layer with the GPX Track
 		{%  if gpx_url %}
@@ -517,6 +531,7 @@
 
 		map.addLayer(layerSelection);
 		map.addLayer(layerMarkers);
+		map.addLayer(layerCursor);
 
 //		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 //		map.setCenter(lonLat, zoom);

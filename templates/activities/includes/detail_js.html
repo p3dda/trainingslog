@@ -275,8 +275,9 @@
 		
 		function updateCursor() {
 			updateCursorTimeout = null;
-
 			var pos = latestPosition;
+			
+			{%  if gpx_url %}
 			var sample = range_edge_samples(pos.x, pos.x)[0];
 			if( sample !== undefined ) {
 				if(cursor_marker) {
@@ -289,8 +290,8 @@
 				cursor_marker = new OpenLayers.Marker(cursor_lonLat,cursor_icon)
 				layerCursor.addMarker(cursor_marker);
 			}
-
-		for (var graph in graphs) {
+			{% endif %} //gpx_url
+			for (var graph in graphs) {
 				plot = plots[graphs[graph]["name"]];
 				legend = legends[graphs[graph]["name"]];
 
@@ -339,6 +340,7 @@
 
 					var range_edges = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
 
+					{%  if gpx_url %}
 					if(layerMarkers) {
 						var size = new OpenLayers.Size(21,25);
 						var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
@@ -381,6 +383,7 @@
 						var lineFeature = new OpenLayers.Feature.Vector(line, null, style);
 						layerSelection.addFeatures([lineFeature]);
 					}
+					{% endif %}
 					for(var graph2 in graphs){
 						var dataname = graphs[graph2]["dataname"];
 						if(plot_data_raw[dataname].length > range_edges[1]){
@@ -443,6 +446,7 @@
 						$( "#details_selection" ).accordion( "option", "active", false );
 					$("#plot_selection").html("W&auml;hle einen Bereich in den Graphen");
 
+					{%  if gpx_url %}
 					// Remove markers from map
 					if(start_marker){
 						layerMarkers.removeMarker(start_marker);
@@ -453,6 +457,8 @@
 						end_marker = null;
 					}
 					layerSelection.removeAllFeatures();
+					{% endif %}
+					
 					plot_lock_selection_cb = false;
 				}
 			});
@@ -461,12 +467,8 @@
 
 	}
 	
-	// Start position for the map (hardcoded here for simplicity,
-	// but maybe you want to get this from the URL params)
-	var lat=50.626844941
-	var lon=6.550658997
-	var zoom=13
 
+	{%  if gpx_url %}
 	var map; //complex object of type OpenLayers.Map
 
 	var init_map = function () {
@@ -506,7 +508,6 @@
 		cursor_marker = null;
 
 		// Add the Layer with the GPX Track
-		{%  if gpx_url %}
 		var layerGPX = new OpenLayers.Layer.Vector("Track", {
 			protocol: new OpenLayers.Protocol.HTTP({
 				url: "{{ gpx_url }}",
@@ -517,7 +518,6 @@
 			projection: new OpenLayers.Projection("EPSG:4326")
 		});
 		map.addLayer(layerGPX);
-		{% endif %} // gpx_url
 
 		map.addLayer(layerSelection);
 		map.addLayer(layerMarkers);
@@ -533,6 +533,8 @@
 		// show map
 		$("#details_map_container").css('visibility', 'visible');
 	}
+	{% endif %} // gpx_url
+
 {% endif %}
 
 

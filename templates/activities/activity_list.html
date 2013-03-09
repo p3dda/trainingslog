@@ -48,10 +48,6 @@
 
 		$.getJSON("/activities/get", function(data) {
 			// Add the messages div to the container
-			//                $("#container").append("<div id='messages'></div>");
-			
-			//				console.debug($("myTable tbody").html());
-			// $("#myTable").show("slow");
 			$("#myTable tbody").empty();
 			$.each(data, function(i, item) {
 				var act_date=new Date(item.date);
@@ -118,10 +114,8 @@
 					dataFound: "#{tracks} activities found on device",
 					showReadDataElementOnDeviceFound: true,
 					postActivityHandler: function(activityXml, display) {
-						console.debug(display);
 						data = { filename: "test.tcx", content:activityXml}
 						$.post('.', data, function(data) {
-							console.debug(data);
 							if(data["success"]){
 								window.location=data["redirect_to"];
 							} else {
@@ -136,7 +130,6 @@
 
 			}
 		} catch (e) {
-			console.debug("Garmin plugin not installed");
 			$('#garminDisplay').hide();			
 		}
 		
@@ -205,9 +198,7 @@
 				success: function(data)
 				{
 					act = eval(data.activity);
-					console.debug(act);
 					var fields = act[0].fields;
-					console.debug(fields);
 	
 					var text = "<b>" + fields.name + "</b><table><tr>";
 					if(data.hasOwnProperty('preview_img')){
@@ -227,10 +218,8 @@
 					if( fields.speed_avg ){
 						var speed_avg = parseFloat(fields.speed_avg);
 						if(sport_data[fields.sport]["pace"]){
-							console.debug("This is with pace");
 							speed_avg = speedToPace(speed_avg) + " min/km";
 						} else {
-							console.debug("This is with speed");
 							speed_avg = speed_avg.toFixed(2).replace( /\./,"," ) + " km/h";
 						}
 
@@ -238,15 +227,12 @@
 					} else {
 						var speed_avg = "-"
 					}
-					console.debug(distance);
 					text = text + "<td> " 
 						+ "<table><tr><td>Distanz</td><td>" + distance +"</td></tr>" 
 						+ "<tr><td>Dauer</td><td>" + time + "</td></tr>"
 						+ "<tr><td>Ø Geschwindigkeit</td><td>" + speed_avg + "</td></tr>"
 						+ "</table>"
 						+ "</td></tr></table>"
-					
-					console.debug("Text is " + text);
 					$('#activityPopupContent').html(text);
 				}
 			});
@@ -262,7 +248,6 @@
 			hideTimer = setTimeout(function(){
 				container.css('display', 'none');
 			}, hideDelay);
-			console.debug("Hide tooltip");
 		});
 	});
 </script>

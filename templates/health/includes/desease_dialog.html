@@ -19,15 +19,11 @@
 		var url = "/health/desease/get/?id=" + desease_id;
 		update_desease_id = desease_id;  
 		function onDataReceived(data) {
-			console.debug(data);
 			var fields = data[0].fields;
-			console.debug(fields);
 			regexp = /(\d{4})-(\d{2})-(\d{2})/g;
 			startdateArray = regexp.exec(fields.start_date);
 			regexp = /(\d{4})-(\d{2})-(\d{2})/g;
 			enddateArray = regexp.exec(fields.end_date); 
-			console.debug(startdateArray);
-			console.debug(enddateArray);
 			startdateObject = new Date(
 				(+startdateArray[1]),
 				(+startdateArray[2])-1, // Careful, month starts at 0!
@@ -100,7 +96,6 @@
 		}
 
 		$.post("/health/desease/add/", data, function(data) {
-			console.debug(data);
 			if (data["success"]) {
 				noty({text: "Erkrankung gespeichert", type: 'success', timeout: 5000});
 				$("#desease_dialog").dialog("close");

@@ -68,9 +68,7 @@
 				if(calEvent.hasOwnProperty('url')) {
 					window.open(calEvent.url);
 				} else if(calEvent.hasOwnProperty('className')) {
-					console.debug(calEvent.className);
 					if ($.inArray('fc_desease', calEvent.className) != -1) {
-						console.debug(calEvent.desease_id);	
 						populate_desease_dialog(calEvent.desease_id);
 						show_desease_dialog();					
 					}

@@ -17,7 +17,6 @@
 		var speed_unit = "km/h";
 	{% endif %}
 	var plot_base="distance";
-	console.debug( "{{ activity.public }}")
 	{%	if activity.public %}
 		var act_is_public = true;
 	{%	else %}
@@ -40,7 +39,6 @@
 	];	
 {% else %}
 	var graphs = [];
-	console.debug("Graph is now "+graphs);
 {% endif %}
 
 	$(document).ready(function() {
@@ -178,8 +176,6 @@
 
 		var data = plot_data_raw;
 		
-		console.log("update_plots called graphs is "+graphs);
-
 		plot_default_options = {
 			xaxis : {
 				tickDecimals: "1",
@@ -244,7 +240,6 @@
 		var legends = new Object();
 		for (var i in graphs) {
 			plot_options = cloneObject(plot_default_options);
-			console.debug("Parsing data "+graphs[i]["name"]);
 			if (plot_data[graphs[i]["name"]]["data"].length>0) {
 				var avg=0;
 				var min=plot_data[graphs[i]["name"]]["data"][0][1];
@@ -344,9 +339,6 @@
 
 					var range_edges = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
 
-					console.debug("Range starts at " + plot_data_raw["pos"][range_edges[0]]);
-					console.debug("Range ends at " + plot_data_raw["pos"][range_edges[1]]);
-
 					if(layerMarkers) {
 						var size = new OpenLayers.Size(21,25);
 						var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
@@ -397,8 +389,6 @@
 							text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
 							text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
 							if(duration > 0 && distance > 0) {
-								console.debug(duration);
-								console.debug(distance);
 								if(speed_as_pace){
 									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
 								} else {
@@ -547,7 +537,6 @@
 
 
 	var plot_xaxis_changed = function () {
-		console.debug($("#plot_xaxis").val());
 		if( $("#plot_xaxis").val() == 0) {
 			plot_base = "distance";
 		} else {

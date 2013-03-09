@@ -34,7 +34,6 @@
 			color: '#00ff00',
 			onSubmit: function(hsb, hex, rgb) {
 				$('#colorSelector2 div').css('backgroundColor', '#' + hex);
-				console.debug("submit");
 			},
 			onChange: function (hsb, hex, rgb) {
 				$('#colorSelector2 div').css('backgroundColor', '#' + hex);
@@ -89,7 +88,6 @@
 					$.post("/equipments/delete/", {
 							id: $("#equipment_delete_id_input").val()
 						}, function(data) {
-						console.debug(data);
 						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
 					}, "json");
 					$( this ).dialog( "close" );
@@ -110,7 +108,6 @@
 					$.post("/events/delete/", {
 							id: $("#event_delete_id_input").val()
 						}, function(data) {
-						console.debug(data);
 						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
 					}, "json");
 					$( this ).dialog( "close" );
@@ -131,7 +128,6 @@
 					$.post("/sports/delete/", {
 							id: $("#sport_delete_id_input").val()
 						}, function(data) {
-						console.debug(data);
 						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
 					}, "json");
 					$( this ).dialog( "close" );
@@ -152,7 +148,6 @@
 					$.post("/calformula/delete/", {
 							id: $("#calformula_delete_id_input").val()
 						}, function(data) {
-						console.debug(data);
 						window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
 					}, "json");
 					$( this ).dialog( "close" );
@@ -189,7 +184,6 @@
 	var show_equipment_dialog = function(equipment_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
-			console.debug(fields);
 			$("#equipment_name_input").val(fields.name);
 			$("#equipment_description_input").val(fields.description);
 			$("#equipment_distance_input").val(fields.distance);
@@ -205,7 +199,6 @@
 	var show_event_dialog = function(event_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
-			console.debug(fields);
 			$("#event_name_input").val(fields.name);
 		}
 		if(typeof(event_id) != "undefined") {
@@ -218,7 +211,6 @@
 	var show_sport_dialog = function(sport_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
-			console.debug(fields);
 			$("#sport_name_input").val(fields.name);
 			if( fields.calorie_formula != null ) {
 				$("#sport_calformula_input").val(fields.calorie_formula);
@@ -244,7 +236,6 @@
 	var show_calformula_dialog = function(calformula_id){
 		function onDataReceived(data) {
 			var fields = data[0].fields;
-			console.debug(fields);
 			$("#calformula_name_input").val(fields.name);
 			$("#calformula_wd_input").val(fields.weight_dist_factor);
 			$("#calformula_wt_input").val(fields.weight_time_factor);
@@ -271,7 +262,6 @@
 			var archived = 0;
 		}
 
-		console.debug(name);
 		var data = {
 				name: name,
 				description: description,
@@ -279,14 +269,12 @@
 				archived: archived
 		};
 		if (equ_id != null){
-			console.debug("Updating equipment #"+equ_id);
 			data.update_id = equ_id;
 		}
 
 		$.post("/equipments/add/",
 			data, 
 			function(data) {
-				console.debug(data);
 				$("#equipment_dialog").dialog("close");
 				window.location.reload();
 			}, "json");
@@ -316,18 +304,15 @@
 	var event_send = function() {
 		var name = $("#event_name_input").val();
 
-		console.debug(name);
 		var data = {
 				name: name,
 			}
 		if (ev_id != null) {
-			console.debug("Updating event #"+ev_id);
 			data.update_id = ev_id;
 		}
 		$.post("/events/add/",
 			data, 
 			function(data) {
-				console.debug(data);
 				$("#event_dialog").dialog("close");
 				window.location.reload();
 			}, "json");
@@ -354,13 +339,11 @@
 				speed_as_pace: speed_as_pace,
 			};
 			if (sp_id != null){
-				console.debug("Updating sport #"+sp_id);
 				data.update_id = sp_id;
 			}
 			$.post("/sports/add/", 
 					data, 
 					function(data) {
-					 	console.debug(data);
 						$("#sport_dialog").dialog("close");
 						window.location.reload();
 					}, "json");

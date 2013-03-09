@@ -215,7 +215,6 @@
 				weight: weight
 			};
 			$.post("/health/weights/add/", data, function(data) {
-				console.debug(data);
 				if (data["success"]) {
 					noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
 					$("#weight_dialog").dialog("close");

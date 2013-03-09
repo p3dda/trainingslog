@@ -306,10 +306,8 @@
 	};
 	
 	var change_calformula = function () {
-		console.debug("override_calories is set to " + override_calories);
 		if ( !override_calories ) {
 		{% if not weight %}
-			console.debug("No weight supplied");
 			return;
 		{% else  %}
 			var calformula_id = $("#new_act_calformula").val();
@@ -322,7 +320,6 @@
 					if( time != 0 ) {
 						wtcal = {{ weight.weight|stringformat:"f" }} * time/3600 * calformula_data[calformula_id]['weight_time_factor'];
 					} else {
-						console.debug("Time is missing for calorie calculation");
 						return;
 					}
 				}else{
@@ -332,14 +329,12 @@
 					if( !isNaN(distance) ) {
 						wdcal = {{ weight.weight|stringformat:"f" }} * distance * calformula_data[calformula_id]['weight_dist_factor'];
 					} else {
-						console.debug("Distance is missing for calorie calculation");
 						return;
 					}
 				} else {
 					wdcal = 0;
 				}
 				calories = wtcal+wdcal;
-				console.debug("Updating calorie value to " + calories);
 				$("#new_act_calories").val(Math.round(calories));
 			}
 		{% endif %}
@@ -356,7 +351,6 @@
 	}
 	
 	var show_activity_template_dialog = function(activity_id) {
-		console.debug("Enforcing template mode");
 		$("#new_act_save").hide();
 
 		if(typeof(activity_id) != "undefined") {
@@ -386,8 +380,6 @@
 			var fields = act[0].fields;
 			if(fields.date != null ){
 				var dateObject = new Date(fields.date);
-				console.debug(dateObject.toString());
-				console.debug(dateObject.toLocaleTimeString());
 				$("#new_act_date").datepicker("setDate", dateObject);
 				$("#new_act_datetime").timepicker("setTime", dateObject.toLocaleTimeString());
 			}
@@ -638,7 +630,6 @@
 				is_template: is_template
 				}, function(data) {
 					
-					console.debug(data);
 					if (data["success"]) {
 						$("#activity_dialog").dialog("close");
 

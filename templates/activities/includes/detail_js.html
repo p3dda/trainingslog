@@ -276,63 +276,87 @@
 		function updateCursor() {
 			updateCursorTimeout = null;
 			var pos = latestPosition;
-			
-			{%  if gpx_url %}
-			var sample = range_edge_samples(pos.x, pos.x)[0];
-			if( sample !== undefined ) {
+			if(pos){
+				{%  if gpx_url %}
+				var sample = range_edge_samples(pos.x, pos.x)[0];
+				if( sample !== undefined ) {
+					if(cursor_marker) {
+						layerCursor.removeMarker(cursor_marker);
+					}
+					var size = new OpenLayers.Size(21,25);
+					var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+					var cursor_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-blue.png', size, offset);
+					var cursor_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][sample][1], plot_data_raw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
+					cursor_marker = new OpenLayers.Marker(cursor_lonLat,cursor_icon)
+					layerCursor.addMarker(cursor_marker);
+				}
+				{% endif %} //gpx_url
+				for (var graph in graphs) {
+					plot = plots[graphs[graph]["name"]];
+					legend = legends[graphs[graph]["name"]];
+
+					plot.setCrosshair(pos);
+					axes = plot.getAxes();
+					if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
+						continue;
+
+					var i, j, dataset = plot.getData();
+					for( i = 0; i < dataset.length; ++i) {
+						var series = dataset[i];
+
+						// find the nearest points, x-wise
+						for( j = 0; j < series.data.length; ++j)
+							if(series.data[j][0] > pos.x)
+								break;
+
+						// now interpolate
+						var y, p1 = series.data[j - 1], p2 = series.data[j];
+						if(p1 == null)
+							y = p2[1];
+						else if(p2 == null)
+							y = p1[1];
+						else
+							y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+						if (graphs[graph]["unit"]=="Minuten/km") {
+							newvalue = secondsToTime(y*60, with_hours=false);
+						} else {
+							newvalue = y.toFixed(graphs[graph]["rounding"]);
+						}
+						legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
+					}
+				}
+			} else {
+				{%  if gpx_url %}
 				if(cursor_marker) {
 					layerCursor.removeMarker(cursor_marker);
 				}
-				var size = new OpenLayers.Size(21,25);
-				var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-				var cursor_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-blue.png', size, offset);
-				var cursor_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][sample][1], plot_data_raw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
-				cursor_marker = new OpenLayers.Marker(cursor_lonLat,cursor_icon)
-				layerCursor.addMarker(cursor_marker);
-			}
-			{% endif %} //gpx_url
-			for (var graph in graphs) {
-				plot = plots[graphs[graph]["name"]];
-				legend = legends[graphs[graph]["name"]];
+				{% endif %}
+				for (var graph in graphs) {
+					plot = plots[graphs[graph]["name"]];
+					legend = legends[graphs[graph]["name"]];
 
-				plot.setCrosshair(pos);
-				axes = plot.getAxes();
-				if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
-					continue;
+					plot.clearCrosshair();
 
-				var i, j, dataset = plot.getData();
-				for( i = 0; i < dataset.length; ++i) {
-					var series = dataset[i];
-
-					// find the nearest points, x-wise
-					for( j = 0; j < series.data.length; ++j)
-						if(series.data[j][0] > pos.x)
-							break;
-
-					// now interpolate
-					var y, p1 = series.data[j - 1], p2 = series.data[j];
-					if(p1 == null)
-						y = p2[1];
-					else if(p2 == null)
-						y = p1[1];
-					else
-						y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
-					if (graphs[graph]["unit"]=="Minuten/km") {
-						newvalue = secondsToTime(y*60, with_hours=false);
-					} else {
-						newvalue = y.toFixed(graphs[graph]["rounding"]);
+					var i, j, dataset = plot.getData();
+					for( i = 0; i < dataset.length; ++i) {
+						legend.eq(i).text(graphs[graph]["label"]+" "+graphs[graph]["unit"]);
 					}
-					legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
 				}
 			}
 		}
+		
+		
+		
 		for (var graph in graphs) {
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
 				if(!updateCursorTimeout)
 					updateCursorTimeout = setTimeout(updateCursor, 50);
 			});
-
+			$("#details_"+graphs[graph]["name"]+"_container").bind('mouseleave', function() {
+				latestPosition = null;
+				updateCursor();
+			});
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
 				if (plot_lock_selection_cb==false){
 					plot_lock_selection_cb = true;

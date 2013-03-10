@@ -261,15 +261,3 @@ div #tabs-laps {
 	width: 20%;
 }
 
-.tooltip{
-	text-align: center;
-	color: black;
-	display: none;
-	position: absolute;
-	
-}
-.tooltip .text{
-	background-color: black;
-	color:white;
-	margin-top: -15px;
-}

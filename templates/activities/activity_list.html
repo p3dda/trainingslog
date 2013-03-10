@@ -42,7 +42,7 @@
 				var act_date=new Date(item.date);
 				// why does js not just have strftime??
 				var act_date_string = pad(act_date.getDate(),2) + "." + pad(act_date.getMonth() + 1,2) + "." + act_date.getFullYear() + " " + pad(act_date.getHours(),2) + ":" + pad(act_date.getMinutes(),2); 
-				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '">' + item.name 
+				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '" title="' + item.name + '">' + item.name 
 					+ '</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(' + item.id + ')"/>&nbsp;&nbsp;'
 					+ '<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(' + item.id + ')"/></td><td>' 
 					+ item.sport + '</td><td>'+ act_date_string + '</td><td>' + item.duration + '</td></tr>');
@@ -70,7 +70,6 @@
 			$("#myTable").trigger("sorton", [[[2,1], [0,0]]]);
 			$("#list").remove();
 			$('#container').show('slow');
-
 
 		});
 
@@ -126,74 +125,20 @@
 		$("#activity_add").click(function(){show_activity_dialog();});
 		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
 		
-	});
-	
-	// Initialize sport_data array with speed / pace unit information
-	{% for sport in sports %}
-		{% if sport.speed_as_pace %}
-			sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
-		{% else %}
-			sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
-		{% endif %}
-	{% endfor %}
-
-	// some tooltip fanciness
-	$(function() {
-		var hideDelay = 500;
-		var hideTimer = null;
-		
-		var container = $('<div id="activityPopupContainer">'
-			+ '<table width="" border="0" cellspacing="0" cellpadding="0" align="center" class="activityPopupPopup">'
-			+ '<tr>'
-			+ '   <td class="corner topLeft"></td>'
-			+ '   <td class="top"></td>'
-			+ '   <td class="corner topRight"></td>'
-			+ '</tr>'
-			+ '<tr>'
-			+ '   <td class="left">&nbsp;</td>'
-			+ '   <td><div id="activityPopupContent"></div></td>'
-			+ '   <td class="right">&nbsp;</td>'
-			+ '</tr>'
-			+ '<tr>'
-			+ '   <td class="corner bottomLeft">&nbsp;</td>'
-			+ '   <td class="bottom">&nbsp;</td>'
-			+ '   <td class="corner bottomRight"></td>'
-			+ '</tr>'
-			+ '</table>'
-			+ '</div>');
-		
-		$('body').append(container);
-		
-		$('.activityPopupTrigger').live('mouseover', function(){
-			// format of 'rel' tag: pageid,personguid
-			var activity_id = $(this).attr('rel');
-		
-			if (hideTimer)
-				clearTimeout(hideTimer);
-		
-			var pos = $(this).offset();
-			var width = $(this).width();
-			container.css({
-				left: (pos.left + width + 15) + 'px',
-				top: pos.top - 5 + 'px'
-			});
-		
-			$('#activityPopupContent').html('&nbsp;');
-		
-			$.ajax({
-				type: 'GET',
-				url: '/activities/get_json',
-				data: 'id=' + activity_id,
-				success: function(data)
-				{
+		// Enable tooltip for activities table
+		$("#myTable").tooltip({
+			content: function(callback) {
+				var activity_id = $(this).attr('rel');
+				callback(activity_id);
+				$.get("/activities/get_json", {id: activity_id}).done(function(data) {
 					act = eval(data.activity);
 					var fields = act[0].fields;
-	
+
 					var text = "<b>" + fields.name + "</b><table><tr>";
 					if(data.hasOwnProperty('preview_img')){
 						text = text + '<td><img width=150 src="' + data.preview_img + '" /></td>';
 					}
-					
+
 					if( fields.distance ){
 						var distance = parseFloat(fields.distance).toFixed(2).replace(/\./,",") + " km";
 					} else {
@@ -221,24 +166,22 @@
 						+ "<tr><td>Dauer</td><td>" + time + "</td></tr>"
 						+ "<tr><td>Ø Geschwindigkeit</td><td>" + speed_avg + "</td></tr>"
 						+ "</table>"
-						+ "</td></tr></table>"
-					$('#activityPopupContent').html(text);
-				}
-			});
+						+ "</td></tr></table>";
+					callback(text);
+				})
+			}
+		});
 		
-			container.css('display', 'block');
-	
-		});
-			
-	
-		$('.activityPopupTrigger').live('mouseout', function(){
-			if (hideTimer)
-				clearTimeout(hideTimer);
-			hideTimer = setTimeout(function(){
-				container.css('display', 'none');
-			}, hideDelay);
-		});
 	});
+	
+	// Initialize sport_data array with speed / pace unit information
+	{% for sport in sports %}
+		{% if sport.speed_as_pace %}
+			sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
+		{% else %}
+			sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
+		{% endif %}
+	{% endfor %}
 </script>
 {% endblock %}
 {% block content %}
@@ -306,4 +249,5 @@
 <div id="alert_dialog" title="Fehler">
 	<div id="alert_dialog_content"></div>
 </div>
+
 {% endblock %} 

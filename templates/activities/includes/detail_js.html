@@ -59,6 +59,7 @@
 {% if gpx_url %}
 		init_map();
 {% endif %}
+
 	});
 
 {% if tcx %}
@@ -201,6 +202,9 @@
 			if(data[graphs[i]["dataname"]].length == 0) {
 				plot_data[graphs[i]["name"]]["data"] = [];
 				$("#details_"+graphs[i]["name"]).hide();
+				
+				// Delete entry from graph list for non-existing graphs
+				delete graphs[i];
 			} else {
 				var gdata=transpose(data[graphs[i]["dataname"]]);
 				if(plot_base == "time"){
@@ -345,17 +349,23 @@
 			}
 		}
 		
-		
-		
 		for (var graph in graphs) {
+			// Add tooltip
+			$("#details_"+graphs[graph]["name"]+"_container").tooltip({
+					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
+					tooltipClass: "details_plot_tooltip",
+			});
+			$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable");
+			
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
 				if(!updateCursorTimeout)
 					updateCursorTimeout = setTimeout(updateCursor, 50);
 			});
-			$("#details_"+graphs[graph]["name"]+"_container").bind('mouseleave', function() {
+			$("#details_"+graphs[graph]["name"]+"_container").bind('mouseleave', function(event) {
 				latestPosition = null;
 				updateCursor();
+				event.stopImmediatePropagation();
 			});
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
 				if (plot_lock_selection_cb==false){
@@ -426,6 +436,12 @@
 							break;
 						}
 					}
+					text = text + "</table>"
+					$("#plot_selection").html(text);
+//					$("#plot_sel_range").text(ranges.xaxis.from.toFixed(1) + " - " + ranges.xaxis.to.toFixed(1));
+					var active = $( "#details_selection" ).accordion( "option", "active" );
+					if($( "#details_selection" ).accordion( "option", "active" ) === false)
+					$( "#details_selection" ).accordion( "option", "active", 0 );
 
 					for( var graph2 in graphs ){
 						plot = plots[graphs[graph2]["name"]];
@@ -436,23 +452,23 @@
 						if (range_values.min != false && range_values.max != false) {
 
 							if (graphs[graph2]["unit"]=="Minuten/km") {
-								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
 							} else {
-								text = text + "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
 								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
 							}
 						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 						}
+						$("#details_"+graphs[graph2]["name"]+"_container").tooltip("enable")
+								.tooltip({content: "<table>"+text+"</table>"})
+								.tooltip({position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" }})
+								.tooltip("open");
+
 					}
-					text = text + "</table>"
-					$("#plot_selection").html(text);
-//					$("#plot_sel_range").text(ranges.xaxis.from.toFixed(1) + " - " + ranges.xaxis.to.toFixed(1));
-					var active = $( "#details_selection" ).accordion( "option", "active" );
-					if($( "#details_selection" ).accordion( "option", "active" ) === false)
-						$( "#details_selection" ).accordion( "option", "active", 0 );
+					
 					plot_lock_selection_cb = false;
 				}
 			});
@@ -464,6 +480,7 @@
 					for (var graph2 in graphs){
 						plot = plots[graphs[graph2]["name"]];
 						plot.clearSelection();
+						$("#details_"+graphs[graph2]["name"]+"_container").tooltip("disable").tooltip("close");
 					}
 					// close accordion
 					if($( "#details_selection" ).accordion( "option", "active" ) !== false)

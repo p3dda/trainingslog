@@ -19,6 +19,7 @@
 <link rel="stylesheet" type="text/css" href="/media/css/jquery.jqplot.min.css" />
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/css/cupertino/jquery-ui-1.10.1.custom.css' />
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
+<link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
 
 {% include "activities/includes/detail_js.html" %}
 
@@ -137,19 +138,19 @@
 		{% if tcx %}
 		<div id="details_hf">
 			<h3><a href="#">Herzfrequenz</a></h3>
-			<div id="details_hf_container"></div>
+			<div class="details_plot" title="HF" id="details_hf_container"></div>
 		</div>
 		<div id="details_speed">
 			<h3><a href="#">Geschwindigkeit</a></h3>
-			<div id="details_speed_container"></div>
+			<div class="details_plot" title="Geschwindigkeit" id="details_speed_container"></div>
 		</div>
 		<div id="details_alt">
 			<h3><a href="#">H&ouml;he</a></h3>
-			<div id="details_alt_container"></div>
+			<div class="details_plot" title="Hoehe" id="details_alt_container"></div>
 		</div>
 		<div id="details_cad">
 			<h3><a href="#">Trittfrequenz</a></h3>
-			<div id="details_cad_container"></div>
+			<div class="details_plot" title="Trittfrequenz" id="details_cad_container"></div>
 		</div>
 		<div id="plotbase_form">
 			<select id="plot_xaxis">

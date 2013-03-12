@@ -352,11 +352,10 @@
 		for (var graph in graphs) {
 			// Add tooltip
 			$("#details_"+graphs[graph]["name"]+"_container").tooltip({
+					disabled: true,
 					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
 					tooltipClass: "details_plot_tooltip",
 			});
-			$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable");
-			
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
 				if(!updateCursorTimeout)
@@ -462,11 +461,11 @@
 							}
 						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 						}
-						$("#details_"+graphs[graph2]["name"]+"_container").tooltip("enable")
-								.tooltip({content: "<table>"+text+"</table>"})
-								.tooltip({position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" }})
+						$("#details_"+graphs[graph2]["name"]+"_container")
+								.tooltip("enable")
+								.tooltip( "option", "content", "<table>"+text+"</table>")
+								.tooltip( "option", "position",  { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
 								.tooltip("open");
-
 					}
 					
 					plot_lock_selection_cb = false;

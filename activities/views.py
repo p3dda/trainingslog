@@ -670,7 +670,7 @@ def get_report_data(request):
 		start_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(startdate_timestamp)/1000), timezone.get_default_timezone())
 		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp)/1000), timezone.get_default_timezone()).replace(hour=23, minute=59, second=59)
 		# make shure we include the current day
-		
+		logging.debug("Time range is from %s (%s) to %s (%s)" % (start_date, startdate_timestamp, end_date, enddate_timestamp))
 	except ValueError:
 		return HttpResponse(simplejson.dumps((False, "Invalid timestamps")))
 
@@ -718,7 +718,7 @@ def get_report_data(request):
 				delta = datetime.timedelta(days = (start_date.timetuple().tm_wday) % 7)
 				week_start = timezone.make_aware(datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta, timezone.get_default_timezone())
 
-				while week_start < end_date:
+				while week_start <= end_date:
 					week_activities = activities.filter(date__gte=week_start, date__lt=(week_start+datetime.timedelta(days=7)))
 					summary = activities_summary(week_activities)
 					sport_time['data'].append([time.mktime(week_start.timetuple())*1000, summary['total_time'] / 60])

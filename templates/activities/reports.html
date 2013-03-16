@@ -70,10 +70,12 @@
 		
 		if($("#timespan option:selected").val() == -2 ){
 			// evaluate custom date fields
+			var tmpdate;
 			tmpdate = $("#custom_start_date").datepicker("getDate");
-			var start_date =  Date.UTC(tmpdate.getUTCFullYear(), tmpdate.getUTCMonth(), tmpdate.getUTCDate());
+			// Convert the date entered by the user in his local timezone into a UTC timestamp 
+			var start_date =  Date.UTC(tmpdate.getFullYear(), tmpdate.getMonth(), tmpdate.getDate());
 			tmpdate = $("#custom_end_date").datepicker("getDate");
-			var end_date =  Date.UTC(tmpdate.getUTCFullYear(), tmpdate.getUTCMonth(), tmpdate.getUTCDate());
+			var end_date =  Date.UTC(tmpdate.getFullYear(), tmpdate.getMonth(), tmpdate.getDate());
 		} else {
 			// enddate is today
 			var now = new Date();

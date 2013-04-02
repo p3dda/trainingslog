@@ -59,7 +59,6 @@
 {% if gpx_url %}
 		init_map();
 {% endif %}
-
 	});
 
 {% if tcx %}
@@ -442,6 +441,12 @@
 					if($( "#details_selection" ).accordion( "option", "active" ) === false)
 					$( "#details_selection" ).accordion( "option", "active", 0 );
 
+					{% if gpx_url %}
+					$("#details_map_tooltip").tooltip("enable")
+						.tooltip("option", "content", text)
+						.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
+						.tooltip("open");
+					{% endif %}
 					for( var graph2 in graphs ){
 						plot = plots[graphs[graph2]["name"]];
 						plot.setSelection({ xaxis: { from: ranges.xaxis.from, to: ranges.xaxis.to }});
@@ -462,7 +467,6 @@
 						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 						}
 						$("#details_"+graphs[graph2]["name"]+"_container")
-								.tooltip("enable")
 								.tooltip( "option", "content", "<table>"+text+"</table>")
 								.tooltip( "option", "position",  { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
 								.tooltip("open");
@@ -497,6 +501,9 @@
 						end_marker = null;
 					}
 					layerSelection.removeAllFeatures();
+					
+					// Hide map tooltip
+					$("#details_map_tooltip").tooltip("close");
 					{% endif %}
 					
 					plot_lock_selection_cb = false;
@@ -527,6 +534,8 @@
 		} );
 		
 		populate_map(details_map);
+
+		$("#details_map_tooltip").tooltip({tooltipClass: "details_plot_tooltip"});
 	}
 	
 	var populate_map = function(map) {

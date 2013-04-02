@@ -125,7 +125,11 @@ div #details_map_container {
 	position:relative;
 	z-index:0
 }
-
+div #details_map_tooltip {
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
 div #details_hf{
 	font-size: small;
 	width: 600px;

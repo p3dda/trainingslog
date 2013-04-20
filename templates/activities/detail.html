@@ -7,13 +7,8 @@
 
 <script type="text/javascript" src="/media/js/jquery.js"></script>
 <script type="text/javascript" src="/media/js/jquery.tablesorter.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.core.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.widget.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.dialog.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript" src="/media/jquery-ui/js/jquery-ui-1.10.1.custom.js"></script>
 <script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.tabs.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/ui/jquery.ui.accordion.js"></script>
 <script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
 <script type="text/javascript" src="/media/js/flot/jquery.flot.crosshair.js"></script>
 <script type="text/javascript" src="/media/js/flot/jquery.flot.selection.js"></script>
@@ -22,11 +17,9 @@
 <script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/media/css/jquery.jqplot.min.css" />
-<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.datepicker.css" />
-<link rel="stylesheet" type="text/css" href="/media/jquery-ui/themes/cupertino/jquery.ui.all.css" />
-<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.theme.css' />
-<link rel='stylesheet' type='text/css' href='/media/jquery-ui/themes/cupertino/jquery.ui.dialog.css' />
+<link rel='stylesheet' type='text/css' href='/media/jquery-ui/css/cupertino/jquery-ui-1.10.1.custom.css' />
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
+<link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
 
 {% include "activities/includes/detail_js.html" %}
 
@@ -108,14 +101,6 @@
 					</table>
 				</div>
 			</div>
-{%  if tcx %}
-			<div class = "details_left_tables" id="details_selection">
-				<h3><a href="#">Selektion</a></h3>
-				<div id="plot_selection">
-				W&auml;hle einen Bereich in den Graphen
-				</div>
-			</div>
-{%  endif %}
 			{% if activity.weather_stationname  %}
 			<div class="details_left_tables" id="details_weather">
 				<h3><a href="#">Wetter</a></h3>
@@ -141,23 +126,24 @@
 			<h3><a href="#">Karte</a></h3>
 			<div id="details_map_container" style="visibility:hidden"></div>
 		</div>
+		<div id="details_map_tooltip" title="Tooltip"></div>
 		{% endif %}
 		{% if tcx %}
 		<div id="details_hf">
 			<h3><a href="#">Herzfrequenz</a></h3>
-			<div id="details_hf_container"></div>
+			<div class="details_plot" title="HF" id="details_hf_container"></div>
 		</div>
 		<div id="details_speed">
 			<h3><a href="#">Geschwindigkeit</a></h3>
-			<div id="details_speed_container"></div>
+			<div class="details_plot" title="Geschwindigkeit" id="details_speed_container"></div>
 		</div>
 		<div id="details_alt">
 			<h3><a href="#">H&ouml;he</a></h3>
-			<div id="details_alt_container"></div>
+			<div class="details_plot" title="Hoehe" id="details_alt_container"></div>
 		</div>
 		<div id="details_cad">
 			<h3><a href="#">Trittfrequenz</a></h3>
-			<div id="details_cad_container"></div>
+			<div class="details_plot" title="Trittfrequenz" id="details_cad_container"></div>
 		</div>
 		<div id="plotbase_form">
 			<select id="plot_xaxis">

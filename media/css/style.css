@@ -122,8 +122,14 @@ div #details_map{
 }
 div #details_map_container {
 	height: 400px;
+	position:relative;
+	z-index:0
 }
-
+div #details_map_tooltip {
+	font-size: small;
+	width: 600px;
+	margin-left: 305px;
+}
 div #details_hf{
 	font-size: small;
 	width: 600px;
@@ -258,3 +264,4 @@ div #tabs-laps {
 	vertical-align: top;
 	width: 20%;
 }
+

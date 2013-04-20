@@ -65,8 +65,8 @@
 				<div>
 					<table class = "activity_details">
 						<colgroup>
-							<col width="200">
-							<col width="100">
+							<col style="width: 200px">
+							<col style="width: 100px">
 						</colgroup>
 						<tr><td>Distanz</td><td>{{ activity.distance|default_if_none:"-" }} km</td></tr>
 						<tr><td>Dauer</td><td>{{ activity.time|default_if_none:"-" }}</td></tr>
@@ -81,8 +81,8 @@
 				<div>
 					<table class = "activity_details">
 						<colgroup>
-							<col width="200">
-							<col width="100">
+							<col style="width: 200px">
+							<col style="width: 100px">
 						</colgroup>
 {% if not public %}
 						<tr><td>Ausr&uuml;stung</td><td>{{ activity.equipment.all|join:", " }}</td></tr>
@@ -107,8 +107,8 @@
 				<div>
 					<table class = "activity_weather">
 						<colgroup>
-							<col width="200">
-							<col width="100">
+							<col style="width: 200px">
+							<col style="width: 100px">
 						</colgroup>
 						<tr><td>Station</td><td>{{ activity.weather_stationname|default_if_none:"-" }}</td></tr>
 						<tr><td>Temperatur</td><td>{{ activity.weather_temp|default_if_none:"-" }} &deg;C</td></tr>

@@ -101,14 +101,6 @@
 					</table>
 				</div>
 			</div>
-{%  if tcx %}
-			<div class = "details_left_tables" id="details_selection">
-				<h3><a href="#">Selektion</a></h3>
-				<div id="plot_selection">
-				W&auml;hle einen Bereich in den Graphen
-				</div>
-			</div>
-{%  endif %}
 			{% if activity.weather_stationname  %}
 			<div class="details_left_tables" id="details_weather">
 				<h3><a href="#">Wetter</a></h3>
@@ -134,7 +126,7 @@
 			<h3><a href="#">Karte</a></h3>
 			<div id="details_map_container" style="visibility:hidden"></div>
 		</div>
-		<div id="details_map_tooltip" title=""></div>
+		<div id="details_map_tooltip" title="Tooltip"></div>
 		{% endif %}
 		{% if tcx %}
 		<div id="details_hf">

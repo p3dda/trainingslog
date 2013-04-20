@@ -48,7 +48,6 @@
 		$( "#laps_laps").accordion();
 		$( "#details_tabs" ).tabs();
 {% if tcx %}
-		$( "#details_selection").accordion({collapsible: true, active:false});
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) {
 			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
@@ -437,12 +436,10 @@
 					text = text + "</table>"
 					$("#plot_selection").html(text);
 //					$("#plot_sel_range").text(ranges.xaxis.from.toFixed(1) + " - " + ranges.xaxis.to.toFixed(1));
-					var active = $( "#details_selection" ).accordion( "option", "active" );
-					if($( "#details_selection" ).accordion( "option", "active" ) === false)
-					$( "#details_selection" ).accordion( "option", "active", 0 );
 
 					{% if gpx_url %}
-					$("#details_map_tooltip").tooltip("enable")
+
+					$("#details_map_tooltip")
 						.tooltip("option", "content", text)
 						.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
 						.tooltip("open");
@@ -486,9 +483,6 @@
 						$("#details_"+graphs[graph2]["name"]+"_container").tooltip("disable").tooltip("close");
 					}
 					// close accordion
-					if($( "#details_selection" ).accordion( "option", "active" ) !== false)
-						$( "#details_selection" ).accordion( "option", "active", false );
-					$("#plot_selection").html("W&auml;hle einen Bereich in den Graphen");
 
 					{%  if gpx_url %}
 					// Remove markers from map
@@ -503,7 +497,7 @@
 					layerSelection.removeAllFeatures();
 					
 					// Hide map tooltip
-					$("#details_map_tooltip").tooltip("close");
+					$("#details_map_tooltip").tooltip("disable").tooltip("close");
 					{% endif %}
 					
 					plot_lock_selection_cb = false;
@@ -535,7 +529,11 @@
 		
 		populate_map(details_map);
 
-		$("#details_map_tooltip").tooltip({tooltipClass: "details_plot_tooltip"});
+			$("#details_map_tooltip").tooltip({
+					disabled: true,
+//					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
+					tooltipClass: "details_plot_tooltip",
+			});
 	}
 	
 	var populate_map = function(map) {

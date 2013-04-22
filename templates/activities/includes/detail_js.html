@@ -32,10 +32,10 @@
 
 {% if tcx %}
 	var graphs = [
-		{ "name": "hf", "dataname": "hf", "label": "HF", "rounding": 0, "unit": "/ Minute"},
-		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "rounding": 1, "unit": speed_unit},
-		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "rounding": 0, "unit": "m"},
-		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "rounding": 0, "unit": "/ Minute"}
+		{ "name": "hf", "dataname": "hf", "label": "HF", "label_short": "HF","rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
+		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "rounding": 1, "unit": speed_unit, "unit_short": speed_unit},
+		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "rounding": 0, "unit": "m", "unit_short": "m"},
+		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."}
 	];	
 {% else %}
 	var graphs = [];
@@ -47,6 +47,7 @@
 		$( "#details_weather" ).accordion({collapsible: true});
 		$( "#laps_laps").accordion();
 		$( "#details_tabs" ).tabs();
+	
 {% if tcx %}
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) {
@@ -424,9 +425,9 @@
 							text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
 							if(duration > 0 && distance > 0) {
 								if(speed_as_pace){
-									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
+									text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
 								} else {
-									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
+									text = text + "<tr><td>Ø Geschw.</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
 								}
 							}
 							
@@ -453,13 +454,13 @@
 						if (range_values.min != false && range_values.max != false) {
 
 							if (graphs[graph2]["unit"]=="Minuten/km") {
-								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = "<tr><td>Min. " + graphs[graph2]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
+								text = text + "<tr><td>Max. " + graphs[graph2]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
+								text = text + "<tr><td>Avg. " + graphs[graph2]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
 							} else {
-								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
+								text = "<tr><td>Min. " + graphs[graph2]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
+								text = text + "<tr><td>Max. " + graphs[graph2]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
+								text = text + "<tr><td>Avg. " + graphs[graph2]["label_short"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit_short"] + "</td></tr>";
 							}
 						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 						}
@@ -593,7 +594,6 @@
 		}
 		update_plots();
 	}
-
 </script>
 
 {% if not public %}

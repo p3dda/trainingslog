@@ -35,6 +35,7 @@ from django.db.models import Sum
 #from django.template import RequestContext
 #from django.core.urlresolvers import reverse
 from django.core.files.base import File
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings as django_settings
 
@@ -310,11 +311,26 @@ def list_activities(request):
 		else:
 			logging.error("Missing upload data")
 	else:
+		# render list of activities
+		
+		# collect data required for activity form
 		events = Event.objects.filter(user=request.user)
 		equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
 		sports = Sport.objects.filter(user=request.user)
 		calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 		activitytemplates = ActivityTemplate.objects.filter(user=request.user)
+		
+		#get list of activities (with pagination)
+		activities = Activity.objects.filter(user=request.user)
+#		paginator = Paginator(activities_list, 25)
+		
+#		page = request.GET.get("page")
+#		try:
+#			activities = paginator.page(page)
+#		except PageNotAnInteger:
+#			activities = paginator.page(1)
+#		except EmptyPage:
+#			activities = paginator.page(paginator.num_pages)
 		
 		try:
 			garmin_keys = django_settings.GARMIN_KEYS
@@ -327,7 +343,7 @@ def list_activities(request):
 		else:
 			weight = None
 
-		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
+		return render_to_response('activities/activity_list.html', {'activities': activities, 'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
 @login_required
 def get_activities(request):
@@ -335,6 +351,7 @@ def get_activities(request):
 	for activity in Activity.objects.select_related('sport').filter(user=request.user):
 		act_list.append({'id': activity.id, 'name': activity.name, 'sport': activity.sport.name, 'date': activity.date.isoformat(), 'duration': str(datetime.timedelta(days=0,seconds=activity.time))})
 	return HttpResponse(json.dumps(act_list), mimetype='application/json')
+
 
 @login_required
 def get_activity(request):

@@ -96,7 +96,6 @@
 {% endif %}
 	
 	function show_plots_selection() {
-		console.debug("show_plots_selection() called");
 		for( var graph in graphs ){
 			plot = plots[graphs[graph]["name"]];
 			plot.setSelection({ xaxis: { from: plotselection_range["xaxis_range"][0], to: plotselection_range["xaxis_range"][1]}});
@@ -128,7 +127,6 @@
 {% endif %}
 
 	function hide_tooltips() {
-		console.debug("hide_tooltips() called");
 		// Hide tooltip for each graph
 		if(tooltips_visible) {
 			for (var graph in graphs){
@@ -146,7 +144,6 @@
 	}
 	
 	function show_tooltips () {
-		console.debug("show_tooltips() called");
 		if(!tooltips_visible){
 			for(var graph in graphs){
 				var range_values = range_data(plot_data_raw[graphs[graph]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
@@ -155,7 +152,7 @@
 					if (graphs[graph]["unit"]=="Minuten/km") {
 						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graphh]["unit_short"] + "</td></tr>";
+						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 					} else {
 						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
@@ -539,7 +536,6 @@
 			});
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
 				if (plot_lock_selection_cb==false){
-					console.debug("plotselect event handler called");
 					plot_lock_selection_cb = true;
 					plotselection_active = true;
 					plotselection_range["xaxis_range"] = [ranges.xaxis.from, ranges.xaxis.to];
@@ -557,7 +553,6 @@
 
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotunselected", function (event) {
 				if (plot_lock_selection_cb == false ) {
-					console.debug("plotunselect() event handler called");
 					plot_lock_selection_cb = true;
 					plotselection_active = false
 					

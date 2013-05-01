@@ -18,9 +18,9 @@
 }
 
 div.column { 
-	padding: 10px;
 	text-align: left;
 	float:left;
+	padding: 10px;
 }
 
 .colordisplay div {

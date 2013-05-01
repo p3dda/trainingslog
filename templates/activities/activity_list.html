@@ -249,31 +249,22 @@
 
 
 <div class="column">
-	<p>
+	<div class="ui-widget-content ui-corner-all">
 		<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">
-	</p>
-<!-- Upload form. Note enctype attribute! -->
-<form method="post" enctype="multipart/form-data">
-    <input id = "newact_fileform" type="file" name="trackfile" />
-	<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>
-</form>
+		<br/><br/>
+		<!-- Upload form. Note enctype attribute! -->
+		<form method="post" enctype="multipart/form-data">
+		    <input id = "newact_fileform" type="file" name="trackfile" />
+			<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>
+		</form>
+	</div>
 </div>
-<div class="column">
+
 {%  if garmin_keys %}
-<table border="0" cellpadding="4" cellspacing="0" width="100%">
-	<tr>
-		<td>
-			<div id="garminDisplay" style="display:none;"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<div id="activity"></div>
-		</td>
-	</tr>
-</table>
-{%  endif %}
+<div class="column">
+	<div id="garminDisplay" style="display:none;"></div>
 </div>
+{%  endif %}
 <div style="clear:both"></div>
 
 {% include "activities/includes/activity_dialog.html" %}

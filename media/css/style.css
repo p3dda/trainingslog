@@ -17,6 +17,11 @@
 	margin: auto;
 }
 
+div.column { 
+	padding: 10px;
+	text-align: left;
+	float:left;
+}
 
 .colordisplay div {
 	width: 16px;

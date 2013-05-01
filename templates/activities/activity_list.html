@@ -4,7 +4,7 @@
 {% block head %} 
 
 {%  if garmin_keys %}
-<style type="text/css" media="all">@import "/media/css/garmin/communicator2.css";</style>
+<style type="text/css" media="all">@import "/media/css/garmin/communicator.css";</style>
 <script type="text/javascript" src="/media/js/garmin/prototype.js"></script>
 <script type="text/javascript" src="/media/js/garmin/device/GarminDeviceDisplay.js"></script>
 <script type="text/javascript" src="/media/js/garmin/device/GarminDevicePlugin.js"></script>
@@ -244,19 +244,21 @@
 			{% endfor %} -->
 		</tbody>
 	</table>
-
+	<br/>
 	<hr/>
 
-<p>
-	<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">
-</p>
 
+<div class="column">
+	<p>
+		<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">
+	</p>
 <!-- Upload form. Note enctype attribute! -->
 <form method="post" enctype="multipart/form-data">
     <input id = "newact_fileform" type="file" name="trackfile" />
 	<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>
 </form>
-
+</div>
+<div class="column">
 {%  if garmin_keys %}
 <table border="0" cellpadding="4" cellspacing="0" width="100%">
 	<tr>
@@ -271,6 +273,8 @@
 	</tr>
 </table>
 {%  endif %}
+</div>
+<div style="clear:both"></div>
 
 {% include "activities/includes/activity_dialog.html" %}
 

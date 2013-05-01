@@ -19,11 +19,14 @@
 <script type="text/javascript" src="/media/js/jquery.tablesorter.js"></script>
 <script type="text/javascript" src="/media/js/jquery.tablesorter.pager.js"></script>
 <script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
+<script type="text/javascript" src="/media/js/jquery.dataTables.js"></script>
+
 <script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
 <script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
 <script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
 <script type="text/javascript" src="/media/jquery-ui/js/jquery-ui-1.10.1.custom.js"></script>
 
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/css/cupertino/jquery-ui-1.10.1.custom.css' />
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
 <link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
@@ -34,7 +37,7 @@
 	
 	$(document).ready(function() {
 		// Initialize tablesorter
-
+		/*
 		$.getJSON("/activities/get", function(data) {
 			// Add the messages div to the container
 			$("#myTable tbody").empty();
@@ -45,7 +48,7 @@
 				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '" title="' + item.name + '">' + item.name 
 					+ '</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(' + item.id + ')"/>&nbsp;&nbsp;'
 					+ '<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(' + item.id + ')"/></td><td>' 
-					+ item.sport + '</td><td>'+ act_date_string + '</td><td>' + item.duration + '</td></tr>');
+					+ item.sport + '</td><td>'+ act_date_string + '</td><t><td>' + item.duration + '</td></tr>');
 			});
 			$.tablesorter.addParser({
 				id: 'datestring',
@@ -72,7 +75,7 @@
 			$('#container').show('slow');
 
 		});
-
+		*/
 		{%  if garmin_keys %}
 		try {
 			control = new Garmin.DeviceControl();
@@ -126,7 +129,7 @@
 		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
 		
 		// Enable tooltip for activities table
-		$("#myTable").tooltip({
+		$("#activities_table").tooltip({
 			content: function(callback) {
 				var activity_id = $(this).attr('rel');
 				callback(activity_id);
@@ -174,6 +177,32 @@
 			tooltipClass: "activitylist_tooltip"
 		});
 		
+		$('#activities_table').dataTable({
+			"aaSorting": [[ 2, "desc" ]],
+			"aoColumnDefs": [{ 
+				"aTargets": [3],
+				"bSearchable": false, 
+				"mRender": function ( data, type, full ) {
+					return secondsToTime(data);
+				}
+			},
+			{ "aTargets": [2], 
+				"bSearchable": false, 
+				"sType": 'date',
+				"mRender": function ( data, type, full ) {
+					var javascriptDate = new Date(data);
+					var dateString = pad(javascriptDate.getDate(),2) + "." + pad(javascriptDate.getMonth() + 1,2) + "." + javascriptDate.getFullYear() + " " + pad(javascriptDate.getHours(),2) + ":" + pad(javascriptDate.getMinutes(),2); 
+					//javascriptDate = javascriptDate.getDate()+"/"+javascriptDate.getMonth()+1+"/"+javascriptDate.getFullYear();
+					return dateString;
+				}
+			}],
+ 			"bJQueryUI": true,
+			"bServerSide": true,
+			"oLanguage": {
+				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+			},
+			"sAjaxSource": "/activities/get",
+		});
 	});
 	
 	// Initialize sport_data array with speed / pace unit information
@@ -187,40 +216,37 @@
 </script>
 {% endblock %}
 {% block content %}
-<p id="list">
-	Loading...
-</p>
-<div id="container"  style="display:none;">
-	<table id="myTable" class="tablesorter">
+
+
+<!-- TODO: Have a look at http://www.datatables.net/release-datatables/examples/data_sources/server_side.html -->
+	<table id="activities_table" class="activities_table">
 		<thead>
 			<tr>
 				<th>Name</th>
-				<th>Typ</th>
+				<th>Sportart</th>
 				<th>Datum</th>
 				<th>Dauer</th>
 			</tr>
 		</thead>
 		<tbody>
+<!--			{% for activity in activities %}
+			<tr>
+				<td>
+					<a class="activityPopupTrigger" href="/activities/{{activity.id}}/" rel="{{activity.id}}" title="{{ activity.name }}">{{ activity.name }}</a>
+					&nbsp;&nbsp;&nbsp;
+					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{activity.id}})"/>
+					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{activity.id}})"/></td>
+				<td>{{ activity.sport }}</td>
+				<td>{{ activity.date.isoformat }}</td>
+				<td>{{ activity.date.isoformat }}</td>
+				<td>{{ activity.time }}</td>
+			</tr>
+			{% endfor %} -->
 		</tbody>
 	</table>
-	<div id="pager" class="pager">
-		<form>
-			<img src="/media/img/first.png" class="first" alt="Anfang"/>
-			<img src="/media/img/prev.png" class="prev" alt="Zur&uuml;ck"/>
-			<input type="text" class="pagedisplay"/>
-			<img src="/media/img/next.png" class="next" alt="Vorw&auml;rts"/>
-			<img src="/media/img/last.png" class="last" alt="Ende"/>
-			<select class="pagesize">
-				<option selected="selected"  value="10">10</option>
 
-				<option value="3">3</option>
-				<option value="20">20</option>
-				<option value="30">30</option>
-				<option  value="40">40</option>
-			</select>
-		</form>
-	</div>
-</div>
+	<hr/>
+
 <p>
 	<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">
 </p>

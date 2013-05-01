@@ -321,7 +321,7 @@ def list_activities(request):
 		activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 		
 		#get list of activities (with pagination)
-		activities = Activity.objects.filter(user=request.user)
+		activities = Activity.objects.select_related('sport').filter(user=request.user)
 #		paginator = Paginator(activities_list, 25)
 		
 #		page = request.GET.get("page")

@@ -20,6 +20,7 @@ from activities.forms import ActivityForm, EquipmentForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time, TCXTrack
 from activities.activity_import import importtrack_from_tcx
 from activities.preview import create_preview
+from activities.django_datatables_view.base_datatable_view import BaseDatatableView
 
 from health.models import Desease, Weight, Goal
 
@@ -320,17 +321,8 @@ def list_activities(request):
 		calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 		activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 		
-		#get list of activities (with pagination)
-		activities = Activity.objects.select_related('sport').filter(user=request.user)
-#		paginator = Paginator(activities_list, 25)
-		
-#		page = request.GET.get("page")
-#		try:
-#			activities = paginator.page(page)
-#		except PageNotAnInteger:
-#			activities = paginator.page(1)
-#		except EmptyPage:
-#			activities = paginator.page(paginator.num_pages)
+		#get list of activities
+#		activities = Activity.objects.select_related('sport').filter(user=request.user)
 		
 		try:
 			garmin_keys = django_settings.GARMIN_KEYS
@@ -343,14 +335,24 @@ def list_activities(request):
 		else:
 			weight = None
 
-		return render_to_response('activities/activity_list.html', {'activities': activities, 'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
+		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
 @login_required
 def get_activities(request):
+	logging.debug(request.GET.get('iDisplayStart'))
+	
 	act_list = []
 	for activity in Activity.objects.select_related('sport').filter(user=request.user):
-		act_list.append({'id': activity.id, 'name': activity.name, 'sport': activity.sport.name, 'date': activity.date.isoformat(), 'duration': str(datetime.timedelta(days=0,seconds=activity.time))})
-	return HttpResponse(json.dumps(act_list), mimetype='application/json')
+		act_list.append([activity.name, activity.sport.name, activity.date.isoformat(), activity.date.isoformat(), str(datetime.timedelta(days=0,seconds=activity.time))])
+	
+	data = {'sEcho': int(request.GET.get('sEcho')),
+		'iTotalRecords': Activity.objects.filter(user=request.user).count(),
+		'iTotalDisplayRecords': len(act_list),
+		'aaData': act_list,
+	}
+	
+	
+	return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
 @login_required
@@ -822,3 +824,40 @@ def settings(request):
 		
 	
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
+
+class ActivityListJson(BaseDatatableView):
+	# define column names that will be used in sorting
+	# order is important and should be same as order of columns
+	# displayed by datatables. For non sortable columns use empty
+	# value like ''
+	order_columns = ['name', 'sport', 'date', 'time']
+
+	# set max limit of records returned, this is used to protect our site if someone tries to attack our site
+	# and make it return huge amount of data
+	max_display_length = 500
+
+	def get_initial_queryset(self):
+		# return queryset used as base for futher sorting/filtering
+		# these are simply objects displayed in datatable
+		logging.debug("self.request.user")
+		return Activity.objects.select_related('sport').filter(user=self.request.user)
+
+	def filter_queryset(self, qs):
+		# use request parameters to filter queryset
+
+		# simple example:
+		sSearch = self.request.GET.get('sSearch', None)
+		if sSearch:
+			qs = qs.filter(name__istartswith=sSearch)
+
+		return qs
+
+	def prepare_results(self, qs):
+		# prepare list with output column data
+		# queryset is already paginated here
+		json_data = []
+		for item in qs:
+			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), 
+			item.sport.name, item.date.isoformat(), item.time])
+			
+		return json_data

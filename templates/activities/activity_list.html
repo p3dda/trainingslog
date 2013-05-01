@@ -178,31 +178,30 @@
 		});
 		
 		$('#activities_table').dataTable({
-			"aaSorting": [[ 3, "desc" ]],
+			"aaSorting": [[ 2, "desc" ]],
  			"bJQueryUI": true,
+			"bServerSide": true,
 			"aoColumnDefs": [{ 
-				"aTargets": [4],
+				"aTargets": [3],
 				"bSearchable": false, 
 				"mRender": function ( data, type, full ) {
 					return secondsToTime(data);
 				}
 			},
-			{ "aTargets": [3],
-				"bSearchable": false, 
-				"bVisible": false,
-				"sType": 'date',
-			},
 			{ "aTargets": [2], 
 				"bSearchable": false, 
 				"sType": 'date',
-				"iDataSort": 3,
 				"mRender": function ( data, type, full ) {
 					var javascriptDate = new Date(data);
 					var dateString = pad(javascriptDate.getDate(),2) + "." + pad(javascriptDate.getMonth() + 1,2) + "." + javascriptDate.getFullYear() + " " + pad(javascriptDate.getHours(),2) + ":" + pad(javascriptDate.getMinutes(),2); 
 					//javascriptDate = javascriptDate.getDate()+"/"+javascriptDate.getMonth()+1+"/"+javascriptDate.getFullYear();
 					return dateString;
 				}
-			 }],
+			}],
+			"oLanguage": {
+				"sUrl":   "media/lang/dataTables.de_DE.txt",
+			},
+			"sAjaxSource": "/activities/get",
 		});
 	});
 	
@@ -226,12 +225,11 @@
 				<th>Name</th>
 				<th>Sportart</th>
 				<th>Datum</th>
-				<th>Datum_iso</th>
 				<th>Dauer</th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for activity in activities %}
+<!--			{% for activity in activities %}
 			<tr>
 				<td>
 					<a class="activityPopupTrigger" href="/activities/{{activity.id}}/" rel="{{activity.id}}" title="{{ activity.name }}">{{ activity.name }}</a>
@@ -243,7 +241,7 @@
 				<td>{{ activity.date.isoformat }}</td>
 				<td>{{ activity.time }}</td>
 			</tr>
-			{% endfor %}
+			{% endfor %} -->
 		</tbody>
 	</table>
 

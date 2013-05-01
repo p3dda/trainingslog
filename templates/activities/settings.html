@@ -7,10 +7,12 @@
 <script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
 <script type="text/javascript" src="/media/js/colorpicker.js"></script>
 <script type="text/javascript" src="/media/js/common.js"></script>
+<script type="text/javascript" src="/media/js/jquery.dataTables.js"></script>
 
 <script type="text/javascript" src="/media/jquery-ui/js/jquery-ui-1.10.1.custom.js"></script>
 
 
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
 <link rel='stylesheet' type='text/css' href='/media/jquery-ui/css/cupertino/jquery-ui-1.10.1.custom.css' />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpickerlayout.css" />
@@ -42,7 +44,17 @@
 			widt = !widt;
 		});
 
-
+		$( "#tabs" ).tabs();
+		$( ".datatable").dataTable({
+ 			"bJQueryUI": true,
+			"bFilter": false,
+			"bInfo": false,
+			"bPaginate": false,
+			"oLanguage": {
+				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+			},
+		});
+		
 		$("#equipment_dialog").dialog({
 			autoOpen: false,
 			show: "blind",
@@ -369,9 +381,17 @@
 {% endblock %}
 
 {% block content %}
-<h1>Equipment</h1>
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-equipment">Equipment</a></li>
+		<li><a href="#tabs-events">Events</a></li>
+		<li><a href="#tabs-templates">Vorlagen</a></li>
+		<li><a href="#tabs-sports">Sportarten</a></li>
+		<li><a href="#tabs-calformula">Kalorienformeln</a></li>
+	</ul>
+	<div id="tabs-equipment">
 {% if equipments %}
-	<table id="equipment_table" class="tablesorter">
+	<table id="equipment_table" class="datatable">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
@@ -397,7 +417,7 @@
 
 {% if equipments_archived %}
 <h2>Archiv</h2>
-	<table id="equipment_table" class="tablesorter">
+	<table id="equipment_table" class="datatable">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
@@ -417,10 +437,11 @@
 		</tbody>
 	</table>
 {%endif%}
+</div>
 
-<h1>Events</h1>
-{% if events %}
-	<table id="event_table" class="tablesorter">
+<div id="tabs-events">
+	{% if events %}
+	<table id="event_table" class="datatable">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -443,10 +464,11 @@
 	<p>No events are available</p>
 {%endif%}
 <input type="submit" id="event_add" value="Neues Event...">
+</div>
 
-<h1>Vorlagen</h1>
+<div id="tabs-templates">
 {% if activitytemplates %}
-	<table id="activitytemplates_table" class="tablesorter">
+	<table id="activitytemplates_table" class="datatable">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -469,11 +491,11 @@
 	<p>Keine Vorlagen vorhanden</p>
 {%endif%}
 <input type="submit" id="acttmp_add" value="Neue Vorlage...">
+</div>
 
-
-<h1>Sportarten</h1>
+<div id="tabs-sports">
 {% if sports %}
-	<table id="sport_table" class="tablesorter">
+	<table id="sport_table" class="datatable">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -510,10 +532,11 @@
 	<p>Keine Sportarten festgelegt</p>
 {% endif %}
 <input type="submit" id="sport_add" value="Neue Sportart...">
+</div>
 
-<h1>Kalorienformeln</h1>
+<div id="tabs-calformula">
 {% if calformulas %}
-	<table id="calories_table" class="tablesorter">
+	<table id="calories_table" class="datatable">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -544,7 +567,8 @@
 	</table>
 {% endif %}
 <input type="submit" id="calformula_add" value="Neue Kalorienformel...">
-
+</div>
+</div>
 <div id="sport_dialog" title="Neue Sportart">
 	<table>
 		<tr>

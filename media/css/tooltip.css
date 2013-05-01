@@ -6,4 +6,5 @@ div.activitylist_tooltip {
 
 .details_plot_tooltip {
 	font-size:x-small;
+	opacity: 0.85;
 }

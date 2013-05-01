@@ -848,7 +848,7 @@ class ActivityListJson(BaseDatatableView):
 		# simple example:
 		sSearch = self.request.GET.get('sSearch', None)
 		if sSearch:
-			qs = qs.filter(name__istartswith=sSearch)
+			qs = qs.filter(name__icontains=sSearch)
 
 		return qs
 

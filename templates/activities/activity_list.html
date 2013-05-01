@@ -179,8 +179,6 @@
 		
 		$('#activities_table').dataTable({
 			"aaSorting": [[ 2, "desc" ]],
- 			"bJQueryUI": true,
-			"bServerSide": true,
 			"aoColumnDefs": [{ 
 				"aTargets": [3],
 				"bSearchable": false, 
@@ -198,8 +196,10 @@
 					return dateString;
 				}
 			}],
+ 			"bJQueryUI": true,
+			"bServerSide": true,
 			"oLanguage": {
-				"sUrl":   "media/lang/dataTables.de_DE.txt",
+				"sUrl":   "/media/lang/dataTables.de_DE.txt",
 			},
 			"sAjaxSource": "/activities/get",
 		});
@@ -219,7 +219,7 @@
 
 
 <!-- TODO: Have a look at http://www.datatables.net/release-datatables/examples/data_sources/server_side.html -->
-	<table id="activities_table">
+	<table id="activities_table" class="activities_table">
 		<thead>
 			<tr>
 				<th>Name</th>

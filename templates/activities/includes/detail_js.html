@@ -9,6 +9,12 @@
 <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
 
 <script type="text/javascript">
+	var tooltips_visible = false;
+	var plotselection_active = false;
+	var plotselection_range = new Object();
+	var plots = new Object();
+	var legends = new Object();
+
 	{% if activity.sport.speed_as_pace %}
 		var speed_as_pace = true;
 		var speed_unit = "Minuten/km";
@@ -32,21 +38,186 @@
 
 {% if tcx %}
 	var graphs = [
-		{ "name": "hf", "dataname": "hf", "label": "HF", "rounding": 0, "unit": "/ Minute"},
-		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "rounding": 1, "unit": speed_unit},
-		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "rounding": 0, "unit": "m"},
-		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "rounding": 0, "unit": "/ Minute"}
+		{ "name": "hf", "dataname": "hf", "label": "HF", "label_short": "HF","rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
+		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "rounding": 1, "unit": speed_unit, "unit_short": speed_unit},
+		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "rounding": 0, "unit": "m", "unit_short": "m"},
+		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."}
 	];	
 {% else %}
 	var graphs = [];
 {% endif %}
+	
+	
+{%  if gpx_url %}
+	function show_map_selection() {
+		if(layerMarkers) {
+			var size = new OpenLayers.Size(21,25);
+			var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+			var start_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-green.png', size, offset);
+			var end_icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size.clone(), offset.clone());
+			var start_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][plotselection_range["edge_samples"][0]][1], plot_data_raw["pos"][plotselection_range["edge_samples"][0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
+			var end_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][plotselection_range["edge_samples"][1]][1], plot_data_raw["pos"][plotselection_range["edge_samples"][1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
+
+			// Remove markers from previous selection
+			if(start_marker){
+				layerMarkers.removeMarker(start_marker);
+				start_marker = null;
+			}
+			if(end_marker){
+				layerMarkers.removeMarker(end_marker);
+				end_marker = null;
+			}
+			start_marker = new OpenLayers.Marker(start_lonLat,start_icon)
+			end_marker = new OpenLayers.Marker(end_lonLat,end_icon)
+			layerMarkers.addMarker(start_marker);
+			layerMarkers.addMarker(end_marker);
+		}
+		if(layerSelection) {
+			// Remove previous selection features
+			layerSelection.removeAllFeatures();
+		
+			var selection_points = plot_data_raw["pos"].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]);
+			var points = new Array();
+			for(var i in selection_points){
+				var cur_point = new OpenLayers.Geometry.Point(selection_points[i][1], selection_points[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
+				points.push(cur_point);
+			}
+
+			var line = new OpenLayers.Geometry.LineString(points);
+			var style = { 
+				strokeColor: '#0000ff', 
+				strokeOpacity: 0.5,
+				strokeWidth: 10
+			};
+			var lineFeature = new OpenLayers.Feature.Vector(line, null, style);
+			layerSelection.addFeatures([lineFeature]);
+		}
+	}
+{% endif %}
+	
+	function show_plots_selection() {
+		for( var graph in graphs ){
+			plot = plots[graphs[graph]["name"]];
+			plot.setSelection({ xaxis: { from: plotselection_range["xaxis_range"][0], to: plotselection_range["xaxis_range"][1]}});
+		}
+	}
+	
+	function hide_plots_selection() {
+		//deselect range in other graphs
+		for (var graph2 in graphs){
+			plot = plots[graphs[graph2]["name"]];
+			plot.clearSelection();
+		}
+	}
+	
+
+{%  if gpx_url %}
+	function hide_map_selection() {
+		// Remove markers from map
+		if(start_marker){
+			layerMarkers.removeMarker(start_marker);
+			start_marker = null;
+		}
+		if(end_marker){
+			layerMarkers.removeMarker(end_marker);
+			end_marker = null;
+		}
+		layerSelection.removeAllFeatures();
+	}
+{% endif %}
+
+	function hide_tooltips() {
+		// Hide tooltip for each graph
+		if(tooltips_visible) {
+			for (var graph in graphs){
+				plot = plots[graphs[graph]["name"]];
+				plot.clearSelection();
+				$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable").tooltip("close");
+			}
+		
+			{%  if gpx_url %}
+			// Hide map tooltip
+			$("#details_map_tooltip").tooltip("disable").tooltip("close");
+			{% endif %}
+			tooltips_visible = false;
+		}
+	}
+	
+	function show_tooltips () {
+		if(!tooltips_visible){
+			for(var graph in graphs){
+				var range_values = range_data(plot_data_raw[graphs[graph]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
+				if (range_values.min != false && range_values.max != false) {
+
+					if (graphs[graph]["unit"]=="Minuten/km") {
+						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					} else {
+						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					}
+				//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
+				}
+				$("#details_"+graphs[graph]["name"]+"_container")
+						.tooltip( "option", "content", "<table>"+text+"</table>")
+						.tooltip( "option", "position",  { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
+						.tooltip("open");
+			}
+
+			{% if gpx_url %}
+			text = "<table>";
+			for(var graph2 in graphs){
+				var dataname = graphs[graph2]["dataname"];
+				if(plot_data_raw[dataname].length > plotselection_range["edge_samples"][1]){
+					var distance = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][0] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][0]
+					var duration = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][1] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][1]
+					text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
+					text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
+					if(duration > 0 && distance > 0) {
+						if(speed_as_pace){
+							text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
+						} else {
+							text = text + "<tr><td>Ø Geschw.</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
+						}
+					}
+				
+					break;
+				}
+			}
+			text = text + "</table>"
+			$("#details_map_tooltip")
+				.tooltip("option", "content", text)
+				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
+				.tooltip("open");
+			{% endif %}
+
+			tooltips_visible = true;
+		}
+	}
 
 	$(document).ready(function() {
 		$( "#details_overview" ).accordion({collapsible: true});
 		$( "#details_details" ).accordion({collapsible: true});
 		$( "#details_weather" ).accordion({collapsible: true});
 		$( "#laps_laps").accordion();
-		$( "#details_tabs" ).tabs();
+		$( "#details_tabs" ).tabs({
+			activate: function(event ,ui){
+				// hide tooltips when switching to laps tab
+				plot_lock_selection_cb = true;
+				if(ui.newTab.index() == 1 & tooltips_visible){
+					hide_tooltips();
+				}
+				//show tooltips when switching to details tab, restore selection in plots
+				if(ui.newTab.index() == 0 & plotselection_active){
+					show_tooltips();
+					show_plots_selection();
+				}
+				plot_lock_selection_cb = false;
+			}
+		});
+	
 {% if tcx %}
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) {
@@ -123,7 +294,7 @@
 	}
 
 	var range_edge_samples = function(range_min, range_max) {
-		// find first and last samples
+		// find index of first and last sample in selection range
 		for(var graph in graphs){
 			var dataname = graphs[graph]["dataname"];
 			if(plot_data_raw[dataname].length > 0){
@@ -238,8 +409,6 @@
 			}
 		}
 			
-		var plots = new Object();
-		var legends = new Object();
 		for (var i in graphs) {
 			plot_options = cloneObject(plot_default_options);
 			if (plot_data[graphs[i]["name"]]["data"].length>0) {
@@ -274,6 +443,7 @@
 		
 		var updateCursorTimeout = null;
 		var latestPosition = null;
+		
 		
 		function updateCursor() {
 			updateCursorTimeout = null;
@@ -367,107 +537,15 @@
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotselected", function (event, ranges) {
 				if (plot_lock_selection_cb==false){
 					plot_lock_selection_cb = true;
-					var text = "<table>";
-
-					var range_edges = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
-
+					plotselection_active = true;
+					plotselection_range["xaxis_range"] = [ranges.xaxis.from, ranges.xaxis.to];
+					plotselection_range["edge_samples"] = range_edge_samples(ranges.xaxis.from, ranges.xaxis.to);
+					
 					{%  if gpx_url %}
-					if(layerMarkers) {
-						var size = new OpenLayers.Size(21,25);
-						var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-						var start_icon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-green.png', size, offset);
-						var end_icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size.clone(), offset.clone());
-						var start_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[0]][1], plot_data_raw["pos"][range_edges[0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),details_map.getProjectionObject());
-						var end_lonLat = new OpenLayers.LonLat(plot_data_raw["pos"][range_edges[1]][1], plot_data_raw["pos"][range_edges[1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
-
-						// Remove markers from previous selection
-						if(start_marker){
-							layerMarkers.removeMarker(start_marker);
-							start_marker = null;
-						}
-						if(end_marker){
-							layerMarkers.removeMarker(end_marker);
-							end_marker = null;
-						}
-						start_marker = new OpenLayers.Marker(start_lonLat,start_icon)
-						end_marker = new OpenLayers.Marker(end_lonLat,end_icon)
-						layerMarkers.addMarker(start_marker);
-						layerMarkers.addMarker(end_marker);
-					}
-					if(layerSelection) {
-						// Remove previous selection features
-						layerSelection.removeAllFeatures();
-						
-						var selection_points = plot_data_raw["pos"].slice(range_edges[0], range_edges[1]);
-						var points = new Array();
-						for(var i in selection_points){
-							var cur_point = new OpenLayers.Geometry.Point(selection_points[i][1], selection_points[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), details_map.getProjectionObject());
-							points.push(cur_point);
-						}
-
-						var line = new OpenLayers.Geometry.LineString(points);
-						var style = { 
-							strokeColor: '#0000ff', 
-							strokeOpacity: 0.5,
-							strokeWidth: 10
-						};
-						var lineFeature = new OpenLayers.Feature.Vector(line, null, style);
-						layerSelection.addFeatures([lineFeature]);
-					}
+					show_map_selection();
 					{% endif %}
-					for(var graph2 in graphs){
-						var dataname = graphs[graph2]["dataname"];
-						if(plot_data_raw[dataname].length > range_edges[1]){
-							var distance = plot_data_raw[dataname][range_edges[1]][0] - plot_data_raw[dataname][range_edges[0]][0]
-							var duration = plot_data_raw[dataname][range_edges[1]][1] - plot_data_raw[dataname][range_edges[0]][1]
-							text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
-							text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
-							if(duration > 0 && distance > 0) {
-								if(speed_as_pace){
-									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
-								} else {
-									text = text + "<tr><td>Ø Geschwindigkeit</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
-								}
-							}
-							
-							break;
-						}
-					}
-					text = text + "</table>"
-					$("#plot_selection").html(text);
-//					$("#plot_sel_range").text(ranges.xaxis.from.toFixed(1) + " - " + ranges.xaxis.to.toFixed(1));
-
-					{% if gpx_url %}
-
-					$("#details_map_tooltip")
-						.tooltip("option", "content", text)
-						.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
-						.tooltip("open");
-					{% endif %}
-					for( var graph2 in graphs ){
-						plot = plots[graphs[graph2]["name"]];
-						plot.setSelection({ xaxis: { from: ranges.xaxis.from, to: ranges.xaxis.to }});
-
-						var range_values = range_data(plot_data_raw[graphs[graph2]["dataname"]].slice(range_edges[0], range_edges[1]));
-
-						if (range_values.min != false && range_values.max != false) {
-
-							if (graphs[graph2]["unit"]=="Minuten/km") {
-								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph2]["unit"] + "</td></tr>";
-							} else {
-								text = "<tr><td>Min. " + graphs[graph2]["label"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Max. " + graphs[graph2]["label"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
-								text = text + "<tr><td>Avg. " + graphs[graph2]["label"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph2]["unit"] + "</td></tr>";
-							}
-						//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
-						}
-						$("#details_"+graphs[graph2]["name"]+"_container")
-								.tooltip( "option", "content", "<table>"+text+"</table>")
-								.tooltip( "option", "position",  { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
-								.tooltip("open");
-					}
+					show_plots_selection();
+					show_tooltips();
 					
 					plot_lock_selection_cb = false;
 				}
@@ -476,36 +554,18 @@
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plotunselected", function (event) {
 				if (plot_lock_selection_cb == false ) {
 					plot_lock_selection_cb = true;
-					//deselect range in other graphs
-					for (var graph2 in graphs){
-						plot = plots[graphs[graph2]["name"]];
-						plot.clearSelection();
-						$("#details_"+graphs[graph2]["name"]+"_container").tooltip("disable").tooltip("close");
-					}
-					// close accordion
-
+					plotselection_active = false
+					
 					{%  if gpx_url %}
-					// Remove markers from map
-					if(start_marker){
-						layerMarkers.removeMarker(start_marker);
-						start_marker = null;
-					}
-					if(end_marker){
-						layerMarkers.removeMarker(end_marker);
-						end_marker = null;
-					}
-					layerSelection.removeAllFeatures();
-					
-					// Hide map tooltip
-					$("#details_map_tooltip").tooltip("disable").tooltip("close");
+					hide_map_selection()
 					{% endif %}
-					
+					hide_plots_selection();
+					hide_tooltips();
 					plot_lock_selection_cb = false;
 				}
 			});
 		}
 		return data;
-
 	}
 	
 
@@ -529,11 +589,10 @@
 		
 		populate_map(details_map);
 
-			$("#details_map_tooltip").tooltip({
-					disabled: true,
-//					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
-					tooltipClass: "details_plot_tooltip",
-			});
+		$("#details_map_tooltip").tooltip({
+			disabled: true,
+			tooltipClass: "details_plot_tooltip",
+		});
 	}
 	
 	var populate_map = function(map) {
@@ -593,7 +652,6 @@
 		}
 		update_plots();
 	}
-
 </script>
 
 {% if not public %}

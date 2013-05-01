@@ -17,6 +17,11 @@
 	margin: auto;
 }
 
+div.column { 
+	text-align: left;
+	float:left;
+	padding: 10px;
+}
 
 .colordisplay div {
 	width: 16px;
@@ -81,6 +86,12 @@ table.tablesorter thead tr .headerSortDown {
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
 background-color: #8dbdd8;
 }
+
+table.activities_table tbody td {
+	padding: 8px;
+	vertical-align: top;
+}
+
 
 a:link { font-family:Arial,Helvetica,sans-serif; font-size: 14px; text-decoration: none; color: #3c82b4; } 
 a:visited { color: #3c82b4; } 

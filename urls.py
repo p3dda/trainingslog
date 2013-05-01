@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf.urls.static import static
 
+from activities.views import ActivityListJson
+
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 import django.contrib.auth.views
@@ -13,7 +15,7 @@ admin.autodiscover()
 urlpatterns = patterns('activities.views',
 	url(r'^$', 'list_activities'),
     url(r'^activities/$', 'list_activities'),
-    url(r'^activities/get/$', 'get_activities'),
+    url(r'^activities/get/$', ActivityListJson.as_view(), name='activity_list_json'),
     url(r'^activities/get_json/$', 'get_activity'),
     url(r'^activities/(?P<activity_id>\d+)/$', 'detail'),
     url(r'^activities/new/$', 'new_activity'),

@@ -266,13 +266,25 @@ def importtrack_from_tcx(request, newtrack):
 			logging.error("Failed to load weather data: %s" % exc)
 			for line in traceback.format_exc(sys.exc_info()[2]).splitlines():
 				logging.error(line)
-		
-	activity.cadence_avg = int(cadence_avg / time_sum)
-	activity.cadence_max = cadence_max
+	
+	if cadence_avg==0:
+		activity.cadence_avg = None
+	else:	
+		activity.cadence_avg = int(cadence_avg / time_sum)
+	if cadence_max==0:
+		activity.cadence_max = None
+	else:
+		activity.cadence_max = cadence_max
 	activity.calories = calories_sum
 	activity.speed_max = str(speed_max)
-	activity.hf_avg = int(hf_avg / time_sum)
-	activity.hf_max = hf_max
+	if hf_avg==0:
+		activity.hf_avg = None
+	else:
+		activity.hf_avg = int(hf_avg / time_sum)
+	if hf_max==0:
+		activity.hf_max = None
+	else:
+		activity.hf_max = hf_max
 	activity.distance = str(distance_sum)
 	activity.elevation_min = elev_min
 	activity.elevation_max = elev_max

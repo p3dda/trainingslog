@@ -176,7 +176,6 @@
 		for(var graph2 in graphs){
 			if(plot_data_raw[graphs[graph2]["dataname"]].length > plotselection_range["edge_samples"][1]){
 				var range_values = range_data(plot_data_raw[graphs[graph2]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
-				console.debug(range_values);
 				text = text + "<tr><td>Distanz</td><td>" + (range_values.distance/1000).toFixed(2) + " km</td></tr>";
 				text = text + "<tr><td>Dauer</td><td>" + secondsToTime((range_values.duration/1000), with_hours=true) + " h</td></tr>";
 				if(range_values.duration > 0 && range_values.distance > 0) {

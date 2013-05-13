@@ -144,51 +144,59 @@
 	}
 	
 	function show_tooltips () {
+		// Update tooltip text
+		for(var graph in graphs){
+			var range_values = range_data(plot_data_raw[graphs[graph]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
+			if (range_values.min != false && range_values.max != false) {
+
+				if (graphs[graph]["unit"]=="Minuten/km") {
+					text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+				} else {
+					text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+				}
+			//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
+			}
+			$("#details_"+graphs[graph]["name"]+"_container").tooltip( "option", "content", "<table>"+text+"</table>");
+		}
+		{% if gpx_url %}
+		text = "<table>";
+		for(var graph2 in graphs){
+			var dataname = graphs[graph2]["dataname"];
+			if(plot_data_raw[dataname].length > plotselection_range["edge_samples"][1]){
+				var distance = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][0] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][0]
+				var duration = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][1] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][1]
+				text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
+				text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
+				if(duration > 0 && distance > 0) {
+					if(speed_as_pace){
+						text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
+					} else {
+						text = text + "<tr><td>Ø Geschw.</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
+					}
+				}
+			
+				break;
+			}
+		}
+		text = text + "</table>"
+		$("#details_map_tooltip").tooltip("option", "content", text);
+		{% endif %}
+		
+		
+		// show tooltip
 		if(!tooltips_visible){
 			for(var graph in graphs){
-				var range_values = range_data(plot_data_raw[graphs[graph]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
-				if (range_values.min != false && range_values.max != false) {
-
-					if (graphs[graph]["unit"]=="Minuten/km") {
-						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					} else {
-						text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-						text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-						text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					}
-				//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
-				}
 				$("#details_"+graphs[graph]["name"]+"_container")
-						.tooltip( "option", "content", "<table>"+text+"</table>")
 						.tooltip( "option", "position",  { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
 						.tooltip("open");
 			}
 
 			{% if gpx_url %}
-			text = "<table>";
-			for(var graph2 in graphs){
-				var dataname = graphs[graph2]["dataname"];
-				if(plot_data_raw[dataname].length > plotselection_range["edge_samples"][1]){
-					var distance = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][0] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][0]
-					var duration = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][1] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][1]
-					text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
-					text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
-					if(duration > 0 && distance > 0) {
-						if(speed_as_pace){
-							text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
-						} else {
-							text = text + "<tr><td>Ø Geschw.</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
-						}
-					}
-				
-					break;
-				}
-			}
-			text = text + "</table>"
 			$("#details_map_tooltip")
-				.tooltip("option", "content", text)
 				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
 				.tooltip("open");
 			{% endif %}

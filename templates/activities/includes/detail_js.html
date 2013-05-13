@@ -147,16 +147,25 @@
 		// Update tooltip text
 		for(var graph in graphs){
 			var range_values = range_data(plot_data_raw[graphs[graph]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
+			
 			if (range_values.min != false && range_values.max != false) {
-
-				if (graphs[graph]["unit"]=="Minuten/km") {
-					text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+				if (graphs[graph]["name"] == "alt" ){
+					text = "<tr><td>Min. </td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Max. </td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					
+					var ascent = range_values.last - range_values.first;
+					var slope = 100 * ascent / Math.sqrt(Math.pow(range_values.distance, 2) -  Math.pow(ascent, 2)); 
+					
+					text = text + "<tr><td>Diff. </td><td>" + (ascent).toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Avg. </td><td>" + (slope).toFixed(1) + " %</td></tr>";
+				} else if (graphs[graph]["unit"]=="Minuten/km") {
+					text = "<tr><td>Min. " + "</td><td>" + secondsToTime(range_values.min*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Max. </td><td>" + secondsToTime(range_values.max*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Avg. </td><td>" + secondsToTime(range_values.avg*60, with_hours=false) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 				} else {
-					text = "<tr><td>Min. " + graphs[graph]["label_short"] + "</td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					text = text + "<tr><td>Max. " + graphs[graph]["label_short"] + "</td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
-					text = text + "<tr><td>Avg. " + graphs[graph]["label_short"] + "</td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = "<tr><td>Min. </td><td>" + range_values.min.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Max. </td><td>" + range_values.max.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
+					text = text + "<tr><td>Avg. </td><td>" + range_values.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 				}
 			//	text = text + "<tr><td>" + graphs[graph2]["label"] + "</td><td>" + range_data.min.toFixed(graphs[graph]["rounding"]) + " - " + range_data.max.toFixed(graphs[graph]["rounding"]);
 			}
@@ -165,17 +174,16 @@
 		{% if gpx_url %}
 		text = "<table>";
 		for(var graph2 in graphs){
-			var dataname = graphs[graph2]["dataname"];
-			if(plot_data_raw[dataname].length > plotselection_range["edge_samples"][1]){
-				var distance = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][0] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][0]
-				var duration = plot_data_raw[dataname][plotselection_range["edge_samples"][1]][1] - plot_data_raw[dataname][plotselection_range["edge_samples"][0]][1]
-				text = text + "<tr><td>Distanz</td><td>" + (distance/1000).toFixed(2) + " km</td></tr>";
-				text = text + "<tr><td>Dauer</td><td>" + secondsToTime((duration/1000), with_hours=true) + " h</td></tr>";
-				if(duration > 0 && distance > 0) {
+			if(plot_data_raw[graphs[graph2]["dataname"]].length > plotselection_range["edge_samples"][1]){
+				var range_values = range_data(plot_data_raw[graphs[graph2]["dataname"]].slice(plotselection_range["edge_samples"][0], plotselection_range["edge_samples"][1]));
+				console.debug(range_values);
+				text = text + "<tr><td>Distanz</td><td>" + (range_values.distance/1000).toFixed(2) + " km</td></tr>";
+				text = text + "<tr><td>Dauer</td><td>" + secondsToTime((range_values.duration/1000), with_hours=true) + " h</td></tr>";
+				if(range_values.duration > 0 && range_values.distance > 0) {
 					if(speed_as_pace){
-						text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(duration/distance, with_hours=false)+" min/km</td></tr>";
+						text = text + "<tr><td>Ø Geschw.</td><td>"+secondsToTime(range_values.duration/range_values.distance, with_hours=false)+" min/km</td></tr>";
 					} else {
-						text = text + "<tr><td>Ø Geschw.</td><td>"+(distance*3600/duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
+						text = text + "<tr><td>Ø Geschw.</td><td>"+(range_values.distance*3600/range_values.duration).toFixed(1).toString().replace('.', ',')+" km/h</td></tr>";
 					}
 				}
 			
@@ -298,6 +306,10 @@
 		res.min = min;
 		res.max = max;
 		res.avg = avg;
+		res.first = data[0][2];
+		res.last = data[data.length - 1][2];
+		res.duration = data[data.length - 1][1] - data[0][1];
+		res.distance = data[data.length - 1][0] - data[0][0];
 		return res;
 	}
 

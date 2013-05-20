@@ -119,6 +119,8 @@ def importtrack_from_tcx(request, newtrack):
 		last_elev = None
 		
 		position_start = None
+		time_start = None
+		time_end = None
 		
 		for xmltrack in xmllap.findall(xmlns + "Track"):
 			for xmltp in xmltrack.findall(xmlns + "Trackpoint"):
@@ -130,7 +132,11 @@ def importtrack_from_tcx(request, newtrack):
 								lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
 								lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)
 								position_start = (lat, lon)
-							
+				
+				if not time_start:
+					if xmltp.find(xmlns + "Time") != None:
+						time_start = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
+					
 				if xmltp.find(xmlns + "AltitudeMeters") != None:
 					elev = int(round(float(xmltp.find(xmlns + "AltitudeMeters").text)))
 				else:
@@ -153,6 +159,13 @@ def importtrack_from_tcx(request, newtrack):
 					cadence = int(xmltp.find(xmlns + "Cadence").text)
 					if cadence > cadence_max:
 						cadence_max = cadence
+			
+			# Get timestamp from last trackpoint in this track
+			xmltp = xmltrack.findall(xmlns + "Trackpoint")[-1]
+			print xmltp
+			print xmltp.find(xmlns + "Time")!=None
+			if xmltp.find(xmlns + "Time") != None:
+				time_end = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
 		
 		lap = Lap(
 				date = date,
@@ -293,6 +306,11 @@ def importtrack_from_tcx(request, newtrack):
 	activity.time = time_sum
 	activity.date = laps[0].date
 	activity.speed_avg = str(float(activity.distance) * 3600 / activity.time)
+	
+	if time_start and time_end:
+		logging.debug("First and last trackpoint timestamps in track are %s and %s" % (time_start, time_end))
+		activity.time_elapsed = (time_end - time_start).days * 86400 + (time_end - time_start).seconds
+
 	activity.save()
 
 	for lap in laps:

@@ -338,24 +338,6 @@ def list_activities(request):
 		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
 @login_required
-def get_activities(request):
-	logging.debug(request.GET.get('iDisplayStart'))
-	
-	act_list = []
-	for activity in Activity.objects.select_related('sport').filter(user=request.user):
-		act_list.append([activity.name, activity.sport.name, activity.date.isoformat(), activity.date.isoformat(), str(datetime.timedelta(days=0,seconds=activity.time))])
-	
-	data = {'sEcho': int(request.GET.get('sEcho')),
-		'iTotalRecords': Activity.objects.filter(user=request.user).count(),
-		'iTotalDisplayRecords': len(act_list),
-		'aaData': act_list,
-	}
-	
-	
-	return HttpResponse(json.dumps(data), mimetype='application/json')
-
-
-@login_required
 def get_activity(request):
 	act_id = request.GET.get('id')
 	template = request.GET.get('template')
@@ -363,7 +345,7 @@ def get_activity(request):
 	if template == 'true':
 		activity = ActivityTemplate.objects.get(pk=int(act_id))
 	else:
-		activity = Activity.objects.get(pk=int(act_id))
+		activity = Activity.objects.select_related('track').get(pk=int(act_id))
 
 	if activity.user == request.user:
 		data = serializers.serialize('json', [activity])
@@ -378,8 +360,6 @@ def get_activity(request):
 			if activity.track.preview_img:
 				result['preview_img'] = activity.track.preview_img.url
 		
-		print result
-
 #		return HttpResponse(serializers.serialize('json', [activity]), mimetype='application/json');
 		return HttpResponse(json.dumps(result), mimetype='application/json')
 	else:

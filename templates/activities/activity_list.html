@@ -218,7 +218,6 @@
 {% block content %}
 
 
-<!-- TODO: Have a look at http://www.datatables.net/release-datatables/examples/data_sources/server_side.html -->
 	<table id="activities_table" class="activities_table">
 		<thead>
 			<tr>
@@ -229,19 +228,6 @@
 			</tr>
 		</thead>
 		<tbody>
-<!--			{% for activity in activities %}
-			<tr>
-				<td>
-					<a class="activityPopupTrigger" href="/activities/{{activity.id}}/" rel="{{activity.id}}" title="{{ activity.name }}">{{ activity.name }}</a>
-					&nbsp;&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{activity.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{activity.id}})"/></td>
-				<td>{{ activity.sport }}</td>
-				<td>{{ activity.date.isoformat }}</td>
-				<td>{{ activity.date.isoformat }}</td>
-				<td>{{ activity.time }}</td>
-			</tr>
-			{% endfor %} -->
 		</tbody>
 	</table>
 	<br/>

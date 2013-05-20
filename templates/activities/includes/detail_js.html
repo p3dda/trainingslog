@@ -449,7 +449,8 @@
 				plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
 			} else {
 				plot_options["yaxis"]=new Object();
-				plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
+			//	plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
+				plot_options["yaxis"]["min"]=Math.floor(min);
 				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
 			}
 

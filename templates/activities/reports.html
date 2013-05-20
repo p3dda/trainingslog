@@ -248,6 +248,7 @@
 
 	function update_table(data) {
 		// update report table with new data
+		$('#table_report').dataTable().fnClearTable();
 		for(var key in data) {
 			var item = data[key];
 			if(item['num_activities'] > 0) {

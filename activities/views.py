@@ -6,6 +6,7 @@ from base64 import b64decode
 import json
 import copy
 import datetime
+import itertools
 #import dateutil.parser
 import os
 import tempfile
@@ -777,7 +778,8 @@ def settings(request):
 	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 	
-	for equipment in equipments:
+	for equipment in itertools.chain(equipments, equipments_archived):
+		print equipment
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
 		activity_time = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('time'))
@@ -802,9 +804,7 @@ def settings(request):
 
 		equipment.time = seconds_to_time(equipment.time, force_hour=True)
 		
-	
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
-
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting
 	# order is important and should be same as order of columns

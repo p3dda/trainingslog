@@ -14,6 +14,8 @@
 	var plotselection_range = new Object();
 	var plots = new Object();
 	var legends = new Object();
+	
+	var zoom = false;
 
 	{% if activity.sport.speed_as_pace %}
 		var speed_as_pace = true;
@@ -99,6 +101,10 @@
 		for( var graph in graphs ){
 			plot = plots[graphs[graph]["name"]];
 			plot.setSelection({ xaxis: { from: plotselection_range["xaxis_range"][0], to: plotselection_range["xaxis_range"][1]}});
+			
+			if(zoom){
+				update_plots(plotselection_range["xaxis_range"][0], plotselection_range["xaxis_range"][1])
+			}
 		}
 	}
 	
@@ -130,8 +136,6 @@
 		// Hide tooltip for each graph
 		if(tooltips_visible) {
 			for (var graph in graphs){
-				plot = plots[graphs[graph]["name"]];
-				plot.clearSelection();
 				$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable").tooltip("close");
 			}
 		
@@ -239,6 +243,7 @@
 			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
 		}
 		$( "#plot_xaxis").change(plot_xaxis_changed);
+		$( "#plot_zoom").click(plot_zoom_clicked);
 		plot_graphs();
 {% endif %}
 {% if gpx_url %}
@@ -351,7 +356,7 @@
 		return [range_start, range_end]
 	}
 
-	var update_plots = function() {
+	var update_plots = function(xmin, xmax) {
 		function cloneObject(obj) {
 			var clone = {};
 			for(var i in obj) {
@@ -368,7 +373,9 @@
 		plot_default_options = {
 			xaxis : {
 				tickDecimals: "1",
-				tickFormatter: distanceSuffixFormatter
+				tickFormatter: distanceSuffixFormatter,
+				min: xmin,
+				max: xmax,
 			},
 			crosshair : {
 				mode : "x"
@@ -400,6 +407,8 @@
 					plot_data[graphs[i]["name"]]["data"]=graphdata;
 					
 					plot_default_options["xaxis"] = {
+						min: xmin,
+						max: xmax,
 						mode: "time",
 						timeformat: "%H:%Mh"
 					};
@@ -408,6 +417,8 @@
 					plot_data[graphs[i]["name"]]["data"]=graphdata;
 					
 					plot_default_options["xaxis"] = {
+						min: xmin,
+						max: xmax,
 						tickDecimals: "1",
 						tickFormatter: distanceSuffixFormatter
 					}
@@ -670,7 +681,20 @@
 		} else {
 			plot_base = "time"
 		}
+		// FIXME: Remember current selection and restore after change
+		hide_tooltips();
+		hide_map_selection()
 		update_plots();
+	}
+	
+	var plot_zoom_clicked = function() {
+		if(plotselection_active){
+			hide_tooltips();
+			hide_map_selection()
+			update_plots(plotselection_range["xaxis_range"][0], plotselection_range["xaxis_range"][1]);
+		} else {
+			update_plots();
+		}
 	}
 </script>
 

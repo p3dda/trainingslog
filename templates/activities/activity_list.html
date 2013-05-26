@@ -133,7 +133,7 @@
 			content: function(callback) {
 				var activity_id = $(this).attr('rel');
 				callback(activity_id);
-				$.get("/activities/get_json", {id: activity_id}).done(function(data) {
+				$.get("/activities/get_json/", {id: activity_id}).done(function(data) {
 					act = eval(data.activity);
 					var fields = act[0].fields;
 

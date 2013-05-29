@@ -75,6 +75,9 @@ def importtrack_from_tcx(request, newtrack):
 	activity.track = newtrack
 	
 	laps = []
+	time_start = None
+	time_end = None
+
 	for xmllap in xmlactivity.findall(xmlns + "Lap"):
 		date = dateutil.parser.parse(xmllap.get("StartTime"))
 		time = int(float(xmllap.find(xmlns+"TotalTimeSeconds").text))
@@ -119,8 +122,6 @@ def importtrack_from_tcx(request, newtrack):
 		last_elev = None
 		
 		position_start = None
-		time_start = None
-		time_end = None
 		
 		for xmltrack in xmllap.findall(xmlns + "Track"):
 			for xmltp in xmltrack.findall(xmlns + "Trackpoint"):

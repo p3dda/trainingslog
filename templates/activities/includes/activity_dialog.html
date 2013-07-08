@@ -464,11 +464,14 @@
 			}
 			$("#new_act_public").attr('checked', fields.public);
 
-			override_calories = true;	// avoid existing calorie values to be overridden
+			if(!is_template) {
+				override_calories = true;	// avoid existing calorie values to be overridden
+			}
 			change_sport();
 			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after change_sport for not being overwritten
-			override_calories = false;
-			
+			if(!is_template) {
+				override_calories = false;
+			}
 			// Populate weather data
 			if(fields.weather_stationname != null) {
 				$("#new_act_weather_stationname").val(fields.weather_stationname);

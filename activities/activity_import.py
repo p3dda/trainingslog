@@ -252,7 +252,8 @@ def importtrack_from_tcx(request, newtrack):
 				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"][0]
 				logging.debug("Found nearby airport station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["icao"])
-	
+			
+			logging.debug("Fetching wheather information from url %s" % weather_url)
 			activity.weather_stationname = weather_station["city"]
 		
 			f = urllib2.urlopen(weather_url)

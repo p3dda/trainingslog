@@ -77,7 +77,7 @@ class TCXTrack:
 				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
 				if delta_time > 0:
 					if (delta_dist / delta_time) < 0.5:
-						logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
+						#logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
 						offset_time = offset_time + delta_time
 						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 			last_distance = distance
@@ -142,7 +142,7 @@ class TCXTrack:
 							cad_data.append((distance,trackpoint_time,cad))
 				#TODO: Watts sensors ???
 
-		logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
+		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"]=alt_data
 		self.track_data["cad"]=cad_data
 		self.track_data["hf"]=hf_data
@@ -249,7 +249,7 @@ class TCXTrack:
 
 		max_speedchange_avg=speed_avg/3.6 # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
 
-		logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
+		#logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
 
 		# now average over all speed using speed info in forward and backward direction
 		for i in range(0,len(dist_points)):

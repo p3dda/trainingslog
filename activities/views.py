@@ -494,7 +494,8 @@ def add_activity(request):
 			act.weather_winddir = request.POST.get('weather_winddir')
 			if act.weather_winddir == "":
 				act.weather_winddir = None
-			logging.debug("Save act.weather_winddir: %r" % act.weather_winddir)
+			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (
+				act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
 		
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")
@@ -585,7 +586,6 @@ def detail(request, activity_id):
 		if act.time_elapsed:
 			act.time_elapsed = seconds_to_time(act.time_elapsed)
 		
-		logging.debug("Wind dir is %r" % act.weather_winddir)
 		laps = Lap.objects.filter(activity = act).order_by('id')
 		for lap in laps:
 			lap.time = seconds_to_time(lap.time)
@@ -594,7 +594,6 @@ def detail(request, activity_id):
 					lap.speed_max = speed_to_pace(lap.speed_max)
 				if lap.speed_avg:
 					lap.speed_avg = speed_to_pace(lap.speed_avg)
-	
 		if not public:
 	
 			if request.GET.get('edit', '0')=='1':

@@ -354,7 +354,7 @@ def float_or_none(val):
 
 def str_float_or_none(val):
 	ret = float_or_none(val)
-	if ret:
+	if ret != None:
 		return str(ret)
 	else:
 		return None

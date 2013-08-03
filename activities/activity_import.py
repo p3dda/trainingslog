@@ -68,7 +68,7 @@ def importtrack_from_tcx(request, newtrack):
 	event = events[0]
 	sport = sports[0]
 	
-	activity = Activity(name="")
+	activity = Activity(name="Garmin Import")
 	activity.user = request.user
 	activity.event = event
 	activity.sport = sport

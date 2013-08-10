@@ -230,9 +230,14 @@
 							id: $("#activity_delete_id_input").val(),
 							tmpl_id: $("#activity_template_delete_id_input").val()
 						}, function(data) {
-							location.href="/activities/";
-							//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
-							
+							if(typeof act_table != 'undefined') {
+								// reload activities list if in list view
+								act_table.fnDraw();
+							} else {
+								// redirect to list view otherwise
+								location.href="/activities/";
+								//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
+							}
 						}, "json");
 					$( this ).dialog( "close" );
 				},
@@ -462,6 +467,29 @@
 			if(fields.time_movement != null) {
 				$("#new_act_time_movement").val(secondsToTime(fields.time_movement));
 			}
+
+			if(!is_template) {
+				// Populate weather data
+				if(fields.weather_stationname != null) {
+					$("#new_act_weather_stationname").val(fields.weather_stationname);
+				}
+				if(fields.weather_temp != null) {
+					$("#new_act_weather_temp").val(fields.weather_temp);
+				}
+				if(fields.weather_rain != null) {
+					$("#new_act_weather_rain").val(fields.weather_rain);
+				}
+				if(fields.weather_hum != null) {
+					$("#new_act_weather_hum").val(fields.weather_hum);
+				}
+				if(fields.weather_windspeed != null) {
+					$("#new_act_weather_windspeed").val(fields.weather_windspeed);
+				}
+				if(fields.weather_winddir != null) {
+					$("#new_act_weather_winddir").val(fields.weather_winddir);
+				}
+			}
+
 			$("#new_act_public").attr('checked', fields.public);
 
 			if(!is_template) {
@@ -471,25 +499,6 @@
 			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after change_sport for not being overwritten
 			if(!is_template) {
 				override_calories = false;
-			}
-			// Populate weather data
-			if(fields.weather_stationname != null) {
-				$("#new_act_weather_stationname").val(fields.weather_stationname);
-			}
-			if(fields.weather_temp != null) {
-				$("#new_act_weather_temp").val(fields.weather_temp);
-			}
-			if(fields.weather_rain != null) {
-				$("#new_act_weather_rain").val(fields.weather_rain);
-			}
-			if(fields.weather_hum != null) {
-				$("#new_act_weather_hum").val(fields.weather_hum);
-			}
-			if(fields.weather_windspeed != null) {
-				$("#new_act_weather_windspeed").val(fields.weather_windspeed);
-			}
-			if(fields.weather_winddir != null) {
-				$("#new_act_weather_winddir").val(fields.weather_winddir);
 			}
 			
 		}
@@ -637,7 +646,14 @@
 						$("#activity_dialog").dialog("close");
 
 						// redirect to activity in non-edit mode
-						location.href = window.location.pathname;
+						if(typeof act_table != 'undefined') {
+							// reload activities list if in list view
+							act_table.fnDraw();
+						} else {
+							// reload page otherwise
+							location.href = window.location.pathname;
+							//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
+						}
 					} else {
 						noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
 					}

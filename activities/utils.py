@@ -56,7 +56,9 @@ class TCXTrack:
 		#logging.debug("Parsing TCX Track file in first activity")
 		first_lap = xmlactivity.find(self.xmlns + "Lap")
 		start_time = dateutil.parser.parse(first_lap.get("StartTime"))
-
+		offset_time = 0 # used to remove track sequences from plot where no movement has occured
+		last_distance = None
+		
 		for xmltp in xmlactivity.findall(self.xmlns+"Lap/"+self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
 			distance=alt=cad=hf=trackpoint_time=None
 
@@ -67,12 +69,23 @@ class TCXTrack:
 
 			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
 			delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
-			trackpoint_time = (delta.seconds + 86400 * delta.days) * 1000
-			
+			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+
+			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
+			if last_distance:
+				delta_dist = distance - last_distance
+				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
+				if delta_time > 0:
+					if (delta_dist / delta_time) < 0.5:
+						#logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
+						offset_time = offset_time + delta_time
+						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+			last_distance = distance
+
 			if not self.track_by_distance.has_key(distance):
 				self.track_by_distance[distance]={}
-			
 			self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
+			
 			
 			# Get altitude
 			if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
@@ -129,6 +142,7 @@ class TCXTrack:
 							cad_data.append((distance,trackpoint_time,cad))
 				#TODO: Watts sensors ???
 
+		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"]=alt_data
 		self.track_data["cad"]=cad_data
 		self.track_data["hf"]=hf_data
@@ -235,7 +249,7 @@ class TCXTrack:
 
 		max_speedchange_avg=speed_avg/3.6 # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
 
-		logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
+		#logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
 
 		# now average over all speed using speed info in forward and backward direction
 		for i in range(0,len(dist_points)):
@@ -340,7 +354,7 @@ def float_or_none(val):
 
 def str_float_or_none(val):
 	ret = float_or_none(val)
-	if ret:
+	if ret != None:
 		return str(ret)
 	else:
 		return None

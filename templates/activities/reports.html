@@ -21,9 +21,6 @@
 			"bFilter": false,
 			"bInfo": false,
 			"bPaginate": false,
-			"oLanguage": {
-				"sUrl":   "/media/lang/dataTables.de_DE.txt",
-			},
 		});
 
 		now = new Date();
@@ -251,23 +248,20 @@
 
 	function update_table(data) {
 		// update report table with new data
-		$("#table_report tbody").empty();
+		$('#table_report').dataTable().fnClearTable();
 		for(var key in data) {
 			var item = data[key];
 			if(item['num_activities'] > 0) {
-
-				$("#table_report tbody").append('<tr><td>' + key + '</td><td>' + item['num_activities'] + '</td><td>' + item['total_distance'] + '</td><td>' + item['total_time_str'] + '</td><td>' + item['total_elev_gain'] + '</td><td>' + item['total_calories'] + '</td></tr>');
+				$('#table_report').dataTable().fnAddData( [
+						key,
+						item['num_activities'],
+						item['total_distance'],
+						item['total_time_str'],
+						item['total_elev_gain'],
+						item['total_calories'] ]);
 			}
 		}
 
-		var table = $("#table_report");
-		/*		table.tablesorter({
-		 widgets : ['zebra']
-		 });
-
-		 table.trigger("update");
-		 table.trigger("appendCache");
-		 */
 	}
 </script>
 {% endblock %}

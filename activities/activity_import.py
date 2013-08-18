@@ -68,13 +68,16 @@ def importtrack_from_tcx(request, newtrack):
 	event = events[0]
 	sport = sports[0]
 	
-	activity = Activity(name="")
+	activity = Activity(name="Garmin Import")
 	activity.user = request.user
 	activity.event = event
 	activity.sport = sport
 	activity.track = newtrack
 	
 	laps = []
+	time_start = None
+	time_end = None
+
 	for xmllap in xmlactivity.findall(xmlns + "Lap"):
 		date = dateutil.parser.parse(xmllap.get("StartTime"))
 		time = int(float(xmllap.find(xmlns+"TotalTimeSeconds").text))
@@ -130,7 +133,11 @@ def importtrack_from_tcx(request, newtrack):
 								lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
 								lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)
 								position_start = (lat, lon)
-							
+				
+				if not time_start:
+					if xmltp.find(xmlns + "Time") != None:
+						time_start = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
+					
 				if xmltp.find(xmlns + "AltitudeMeters") != None:
 					elev = int(round(float(xmltp.find(xmlns + "AltitudeMeters").text)))
 				else:
@@ -153,6 +160,13 @@ def importtrack_from_tcx(request, newtrack):
 					cadence = int(xmltp.find(xmlns + "Cadence").text)
 					if cadence > cadence_max:
 						cadence_max = cadence
+			
+			# Get timestamp from last trackpoint in this track
+			xmltp = xmltrack.findall(xmlns + "Trackpoint")[-1]
+			print xmltp
+			print xmltp.find(xmlns + "Time")!=None
+			if xmltp.find(xmlns + "Time") != None:
+				time_end = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
 		
 		lap = Lap(
 				date = date,
@@ -238,7 +252,8 @@ def importtrack_from_tcx(request, newtrack):
 				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"][0]
 				logging.debug("Found nearby airport station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["icao"])
-	
+			
+			logging.debug("Fetching wheather information from url %s" % weather_url)
 			activity.weather_stationname = weather_station["city"]
 		
 			f = urllib2.urlopen(weather_url)
@@ -266,13 +281,25 @@ def importtrack_from_tcx(request, newtrack):
 			logging.error("Failed to load weather data: %s" % exc)
 			for line in traceback.format_exc(sys.exc_info()[2]).splitlines():
 				logging.error(line)
-		
-	activity.cadence_avg = int(cadence_avg / time_sum)
-	activity.cadence_max = cadence_max
+	
+	if cadence_avg==0:
+		activity.cadence_avg = None
+	else:	
+		activity.cadence_avg = int(cadence_avg / time_sum)
+	if cadence_max==0:
+		activity.cadence_max = None
+	else:
+		activity.cadence_max = cadence_max
 	activity.calories = calories_sum
 	activity.speed_max = str(speed_max)
-	activity.hf_avg = int(hf_avg / time_sum)
-	activity.hf_max = hf_max
+	if hf_avg==0:
+		activity.hf_avg = None
+	else:
+		activity.hf_avg = int(hf_avg / time_sum)
+	if hf_max==0:
+		activity.hf_max = None
+	else:
+		activity.hf_max = hf_max
 	activity.distance = str(distance_sum)
 	activity.elevation_min = elev_min
 	activity.elevation_max = elev_max
@@ -281,6 +308,11 @@ def importtrack_from_tcx(request, newtrack):
 	activity.time = time_sum
 	activity.date = laps[0].date
 	activity.speed_avg = str(float(activity.distance) * 3600 / activity.time)
+	
+	if time_start and time_end:
+		logging.debug("First and last trackpoint timestamps in track are %s and %s" % (time_start, time_end))
+		activity.time_elapsed = (time_end - time_start).days * 86400 + (time_end - time_start).seconds
+
 	activity.save()
 
 	for lap in laps:

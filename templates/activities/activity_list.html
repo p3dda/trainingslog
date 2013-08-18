@@ -36,85 +36,55 @@
 	var sport_data = Array();
 	
 	$(document).ready(function() {
-		// Initialize tablesorter
-		/*
-		$.getJSON("/activities/get", function(data) {
-			// Add the messages div to the container
-			$("#myTable tbody").empty();
-			$.each(data, function(i, item) {
-				var act_date=new Date(item.date);
-				// why does js not just have strftime??
-				var act_date_string = pad(act_date.getDate(),2) + "." + pad(act_date.getMonth() + 1,2) + "." + act_date.getFullYear() + " " + pad(act_date.getHours(),2) + ":" + pad(act_date.getMinutes(),2); 
-				$("#myTable tbody").append('<tr><td><a class="activityPopupTrigger" href="/activities/' + item.id + '/" rel="' + item.id + '" title="' + item.name + '">' + item.name 
-					+ '</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(' + item.id + ')"/>&nbsp;&nbsp;'
-					+ '<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(' + item.id + ')"/></td><td>' 
-					+ item.sport + '</td><td>'+ act_date_string + '</td><t><td>' + item.duration + '</td></tr>');
-			});
-			$.tablesorter.addParser({
-				id: 'datestring',
-				is: function(s) {
-					return false;
-				},
-				format: function(s) {
-					var date_time = s.split(' ');
-					var date = date_time[0].split('.');
-					var time = date_time[1].split(':');
-					var date = new Date(year = parseInt(date[2]), month = parseInt(date[1]), day = parseInt(date[0]), hours = parseInt(time[0]), minutes = parseInt(time[1]), seconds = 0);
-					return date.getTime();
-				},
-				type: 'numeric'
-			});
-			$("#myTable").tablesorter({
-					headers: {2: { sorter:'datestring' }}
-				}).tablesorterPager({
-					container: $("#pager"), 
-					positionFixed: false
-				});
-			$("#myTable").trigger("sorton", [[[2,1], [0,0]]]);
-			$("#list").remove();
-			$('#container').show('slow');
-
-		});
-		*/
 		{%  if garmin_keys %}
 		try {
 			control = new Garmin.DeviceControl();
 			if (control && control.isPluginInitialized()) {
-
+				var uploads_succeeded=0;
+				
 			   	var display = new Garmin.DeviceDisplay("garminDisplay", { 
 					pathKeyPairsArray: [{% for url, key in garmin_keys %}"{{url}}", "{{key}}", {% endfor %}],
-					showReadDataElement: true,
-					showProgressBar: true,
-					showFindDevicesElement: true,
-					showFindDevicesButton: false,
+					autoFindDevices: true,
+					autoHideUnusedElements: true,
+					dataFound: "#{tracks} activities found on device",
+					deviceSelectLabel: "Choose Device <br/>",
+					lookingForDevices: 'Searching for Device <br/><br/> <img src="/media/css/garmin/ajax-loader.gif"/>',
+					readDataButtonText:			"List Activities",
+					readDataType: Garmin.DeviceControl.FILE_TYPES.tcxDir,
 					showDeviceButtonsOnLoad: false,
 					showDeviceButtonsOnFound: false,
-					autoFindDevices: true,
 					showDeviceSelectOnLoad: true,
-					autoHideUnusedElements: true,
+					showFindDevicesElement: true,
+					showFindDevicesButton: false,
+					showReadDataElement: true,
 					showReadDataTypesSelect: false,
-					readDataType: Garmin.DeviceControl.FILE_TYPES.tcxDir,
-					deviceSelectLabel: "Choose Device <br/>",
-					readDataButtonText:			"List Activities",
-					showCancelReadDataButton:		false,
-					lookingForDevices: 'Searching for Device <br/><br/> <img src="/media/css/garmin/ajax-loader.gif"/>',
+					showProgressBar: true,
+					showCancelReadDataButton: false,
+					showReadDataElementOnDeviceFound: true,
+					uploadCompressedData: false,    // Turn on data compression by setting to true.
+					uploadMaximum: 5, 
 					uploadsFinished: "Transfer Complete",
 					uploadSelectedActivities: true,
-					uploadCompressedData: false,    // Turn on data compression by setting to true.
-					uploadMaximum: 1, 
-					dataFound: "#{tracks} activities found on device",
-					showReadDataElementOnDeviceFound: true,
 					postActivityHandler: function(activityXml, display) {
 						data = { filename: "test.tcx", content:activityXml}
 						$.post('.', data, function(data) {
 							if(data["success"]){
-								window.location=data["redirect_to"];
+								uploads_succeeded = uploads_succeeded + 1;
+								if (display.activities.length == 1) {
+									//redirect to activity details if only one has been imported
+									window.location=data["redirect_to"];
+								}
+								
+								if (uploads_succeeded == display.activities.length) {
+									act_table.fnDraw();
+									noty({text: "Import abgeschlossen", type: 'success', timeout: 5000});
+									$('#garminDisplay').hide();
+								}
 							} else {
 								noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
 							}
 						}, "json");
-					}
-		
+					},		
 				});
 				$('#garminDisplay').show();
 
@@ -133,7 +103,7 @@
 			content: function(callback) {
 				var activity_id = $(this).attr('rel');
 				callback(activity_id);
-				$.get("/activities/get_json", {id: activity_id}).done(function(data) {
+				$.get("/activities/get_json/", {id: activity_id}).done(function(data) {
 					act = eval(data.activity);
 					var fields = act[0].fields;
 
@@ -177,7 +147,7 @@
 			tooltipClass: "activitylist_tooltip"
 		});
 		
-		$('#activities_table').dataTable({
+		var act_table = $('#activities_table').dataTable({
 			"aaSorting": [[ 2, "desc" ]],
 			"aoColumnDefs": [{ 
 				"aTargets": [3],
@@ -218,7 +188,6 @@
 {% block content %}
 
 
-<!-- TODO: Have a look at http://www.datatables.net/release-datatables/examples/data_sources/server_side.html -->
 	<table id="activities_table" class="activities_table">
 		<thead>
 			<tr>
@@ -229,19 +198,6 @@
 			</tr>
 		</thead>
 		<tbody>
-<!--			{% for activity in activities %}
-			<tr>
-				<td>
-					<a class="activityPopupTrigger" href="/activities/{{activity.id}}/" rel="{{activity.id}}" title="{{ activity.name }}">{{ activity.name }}</a>
-					&nbsp;&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{activity.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{activity.id}})"/></td>
-				<td>{{ activity.sport }}</td>
-				<td>{{ activity.date.isoformat }}</td>
-				<td>{{ activity.date.isoformat }}</td>
-				<td>{{ activity.time }}</td>
-			</tr>
-			{% endfor %} -->
 		</tbody>
 	</table>
 	<br/>

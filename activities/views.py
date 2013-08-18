@@ -6,6 +6,7 @@ from base64 import b64decode
 import json
 import copy
 import datetime
+import itertools
 #import dateutil.parser
 import os
 import tempfile
@@ -338,24 +339,6 @@ def list_activities(request):
 		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
 @login_required
-def get_activities(request):
-	logging.debug(request.GET.get('iDisplayStart'))
-	
-	act_list = []
-	for activity in Activity.objects.select_related('sport').filter(user=request.user):
-		act_list.append([activity.name, activity.sport.name, activity.date.isoformat(), activity.date.isoformat(), str(datetime.timedelta(days=0,seconds=activity.time))])
-	
-	data = {'sEcho': int(request.GET.get('sEcho')),
-		'iTotalRecords': Activity.objects.filter(user=request.user).count(),
-		'iTotalDisplayRecords': len(act_list),
-		'aaData': act_list,
-	}
-	
-	
-	return HttpResponse(json.dumps(data), mimetype='application/json')
-
-
-@login_required
 def get_activity(request):
 	act_id = request.GET.get('id')
 	template = request.GET.get('template')
@@ -363,7 +346,7 @@ def get_activity(request):
 	if template == 'true':
 		activity = ActivityTemplate.objects.get(pk=int(act_id))
 	else:
-		activity = Activity.objects.get(pk=int(act_id))
+		activity = Activity.objects.select_related('track').get(pk=int(act_id))
 
 	if activity.user == request.user:
 		data = serializers.serialize('json', [activity])
@@ -378,8 +361,6 @@ def get_activity(request):
 			if activity.track.preview_img:
 				result['preview_img'] = activity.track.preview_img.url
 		
-		print result
-
 #		return HttpResponse(serializers.serialize('json', [activity]), mimetype='application/json');
 		return HttpResponse(json.dumps(result), mimetype='application/json')
 	else:
@@ -511,6 +492,10 @@ def add_activity(request):
 			act.weather_hum = int_or_none(request.POST.get('weather_hum'))
 			act.weather_windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
 			act.weather_winddir = request.POST.get('weather_winddir')
+			if act.weather_winddir == "":
+				act.weather_winddir = None
+			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (
+				act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
 		
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")
@@ -609,7 +594,6 @@ def detail(request, activity_id):
 					lap.speed_max = speed_to_pace(lap.speed_max)
 				if lap.speed_avg:
 					lap.speed_avg = speed_to_pace(lap.speed_avg)
-	
 		if not public:
 	
 			if request.GET.get('edit', '0')=='1':
@@ -797,7 +781,8 @@ def settings(request):
 	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 	
-	for equipment in equipments:
+	for equipment in itertools.chain(equipments, equipments_archived):
+		print equipment
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
 		activity_time = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('time'))
@@ -822,9 +807,7 @@ def settings(request):
 
 		equipment.time = seconds_to_time(equipment.time, force_hour=True)
 		
-	
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
-
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting
 	# order is important and should be same as order of columns

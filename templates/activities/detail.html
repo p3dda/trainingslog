@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load tz %}
-{% block title %}{{ activity.name }} - Details{% endblock %}
+{% block title %}{{ activity.name }}{% endblock %}
 
 {% block head %} 
 <script type="text/javascript" src="/media/js/common.js"></script>
@@ -87,17 +87,18 @@
 {% if not public %}
 						<tr><td>Ausr&uuml;stung</td><td>{{ activity.equipment.all|join:", " }}</td></tr>
 {% endif %}
-						<tr><td>Ø Trittfrequenz</td><td>{{ activity.cadence_avg|default_if_none:"-" }} / min</td></tr>
-						<tr><td>Max. Trittfrequenz</td><td>{{ activity.cadence_max|default_if_none:"-" }} / min</td></tr>
-						<tr><td>Abstieg</td><td>{{ activity.elevation_loss|default_if_none:"-" }} m</td></tr>
-						<tr><td>Min. Höhe</td><td>{{ activity.elevation_min|default_if_none:"-" }}</td></tr>
-						<tr><td>Max. Höhe</td><td>{{ activity.elevation_max|default_if_none:"-" }}</td></tr>
-						<tr><td>Max. HF</td><td>{{ activity.hf_max|default_if_none:"-" }}</td></tr>
-						<tr><td>Ø HF</td><td>{{ activity.hf_avg|default_if_none:"-" }}</td></tr>
-						<tr><td>Max. Geschwindigkeit</td><td>{{ activity.speed_max|default_if_none:"-" }} {{speed_unit}}</td></tr>
-						<tr><td>Ø Geschwindigkeit in Bewegung</td><td>{{ activity.speed_avg_movement|default_if_none:"-" }} {{speed_unit}}</td></tr>
-						<tr><td>Gesamtzeit</td><td>{{ activity.time_elapsed|default_if_none:"-" }}</td></tr>
-						<tr><td>Zeit in Bewegung</td><td>{{ activity.time_movement|default_if_none:"-" }}</td></tr>
+						
+						{% if activity.cadence_avg %}<tr><td>Ø Trittfrequenz</td><td>{{ activity.cadence_avg|default_if_none:"-" }} / min</td></tr>{% endif %}
+						{% if activity.cadence_max %}<tr><td>Max. Trittfrequenz</td><td>{{ activity.cadence_max|default_if_none:"-" }} / min</td></tr>{% endif %}
+						{% if activity.elevation_loss %}<tr><td>Abstieg</td><td>{{ activity.elevation_loss|default_if_none:"-" }} m</td></tr>{% endif %}
+						{% if activity.elevation_min %}<tr><td>Min. Höhe</td><td>{{ activity.elevation_min|default_if_none:"-" }}</td></tr>{% endif %}
+						{% if activity.elevation_max %}<tr><td>Max. Höhe</td><td>{{ activity.elevation_max|default_if_none:"-" }}</td></tr>{% endif %}
+						{% if activity.hf_max %}<tr><td>Max. HF</td><td>{{ activity.hf_max|default_if_none:"-" }}</td></tr>{% endif %}
+						{% if activity.hf_avg %}<tr><td>Ø HF</td><td>{{ activity.hf_avg|default_if_none:"-" }}</td></tr>{% endif %}
+						{% if activity.speed_max %}<tr><td>Max. Geschwindigkeit</td><td>{{ activity.speed_max|default_if_none:"-" }} {{speed_unit}}</td></tr>{% endif %}
+						{% if activity.speed_avg_movement %}<tr><td>Ø Geschwindigkeit in Bewegung</td><td>{{ activity.speed_avg_movement|default_if_none:"-" }} {{speed_unit}}</td></tr>{% endif %}
+						{% if activity.time_elapsed %}<tr><td>Gesamtzeit</td><td>{{ activity.time_elapsed|default_if_none:"-" }}</td></tr>{% endif %}
+						{% if activity.time_movement %}<tr><td>Zeit in Bewegung</td><td>{{ activity.time_movement|default_if_none:"-" }}</td></tr>{% endif %}
 					</table>
 				</div>
 			</div>
@@ -113,7 +114,7 @@
 						<tr><td>Station</td><td>{{ activity.weather_stationname|default_if_none:"-" }}</td></tr>
 						<tr><td>Temperatur</td><td>{{ activity.weather_temp|default_if_none:"-" }} &deg;C</td></tr>
 						<tr><td>Windgeschwindigkeit</td><td>{{ activity.weather_windspeed|default_if_none:"-"}} km/h</td></tr>
-						<tr><td>Windrichtung</td><td>{{ activity.weather_winddir}}</td></tr>
+						<tr><td>Windrichtung</td><td>{{ activity.weather_winddir|default_if_none:"-"}}</td></tr>
 						<tr><td>Luftfeuchtigkeit</td><td>{{ activity.weather_hum|default_if_none:"-"}} %</td></tr>
 						<tr><td>Niederschlag</td><td>{{ activity.weather_rain|default_if_none:"-"}} mm</td></tr>
 					</table>
@@ -150,6 +151,7 @@
 				<option value = 0>Distanz</option>
 				<option value = 1>Zeit</option>
 			</select>
+			<input type="submit" id="plot_zoom" value="Zoom" />
 		</div>
 		{% endif %}
 		<br style="clear:both"/>

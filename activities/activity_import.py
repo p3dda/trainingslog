@@ -81,7 +81,11 @@ def importtrack_from_tcx(request, newtrack):
 	for xmllap in xmlactivity.findall(xmlns + "Lap"):
 		date = dateutil.parser.parse(xmllap.get("StartTime"))
 		time = int(float(xmllap.find(xmlns+"TotalTimeSeconds").text))
-		distance = str(float(xmllap.find(xmlns+"DistanceMeters").text)/1000)
+		if xmllap.find(xmlns+"DistanceMeters") is None:
+			logging.debug("DistanceMeters not present in Lap data")
+			distance=None
+		else:
+			distance = str(float(xmllap.find(xmlns+"DistanceMeters").text)/1000)
 		if xmllap.find(xmlns+"MaximumSpeed") is None:
 			logging.debug("MaximumSpeed is None")
 			speed_max = None
@@ -89,7 +93,10 @@ def importtrack_from_tcx(request, newtrack):
 			logging.debug("MaximumSpeed xml is %r" % xmllap.find(xmlns+"MaximumSpeed"))
 			speed_max = str(float(xmllap.find(xmlns+"MaximumSpeed").text)*3.6)	# Given as meters per second in tcx file
 			logging.debug("speed_max is %s" % speed_max)
-		calories = int(xmllap.find(xmlns+"Calories").text)
+		if xmllap.find(xmlns+"Calories") is not None:
+			calories = int(xmllap.find(xmlns+"Calories").text)
+		else:
+			calories = None
 		try:
 			hf_avg = int(xmllap.find(xmlns+"AverageHeartRateBpm").find(xmlns+"Value").text)
 			logging.debug("Found hf_avg: %s" % hf_avg)
@@ -109,7 +116,7 @@ def importtrack_from_tcx(request, newtrack):
 			cadence_avg = None
 			logging.debug("Not found average cadence")
 
-		if time != 0:
+		if time != 0 and distance is not None:
 			speed_avg = str(float(distance)*3600 / time)
 		else:
 			speed_avg = None
@@ -200,8 +207,10 @@ def importtrack_from_tcx(request, newtrack):
 	speed_max = 0
 	time_sum = 0
 	for lap in laps:
-		calories_sum = calories_sum + lap.calories
-		distance_sum = distance_sum + float(lap.distance)
+		if lap.calories:
+			calories_sum = calories_sum + lap.calories
+		if lap.distance:
+			distance_sum = distance_sum + float(lap.distance)
 		time_sum = time_sum + lap.time
 		
 		if lap.elevation_max > elev_max:

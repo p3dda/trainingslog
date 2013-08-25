@@ -1,6 +1,7 @@
 import datetime
 import dateutil.parser
 import logging
+import math
 import re
 import time
 from django.utils.timezone import utc
@@ -26,6 +27,19 @@ else:
 if not found_xml_parser:
 	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
 
+def latlon_distance(origin, destination):
+	lat1, lon1 = origin
+	lat2, lon2 = destination
+	radius = 6371000 # m
+ 
+	dlat = math.radians(lat2-lat1)
+	dlon = math.radians(lon2-lon1)
+	a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+		* math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+	c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+	d = radius * c
+ 
+	return d
 
 class TCXTrack:
 	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
@@ -58,16 +72,29 @@ class TCXTrack:
 		start_time = dateutil.parser.parse(first_lap.get("StartTime"))
 		offset_time = 0 # used to remove track sequences from plot where no movement has occured
 		last_distance = None
+		last_lat_lon = None
 		
 		for xmltp in xmlactivity.findall(self.xmlns+"Lap/"+self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
 			distance=alt=cad=hf=trackpoint_time=None
 
-			if not hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
+			if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
+				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
+			elif xmltp.find(self.xmlns + "Position"):
+					xmltp_pos = xmltp.find(self.xmlns + "Position")
+					lat = float(xmltp_pos.find(self.xmlns + "LatitudeDegrees").text)
+					lon =  float(xmltp_pos.find(self.xmlns + "LongitudeDegrees").text)
+					if last_lat_lon == None:
+						last_lat_lon = (lat, lon)
+						last_distance = 0
+						continue
+					else:
+						distance = last_distance + latlon_distance(last_lat_lon, (lat, lon))
+						last_lat_lon = (lat, lon)
+			else:
 				continue
 			if not hasattr(xmltp.find(self.xmlns + "Time"),"text"):
 				continue
 
-			distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
 			delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
 			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 

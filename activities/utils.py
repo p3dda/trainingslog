@@ -71,104 +71,117 @@ class TCXTrack:
 		first_lap = xmlactivity.find(self.xmlns + "Lap")
 		start_time = dateutil.parser.parse(first_lap.get("StartTime"))
 		offset_time = 0 # used to remove track sequences from plot where no movement has occured
+		last_lap_distance = 0 # used to add distance to laps starting with distance 0 
 		last_distance = None
 		last_lat_lon = None
 		
-		for xmltp in xmlactivity.findall(self.xmlns+"Lap/"+self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
-			distance=alt=cad=hf=trackpoint_time=None
-
+		for xmllap in xmlactivity.findall(self.xmlns+"Lap"): 
+			# check if lap starts with distance 0
+			xmltp = xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")[0]
 			if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
 				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-			elif xmltp.find(self.xmlns + "Position"):
-					xmltp_pos = xmltp.find(self.xmlns + "Position")
-					lat = float(xmltp_pos.find(self.xmlns + "LatitudeDegrees").text)
-					lon =  float(xmltp_pos.find(self.xmlns + "LongitudeDegrees").text)
-					if last_lat_lon == None:
-						last_lat_lon = (lat, lon)
-						last_distance = 0
-						continue
-					else:
-						distance = last_distance + latlon_distance(last_lat_lon, (lat, lon))
-						last_lat_lon = (lat, lon)
-			else:
-				continue
-			if not hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-				continue
+				if distance < last_lap_distance:
+					distance_offset = last_lap_distance
+				else:
+					distance_offset = 0
+			
+			for xmltp in xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
+				distance=alt=cad=hf=trackpoint_time=None
 
-			delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
-			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+				if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
+					distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
+					distance = distance + distance_offset
+				elif xmltp.find(self.xmlns + "Position"):
+						xmltp_pos = xmltp.find(self.xmlns + "Position")
+						lat = float(xmltp_pos.find(self.xmlns + "LatitudeDegrees").text)
+						lon =  float(xmltp_pos.find(self.xmlns + "LongitudeDegrees").text)
+						if last_lat_lon == None:
+							last_lat_lon = (lat, lon)
+							last_distance = 0
+							continue
+						else:
+							distance = last_distance + latlon_distance(last_lat_lon, (lat, lon))
+							last_lat_lon = (lat, lon)
+				else:
+					continue
+				if not hasattr(xmltp.find(self.xmlns + "Time"),"text"):
+					continue
 
-			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
-			if last_distance:
-				delta_dist = distance - last_distance
-				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
-				if delta_time > 0:
-					if (delta_dist / delta_time) < 0.5:
-						#logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
-						offset_time = offset_time + delta_time
-						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
-			last_distance = distance
+				delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
+				trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 
-			if not self.track_by_distance.has_key(distance):
-				self.track_by_distance[distance]={}
-			self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
+				# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
+				if last_distance:
+					delta_dist = distance - last_distance
+					delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
+					if delta_time > 0:
+						if (delta_dist / delta_time) < 0.5:
+							#logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
+							offset_time = offset_time + delta_time
+							trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+				last_distance = distance
+
+				if not self.track_by_distance.has_key(distance):
+					self.track_by_distance[distance]={}
+				self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
 			
 			
-			# Get altitude
-			if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
-				alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
-				self.track_by_distance[distance]["alt"]=alt
-#				alt_data.append((trackpoint_time,alt))
-				alt_data.append((distance,trackpoint_time,alt))
-			# Get Cadence data (from Bike cadence sensor)
-			if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
-				cad = int(xmltp.find(self.xmlns + "Cadence").text)
-				self.track_by_distance[distance]["cad"]=cad
-#				cad_data.append((trackpoint_time,cad))
-				cad_data.append((distance,trackpoint_time,cad))
+				# Get altitude
+				if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
+					alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
+					self.track_by_distance[distance]["alt"]=alt
+	#				alt_data.append((trackpoint_time,alt))
+					alt_data.append((distance,trackpoint_time,alt))
+				# Get Cadence data (from Bike cadence sensor)
+				if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
+					cad = int(xmltp.find(self.xmlns + "Cadence").text)
+					self.track_by_distance[distance]["cad"]=cad
+	#				cad_data.append((trackpoint_time,cad))
+					cad_data.append((distance,trackpoint_time,cad))
 
-			# Locate heart rate in beats per minute
-			hrt=xmltp.find(self.xmlns + "HeartRateBpm")
-			if not hrt is None:
-				if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
-					hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
-					self.track_by_distance[distance]["hf"]=hf
-#					hf_data.append((trackpoint_time,hf))
-					hf_data.append((distance,trackpoint_time,hf))
+				# Locate heart rate in beats per minute
+				hrt=xmltp.find(self.xmlns + "HeartRateBpm")
+				if not hrt is None:
+					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
+						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
+						self.track_by_distance[distance]["hf"]=hf
+	#					hf_data.append((trackpoint_time,hf))
+						hf_data.append((distance,trackpoint_time,hf))
 
-			# Locate time stamps for speed calculation based on GPS
-			if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-				track_time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)
-				self.track_by_distance[distance]["gps"]=track_time
-				speed_gps_data.append((distance,track_time))
-			# Get position coordinates
-			pos = xmltp.find(self.xmlns + "Position")
-			if not pos is None:
-				if hasattr(pos.find(self.xmlns + "LatitudeDegrees"), "text") and hasattr(pos.find(self.xmlns + "LongitudeDegrees"), "text"):
-					lat = float(pos.find(self.xmlns + "LatitudeDegrees").text)
-					lon = float(pos.find(self.xmlns + "LongitudeDegrees").text)
+				# Locate time stamps for speed calculation based on GPS
+				if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
+					track_time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)
+					self.track_by_distance[distance]["gps"]=track_time
+					speed_gps_data.append((distance,track_time))
+				# Get position coordinates
+				pos = xmltp.find(self.xmlns + "Position")
+				if not pos is None:
+					if hasattr(pos.find(self.xmlns + "LatitudeDegrees"), "text") and hasattr(pos.find(self.xmlns + "LongitudeDegrees"), "text"):
+						lat = float(pos.find(self.xmlns + "LatitudeDegrees").text)
+						lon = float(pos.find(self.xmlns + "LongitudeDegrees").text)
 					
-				pos_data.append((lat, lon)) 
+					pos_data.append((lat, lon)) 
 
-			# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
-			ext=xmltp.find(self.xmlns + "Extensions")
-			#logging.debug("Found Activity Extensions")
-			if not ext is None:
-				xmltpx=ext.find(self.xmlactextns+"TPX")
-				# currenlty supported Footpod sensor
-				if not xmltpx is None and xmltpx.get("CadenceSensor")=="Footpod":
-					if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
-						speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
-						self.track_by_distance[distance]["speed_footpod"]=speed
-						speed_foot_data.append((distance,trackpoint_time,speed))
-					if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
-						# Only copy cadence data if no other Cadence data (from bike) is present
-						if cad is None:
-							cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
-							self.track_by_distance[distance]["cad"]=cad
-							cad_data.append((distance,trackpoint_time,cad))
-				#TODO: Watts sensors ???
-
+				# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
+				ext=xmltp.find(self.xmlns + "Extensions")
+				#logging.debug("Found Activity Extensions")
+				if not ext is None:
+					xmltpx=ext.find(self.xmlactextns+"TPX")
+					# currenlty supported Footpod sensor
+					if not xmltpx is None and xmltpx.get("CadenceSensor")=="Footpod":
+						if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
+							speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
+							self.track_by_distance[distance]["speed_footpod"]=speed
+							speed_foot_data.append((distance,trackpoint_time,speed))
+						if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
+							# Only copy cadence data if no other Cadence data (from bike) is present
+							if cad is None:
+								cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
+								self.track_by_distance[distance]["cad"]=cad
+								cad_data.append((distance,trackpoint_time,cad))
+					#TODO: Watts sensors ???
+				last_lap_distance = distance
+				
 		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"]=alt_data
 		self.track_data["cad"]=cad_data

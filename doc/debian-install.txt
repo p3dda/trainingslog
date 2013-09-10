@@ -1,0 +1,4 @@
+Debian Wheezy install
+
+apt-get install python-django apache2 libapache2-mod-wsgi mysql-server python-mysqldb
+

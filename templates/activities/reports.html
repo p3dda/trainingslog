@@ -55,6 +55,10 @@
 		$('#custom_date_submit').click(function() {
 			ajaxDataGetter();
 		});
+		$( "#report_filter" ).accordion({collapsible: true, active: false});
+		
+		$( "#reports_tabs" ).tabs();
+		
 		ajaxDataGetter();
 	});
 
@@ -266,79 +270,98 @@
 </script>
 {% endblock %}
 {% block subnavi %} 
+<!--
 <a href="/reports">Sportarten</a>
+-->
 {% endblock %}
 
 {% block content %}
-<div id="timespanform">
-	<p>
-		<select id="timespan">
-			<option value='-1'>Alle Tage</option>
-			<option value = '{% now "z" %}'>Aktuelles Jahr</option>
-			<option value='7'>Letzte 7 Tage</option>
-			<option value='30'>Letzter Monat</option>
-			<option value='90' selected>Letzte 3 Monate</option>
-			<option value='365'>Letzte 365 Tage</option>
-			<option value='-2'>Benutzerdefiniert</option>
-		</select>
-	</p>
-		<div id="custom_timespan" style="display: none">
-			<input type="text" id="custom_start_date" /> - <input type="text" id="custom_end_date" />
-			<input type="button" id="custom_date_submit" value="Ok"/>
+<div class="ui-widget ui-widget-content ui-corner-all">
+	<h2 class="activity_facts ui-widget-header ui-corner-top ui-state-active">Berichte</h2>
+	
+	<div id="report_filter" class="inner_div">
+		<h3><a href="#">Filter</a></h3>
+
+		<div id="timespanform" class="activity_facts">
+			<p>
+				<select id="timespan">
+					<option value='-1'>Alle Tage</option>
+					<option value = '{% now "z" %}'>Aktuelles Jahr</option>
+					<option value='7'>Letzte 7 Tage</option>
+					<option value='30'>Letzter Monat</option>
+					<option value='90' selected>Letzte 3 Monate</option>
+					<option value='365'>Letzte 365 Tage</option>
+					<option value='-2'>Benutzerdefiniert</option>
+				</select>
+			</p>
+			<div id="custom_timespan" style="display: none">
+				<input type="text" id="custom_start_date" /> - <input type="text" id="custom_end_date" />
+				<input type="button" id="custom_date_submit" value="Ok"/>
+			</div>
+			<table>
+				<tr>
+					<td valign="top">
+						{%  if events %}
+						<p>
+							{% for event in events %}
+								<input type="checkbox" class="event_cb" value="{{ event.pk }}" checked>{{ event.name }}<br/>
+							{% endfor %}
+						</p>
+						{%  endif %}
+					</td>
+					<td valign="top">
+						{%  if sports %}
+						<p>
+							{% for sport in sports %}
+								<input type="checkbox" class="sport_cb" value="{{ sport.pk }}" checked>{{ sport.name }}<br/>
+							{% endfor %}
+						</p>
+						{%  endif %}
+					</td>
+				</tr>
+			</table>
 		</div>
-	<table>
-		<tr>
-			<td valign="top">
-				{%  if events %}
-				<p>
-					{% for event in events %}
-						<input type="checkbox" class="event_cb" value="{{ event.pk }}" checked>{{ event.name }}<br/>
-					{% endfor %}
-				</p>
-				{%  endif %}
-			</td>
-			<td valign="top">
-				{%  if sports %}
-				<p>
-					{% for sport in sports %}
-						<input type="checkbox" class="sport_cb" value="{{ sport.pk }}" checked>{{ sport.name }}<br/>
-					{% endfor %}
-				</p>
-				{%  endif %}
-			</td>
-		</tr>
-	</table>
+	</div>
+	<br/>
+	<div class="inner_div">
+		<div id="reports_tabs">
+			<ul>
+				<li><a href="#tabs-overview">&Uuml;bersicht</a></li>
+				<li><a href="#tabs-graphen">Graphen</a></li>
+				<li><a href="#tabs-details">Details</a></li>
+			</ul>
+	
+			<div id="tabs-overview" >
+				<div class="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div>
+			</div>
+			<div id="tabs-graphen">
+				<table>
+					<tr>
+						<td><div class="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
+						<td><div class="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
+					</tr>
+					<tr>
+						<td><div class="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
+						<td><div class="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
+					</tr>
+				</table>
+			</div>
+			<div id="tabs-details">
+				<table id="table_report" class="datatable">
+					<thead>
+						<tr>
+							<th>Sportart</th>
+							<th>Anzahl</th>
+							<th>Gesamtdistanz</th>
+							<th>Dauer</th>
+							<th>H&ouml;hengewinn</th>
+							<th>Kalorien</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>
-<table>
-	<tr>
-		<td><div class="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div></td>
-		<td></td>
-	</tr>
-	<tr>
-		<td><div class="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
-		<td><div class="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
-	</tr>
-	<tr>
-		<td><div class="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
-		<td><div class="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
-	</tr>
-</table>
-
-
-<div id="div_report_table">
-	<table id="table_report" class="datatable">
-		<thead>
-			<tr>
-				<th>Sportart</th>
-				<th>Anzahl</th>
-				<th>Gesamtdistanz</th>
-				<th>Dauer</th>
-				<th>H&ouml;hengewinn</th>
-				<th>Kalorien</th>
-			</tr>
-		</thead>
-		<tbody></tbody>
-	</table>
-</div>
-
 {% endblock %}

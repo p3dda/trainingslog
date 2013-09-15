@@ -40,6 +40,9 @@ div .speed_unit {
 div .plot_container {
 	padding: 10px;
 }
+div .inner_div {
+	padding:10px;
+}
 
 div#result{ background-color: #E6E6E6;font-weight: bold;color: #FF0000;}
 body { /*height: 10px;*/font-family: verdana;font-size: small;color: #9CA9CB;}

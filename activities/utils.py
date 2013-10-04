@@ -76,14 +76,13 @@ class TCXTrack:
 		last_lat_lon = None
 		
 		for xmllap in xmlactivity.findall(self.xmlns+"Lap"): 
+			distance_offset = 0
 			# check if lap starts with distance 0
 			xmltp = xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")[0]
 			if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
 				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
 				if distance < last_lap_distance:
 					distance_offset = last_lap_distance
-				else:
-					distance_offset = 0
 			
 			for xmltp in xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
 				distance=alt=cad=hf=trackpoint_time=None

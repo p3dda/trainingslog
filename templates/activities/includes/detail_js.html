@@ -683,14 +683,18 @@
 		}
 		// FIXME: Remember current selection and restore after change
 		hide_tooltips();
+		{%  if gpx_url %}
 		hide_map_selection()
+		{% endif %}
 		update_plots();
 	}
 	
 	var plot_zoom_clicked = function() {
 		if(plotselection_active){
 			hide_tooltips();
+			{%  if gpx_url %}
 			hide_map_selection()
+			{% endif %}
 			update_plots(plotselection_range["xaxis_range"][0], plotselection_range["xaxis_range"][1]);
 		} else {
 			update_plots();

@@ -74,6 +74,7 @@ def importtrack_from_tcx(request, newtrack):
 	activity.sport = sport
 	activity.track = newtrack
 	
+	date = None
 	laps = []
 	time_start = None
 	time_end = None
@@ -134,17 +135,15 @@ def importtrack_from_tcx(request, newtrack):
 				if not position_start:
 					xmlpos = xmltp.find(xmlns + "Position")
 					if xmlpos:
-						if xmlpos.find(xmlns + "LatitudeDegrees") != None:
-							if xmlpos.find(xmlns + "LongitudeDegrees") != None:
-								lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
-								lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)
-								position_start = (lat, lon)
+						if xmlpos.find(xmlns + "LatitudeDegrees") is not None and xmlpos.find( xmlns + "LongitudeDegrees") is not None:
+							lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
+							lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)
+							position_start = (lat, lon)
 				
-				if not time_start:
-					if xmltp.find(xmlns + "Time") != None:
-						time_start = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
+				if not time_start and xmltp.find(xmlns + "Time") is not None:
+					time_start = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
 					
-				if xmltp.find(xmlns + "AltitudeMeters") != None:
+				if xmltp.find(xmlns + "AltitudeMeters") is not None:
 					elev = int(round(float(xmltp.find(xmlns + "AltitudeMeters").text)))
 				else:
 					elev = last_elev
@@ -157,9 +156,9 @@ def importtrack_from_tcx(request, newtrack):
 					
 					if last_elev:
 						if elev > last_elev:
-							elev_gain = elev_gain + (elev - last_elev)
+							elev_gain += elev - last_elev
 						else:
-							elev_loss = elev_loss + (last_elev - elev)
+							elev_loss += last_elev - elev
 					last_elev = elev
 				
 				if xmltp.find(xmlns + "Cadence") != None:
@@ -169,9 +168,7 @@ def importtrack_from_tcx(request, newtrack):
 			
 			# Get timestamp from last trackpoint in this track
 			xmltp = xmltrack.findall(xmlns + "Trackpoint")[-1]
-			print xmltp
-			print xmltp.find(xmlns + "Time")!=None
-			if xmltp.find(xmlns + "Time") != None:
+			if xmltp.find(xmlns + "Time") is not None:
 				time_end = dateutil.parser.parse(xmltp.find(xmlns + "Time").text)
 		
 		lap = Lap(
@@ -209,7 +206,7 @@ def importtrack_from_tcx(request, newtrack):
 		if lap.calories:
 			calories_sum = calories_sum + lap.calories
 		if lap.distance:
-			distance_sum = distance_sum + float(lap.distance)
+			distance_sum += float(lap.distance)
 		time_sum = time_sum + lap.time
 		
 		if lap.elevation_max > elev_max:
@@ -244,7 +241,7 @@ def importtrack_from_tcx(request, newtrack):
 	except AttributeError:
 		wunderground_key = False
 	
-	if wunderground_key and position_start:
+	if wunderground_key and position_start and date:
 		try:
 			(lat, lon) = position_start
 			logging.debug("Getting weather data for position %r %r" % (lat,lon))
@@ -260,7 +257,10 @@ def importtrack_from_tcx(request, newtrack):
 				weather_station = parsed_geolookup["location"]["nearby_weather_stations"]["airport"]["station"][0]
 				logging.debug("Found nearby airport station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, date.strftime("%Y%m%d"), weather_station["icao"])
-			
+			else:
+				logging.error("Did not found any nearby weather stations for  %r %r" % (lat,lon))
+				raise(Exception, "Did not find any nearby weather stations for  %r %r" % (lat,lon))
+
 			logging.debug("Fetching wheather information from url %s" % weather_url)
 			activity.weather_stationname = weather_station["city"]
 		

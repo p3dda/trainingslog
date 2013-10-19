@@ -12,7 +12,6 @@ Author: http://www.w3.org/People/Berners-Lee/card#i
 Written: 2009-10-30
 Last change: $Date: 2009/10/28 13:44:33 $
 """
-import urllib
 from xml import sax
 from xml.sax import saxutils
 import logging
@@ -76,18 +75,18 @@ class MyHandler(sax.handler.ContentHandler):
 					self.min_lon = float(self.lon)
 				if float(self.lon) > self.max_lon:
 					self.max_lon = float(self.lon)
-			except ValueError, e:
+			except ValueError:
 				pass
 			else:
-				if (self.lon and self.lat):
+				if self.lon and self.lat:
 					self.w('   <trkpt lat="%s" lon="%s">\n' % (self.lat, self.lon))
-					if (self.alt): 
+					if self.alt:
 						self.w('    <ele>%s</ele>\n' % self.alt)
-					if (self.time): 
+					if self.time:
 						self.w('    <time>%s</time>\n' % self.time)
 					self.w('   </trkpt>\n')
 					sys.stdout.flush()
-					self.gpsfixes = self.gpsfixes + 1
+					self.gpsfixes += 1
 		elif name == 'LatitudeDegrees':
 			self.lat = self.content
 		elif name == 'LongitudeDegrees':
@@ -108,7 +107,7 @@ def convert(tcxtrack):
 			
 		# do not keep empty gpx files (occurs when having .tcx recordings without GPS enabled)
 		if handler.gpsfixes == 0:
-			file = tcxtrack.trackfile.path+".gpx"
-			os.remove(file)
+			gpxfile = tcxtrack.trackfile.path+".gpx"
+			os.remove(gpxfile)
 	except Exception, msg:
 		logging.debug("Exception occured in convert: %s" % msg)

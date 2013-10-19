@@ -1,10 +1,6 @@
 import datetime
 import dateutil.parser
-import logging
 import math
-import re
-import time
-from django.utils.timezone import utc
 
 found_xml_parser=False
 
@@ -31,14 +27,14 @@ def latlon_distance(origin, destination):
 	lat1, lon1 = origin
 	lat2, lon2 = destination
 	radius = 6371000 # m
- 
+
 	dlat = math.radians(lat2-lat1)
 	dlon = math.radians(lon2-lon1)
 	a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
 		* math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
 	c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 	d = radius * c
- 
+
 	return d
 
 class TCXTrack:
@@ -74,8 +70,8 @@ class TCXTrack:
 		last_lap_distance = 0 # used to add distance to laps starting with distance 0 
 		last_distance = None
 		last_lat_lon = None
-		
-		for xmllap in xmlactivity.findall(self.xmlns+"Lap"): 
+
+		for xmllap in xmlactivity.findall(self.xmlns+"Lap"):
 			distance_offset = 0
 			# check if lap starts with distance 0
 			xmltp = xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")[0]
@@ -83,7 +79,7 @@ class TCXTrack:
 				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
 				if distance < last_lap_distance:
 					distance_offset = last_lap_distance
-			
+
 			for xmltp in xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
 				distance=alt=cad=hf=trackpoint_time=None
 
@@ -94,7 +90,7 @@ class TCXTrack:
 						xmltp_pos = xmltp.find(self.xmlns + "Position")
 						lat = float(xmltp_pos.find(self.xmlns + "LatitudeDegrees").text)
 						lon =  float(xmltp_pos.find(self.xmlns + "LongitudeDegrees").text)
-						if last_lat_lon == None:
+						if last_lat_lon is None:
 							last_lat_lon = (lat, lon)
 							last_distance = 0
 							continue
@@ -113,18 +109,16 @@ class TCXTrack:
 				if last_distance:
 					delta_dist = distance - last_distance
 					delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
-					if delta_time > 0:
-						if (delta_dist / delta_time) < 0.5:
-							#logging.debug("Found slow section at time %s, distance %s with duration %s and distance %s, avg. speed %s" % (trackpoint_time/1000, distance, delta_time, delta_dist, (delta_dist / delta_time)))
-							offset_time = offset_time + delta_time
-							trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+					if delta_time > 0 and (delta_dist / delta_time) < 0.5:
+						offset_time += delta_time
+						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 				last_distance = distance
 
 				if not self.track_by_distance.has_key(distance):
 					self.track_by_distance[distance]={}
 				self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
-			
-			
+
+
 				# Get altitude
 				if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
 					alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
@@ -158,8 +152,7 @@ class TCXTrack:
 					if hasattr(pos.find(self.xmlns + "LatitudeDegrees"), "text") and hasattr(pos.find(self.xmlns + "LongitudeDegrees"), "text"):
 						lat = float(pos.find(self.xmlns + "LatitudeDegrees").text)
 						lon = float(pos.find(self.xmlns + "LongitudeDegrees").text)
-					
-					pos_data.append((lat, lon)) 
+						pos_data.append((lat, lon))
 
 				# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
 				ext=xmltp.find(self.xmlns + "Extensions")
@@ -180,7 +173,7 @@ class TCXTrack:
 								cad_data.append((distance,trackpoint_time,cad))
 					#TODO: Watts sensors ???
 				last_lap_distance = distance
-				
+
 		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"]=alt_data
 		self.track_data["cad"]=cad_data
@@ -188,29 +181,29 @@ class TCXTrack:
 		self.track_data["pos"]=pos_data
 		self.track_data["speed_gps"]=speed_gps_data
 		self.track_data["speed_foot"]=speed_foot_data
-		
+
 	def get_alt(self):
 		"""Returns list of (distance, altitude) tuples with optional given max length
 		@returns (distance, altitude) tuples
 		@rtype: list
 		"""
 		return self.track_data["alt"]
-	
+
 	def get_cad(self):
 		"""Returns list of (distance, cadence) tuples with optional given max length
 		@returns (distance, cadence) tuples
 		@rtype: list
 		"""
 		return self.track_data["cad"]
-		
-	
+
+
 	def get_hf(self):
 		"""Returns list of (distance, heartrate) tuples with optional given max length
 		@returns (distance, heartrate) tuples
 		@rtype: list
 		"""
 		return self.track_data["hf"]
-	
+
 	def get_pos(self, samples=-1):
 		"""Returns list of (lat, lon) tuples with trackpoint gps coordinates
 		@param samples: Max number of samples
@@ -225,7 +218,9 @@ class TCXTrack:
 		return self.track_data["pos"]
 	
 	def get_speed(self, pace=False):
-		"""Returns list of (distance, heartrate) tuples with optional given max length
+		"""Returns list of (distance, trackpoint_time, speed) triples
+		@param pace: Return speed as pace
+		@type pace: boolean
 		@returns (distance, heartrate) tuples
 		@rtype: list
 		"""
@@ -234,7 +229,6 @@ class TCXTrack:
 		MAX_OFFSET_AVG=20
 		MAX_DIST=100.0
 		MAX_DIST_AVG=100.0
-		speed_data_pos=[]
 		speed_data=[]
 
 		# Get all distances recorded, which are keys
@@ -273,14 +267,14 @@ class TCXTrack:
 				time_diff=self.track_by_distance[fix_pos]["gps"]-self.track_by_distance[new_pos]["gps"]
 				time_diff_s=time_diff.seconds + time_diff.days*24*3600 #FIXME: month and year changes are not calculated here
 				if time_diff_s > 0 and dist_diff > 0:
-					speed=speed+dist_diff/time_diff_s
+					speed += dist_diff / time_diff_s
 					count+=1
 			# if we have at least one position, store it as gps_speed
 			if count>0:
 				speed=speed/count
 				self.track_by_distance[fix_pos]["gps_speed"]=speed
 				count_avg+=1
-				speed_avg=speed_avg+speed
+				speed_avg += speed
 		if count_avg>0:
 			speed_avg=speed_avg/count_avg
 		else:
@@ -315,24 +309,30 @@ class TCXTrack:
 					break
 				if abs(new_pos-fix_pos)>MAX_DIST_AVG:
 					continue
-				if cur_speed!=None:
+				if cur_speed is not None:
 					if abs(cur_speed-self.track_by_distance[new_pos]["gps_speed"])>max_speedchange_avg:
 						continue
 
 				speed=speed+self.track_by_distance[new_pos]["gps_speed"]
-				count=count+1
+				count += 1
 			if count>0:
-				speed=speed/count
+				speed /= count
 				if pace:
 					speed = 1000.0/60.00/speed # convert to min/km
 				else:
-					speed = speed*3.6 # convert to km/h
-					
+					speed *= 3.6# convert to km/h
+
 				speed_data.append((fix_pos,self.track_by_distance[fix_pos]["trackpoint_time"],speed))
 		return speed_data
 
 		
 	def get_speed_foot(self, pace=False):
+		"""
+		Returns list of triples, containing distance, trackpoint_time and speed read from footpod
+		@param pace: return speed as pace
+		@type pace: boolean
+		@return: list
+		"""
 		speed_data = []
 		for (distance,trackpoint_time,speed) in self.track_data["speed_foot"]:
 			if pace:
@@ -341,19 +341,25 @@ class TCXTrack:
 				else:
 					speed = 60 / (speed*3.6) 
 			else:
-				speed = speed * 3.6
+				speed *= 3.6
 				if pace and speed> 20:
 					continue
 			speed_data.append((distance,trackpoint_time,speed))
 		return speed_data
 
 	def get_speed_gps(self, pace=False):
-		return get_speed(samples,pace)
+		"""
+		Returns list of triples, containing distance, trackpoint_time and speed (gps-based)
+		@param pace: return speed as pace
+		@type pace: boolean
+		@return: list
+		"""
+		return self.get_speed(pace)
 
 def activities_summary(activities):
 	"""returns summary dictionary for list of activities
 	@param activities: list of Activities
-	@type avtivities: array
+	@type activities: array
 	@return: Summary dictionary
 	@rtype: dict
 	"""
@@ -393,7 +399,7 @@ def float_or_none(val):
 
 def str_float_or_none(val):
 	ret = float_or_none(val)
-	if ret != None:
+	if ret is not None:
 		return str(ret)
 	else:
 		return None
@@ -413,7 +419,7 @@ def time_to_seconds(t_string):
 def seconds_to_time(seconds, force_hour=False):
 	"""Converts seconds to time string
 	@param seconds: Number of seconds
-	@type seconds: string
+	@type seconds: integer
 	@param force_hour: Force hour even if seconds < 3600
 	@type force_hour: boolean
 	@return time_string

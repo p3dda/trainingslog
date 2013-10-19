@@ -7,15 +7,12 @@ import json
 import copy
 import datetime
 import itertools
-#import dateutil.parser
 import os
 import tempfile
 import time
 import traceback
-#import urllib2
 import logging
 
-#from activities.extras import tcx2gpx
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
 from activities.forms import ActivityForm, EquipmentForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time, TCXTrack
@@ -28,17 +25,11 @@ from health.models import Desease, Weight, Goal
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
-#from django.core.context_processors import csrf
 from django.utils import simplejson
 from django.utils import timezone
 from django.core import serializers
-#from django.contrib.auth.models import User
 from django.db.models import Sum
-#from django.template import RequestContext
-#from django.core.urlresolvers import reverse
 from django.core.files.base import File
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-#from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings as django_settings
 
 @login_required
@@ -261,6 +252,7 @@ def list_equipment(request):
 def list_activities(request):
 	if request.method == 'POST':
 		is_saved=False
+		newtrack=None
 		if len(request.FILES)>0:
 			# This is a direct manual file upload
 			logging.debug("Creating activity from tcx file upload")
@@ -350,35 +342,30 @@ def get_activity(request):
 
 	if activity.user == request.user:
 		data = serializers.serialize('json', [activity])
-		result = {}
-		result["activity"] = data
-		
-		if activity.track:
-			tcx = activity.track.trackfile
-			
+		result = {"activity": data}
+
+		if activity.track and activity.track.preview_img:
 			# build absolute URL with domain part for preview image
 			# https seems not to be supported by facebook
-			if activity.track.preview_img:
-				result['preview_img'] = activity.track.preview_img.url
+			result['preview_img'] = activity.track.preview_img.url
 		
-#		return HttpResponse(serializers.serialize('json', [activity]), mimetype='application/json');
 		return HttpResponse(json.dumps(result), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
 
-@login_required
-def new_activity(request):
-	if request.method == 'POST':
-		form = ActivityForm(request.POST)
-		if form.is_valid():
-			act = form.save(commit = False)
-			act.user = request.user
-			act.save()
-			return HttpResponseRedirect('/activities/')
-	else:
-		form = ActivityForm()
-		
-	return render_to_response('activities/activity_new.html', {'form': form, 'username': request.user})
+#@login_required
+#def new_activity(request):
+#	if request.method == 'POST':
+#		form = ActivityForm(request.POST)
+#		if form.is_valid():
+#			act = form.save(commit = False)
+#			act.user = request.user
+#			act.save()
+#			return HttpResponseRedirect('/activities/')
+#	else:
+#		form = ActivityForm()
+#
+#	return render_to_response('activities/activity_new.html', {'form': form, 'username': request.user})
 
 @login_required
 def delete_activity(request):
@@ -472,6 +459,10 @@ def add_activity(request):
 				except ValueError:
 					if request.POST.get('is_template'):
 						date = None
+					else:
+						return HttpResponse(simplejson.dumps(
+							dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+
 	
 			act.date = date
 			
@@ -517,7 +508,6 @@ def detail(request, activity_id):
 	param = request.GET.get('p', False)
 	act = get_object_or_404(Activity, id=activity_id)
 	
-	public = True
 	if request.user.is_authenticated():
 		if act.user==request.user:
 			public = False
@@ -703,11 +693,8 @@ def get_report_data(request):
 				'count': []}
 		
 		for sport in sports:
-			sport_data = {}
-			sport_data['label'] = sport.name
-			sport_data['color'] = sport.color
-			sport_data['data'] = []
-			
+			sport_data = {'label': sport.name, 'color': sport.color, 'data': []}
+
 			sport_distance = copy.deepcopy(sport_data)
 			sport_time = copy.deepcopy(sport_data)
 			sport_calories = copy.deepcopy(sport_data)
@@ -718,7 +705,7 @@ def get_report_data(request):
 				activities = activities.filter(date__gte = start_date, date__lte = end_date)
 				
 				# days ago to last monday
-				delta = datetime.timedelta(days = (start_date.timetuple().tm_wday) % 7)
+				delta = datetime.timedelta(days = start_date.timetuple().tm_wday % 7)
 				week_start = timezone.make_aware(datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta, timezone.get_default_timezone())
 
 				while week_start <= end_date:
@@ -741,7 +728,7 @@ def get_report_data(request):
 @login_required
 def calendar_get_events(request):
 	events = []
-	
+
 	start_datetime = datetime.datetime.fromtimestamp(float(request.GET.get('start')))
 	end_datetime = datetime.datetime.fromtimestamp(float(request.GET.get('end')))
 	start_date = datetime.date.fromtimestamp(float(request.GET.get('start')))
@@ -790,13 +777,13 @@ def settings(request):
 			if activity_distance['distance__sum']:
 				equipment.distance = equipment.distance + activity_distance['distance__sum']
 		except TypeError, exc:
-			logging.exception("Exception occured in settings")
+			logging.exception("Exception occured in settings: %s" % exc)
 
 		try:
 			if activity_time['time__sum']:
 				equipment.time = equipment.time + activity_time['time__sum']
 		except TypeError, exc:
-			logging.exception("Exception occured in settings")
+			logging.exception("Exception occured in settings: %s" % exc)
 			equipment.time = 0
 
 		if activity_time > 0 and activity_distance['distance__sum']:

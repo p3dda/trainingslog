@@ -44,7 +44,7 @@ class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
 	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
 	
-	def delete(self):
+	def delete(self, *args, **kwargs):
 		files = []
 		if self.trackfile:
 			files.append(self.trackfile.path)
@@ -53,14 +53,14 @@ class Track(models.Model):
 		if self.preview_img:
 			files.append(self.preview_img.path)
 		
-		for file in files:
-			if os.path.exists(file):
+		for f in files:
+			if os.path.exists(f):
 				try:
-					os.remove(file)
+					os.remove(f)
 				except OSError:
 					pass
 		
-		models.Model.delete(self)
+		models.Model.delete(self, *args, **kwargs)
 	
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)
@@ -99,6 +99,9 @@ class ActivityBaseClass(models.Model):
 		return self.name
 	
 	class Meta:
+		def __init__(self):
+			pass
+
 		abstract=True
 
 class Activity(ActivityBaseClass):
@@ -107,13 +110,16 @@ class Activity(ActivityBaseClass):
 	time = models.IntegerField()
 	
 	class Meta:
+		def __init__(self):
+			pass
+
 		verbose_name_plural = "Activities"
 		
-	def delete(self):
+	def delete(self, *args, **kwargs):
 		if self.track:
 			self.track.delete()
 		
-		ActivityBaseClass.delete(self)
+		ActivityBaseClass.delete(self, *args, **kwargs)
 
 class ActivityTemplate(ActivityBaseClass):
 	date = models.DateTimeField('date', blank=True, null=True)
@@ -121,6 +127,9 @@ class ActivityTemplate(ActivityBaseClass):
 	time = models.IntegerField(blank=True, null=True)
 	
 	class Meta:
+		def __init__(self):
+			pass
+
 		verbose_name_plural = "ActivityTemplates"
 	
 class Lap(models.Model):

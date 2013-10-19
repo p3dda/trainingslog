@@ -2,17 +2,18 @@ import time
 import datetime
 import logging
 
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
-from django.shortcuts import render_to_response, get_object_or_404
+from collections import  namedtuple
+
+from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
+
+from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.utils import simplejson
-from django.core.context_processors import csrf
 from django.core import serializers
-
-from collections import  namedtuple
 
 from health.models import Desease, Weight, Goal, Pulse
 from health.utils import parsefloat
+
 
 @login_required
 def show_weight(request):
@@ -50,14 +51,14 @@ def add_weight(request):
 			try:
 				weight = str(parsefloat(request.POST.get('weight')))
 			except ValueError, exc:
-				logging.exception("Exception occured in add_weight")
+				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}
 				return HttpResponse(simplejson.dumps(result))
 			try:
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 				date = datetime.date(year=d.year, month=d.month, day=d.day)
 			except ValueError, exc:
-				logging.exception("Exception occured in add_weight")
+				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
 				return HttpResponse(simplejson.dumps(result))
 	
@@ -68,8 +69,7 @@ def add_weight(request):
 		else:
 			return HttpResponseBadRequest
 	except Exception, exc:
-		logging.exception("Exception occured in add_weight")
-		raise
+		logging.exception("Exception occured in add_weight: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
 		return HttpResponse(simplejson.dumps(result))
 	 
@@ -78,17 +78,18 @@ def add_weightgoal(request):
 	try:
 		if request.method == 'POST':
 			logging.debug("add_weightgoal post request with items %s" % repr(request.POST.items()))
+			datestring = ""
 			try:
 				datestring=request.POST.get('date')
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 			except Exception, exc:
-				logging.exception("Exception occured in add_weight")
+				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
 				return HttpResponse(simplejson.dumps(result))
 			try:
 				weight = str(parsefloat(request.POST.get('weight')))
 			except ValueError, exc:
-				logging.exception("Exception occured in add_weight")
+				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}
 				return HttpResponse(simplejson.dumps(result))
 			
@@ -101,8 +102,7 @@ def add_weightgoal(request):
 		else:
 			return HttpResponseBadRequest
 	except Exception, exc:
-		logging.exception("Exception occured in add_weight")
-		raise
+		logging.exception("Exception occured in add_weightgoal: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
 		return HttpResponse(simplejson.dumps(result))
 
@@ -129,14 +129,14 @@ def add_desease(request):
 				sd = datetime.datetime.strptime(startdate_string, "%d.%m.%Y")
 				startdate = datetime.date(year=sd.year, month=sd.month, day=sd.day)
 			except ValueError, exc:
-				logging.exception("Exception occured in add_desease")
+				logging.exception("Exception occured in add_desease: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % startdate_string}
 				return HttpResponse(simplejson.dumps(result))
 			try:
 				ed = datetime.datetime.strptime(enddate_string, "%d.%m.%Y")
 				enddate = datetime.date(year=ed.year, month=ed.month, day=ed.day)
 			except ValueError, exc:
-				logging.exception("Exception occured in add_desease")
+				logging.exception("Exception occured in add_desease: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % enddate_string}
 				return HttpResponse(simplejson.dumps(result))
 	
@@ -150,17 +150,16 @@ def add_desease(request):
 		else:
 			return HttpResponseBadRequest
 	except Exception, exc:
-		logging.exception("Exception occured in add_desease")
-		raise
+		logging.exception("Exception occured in add_desease: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
 		return HttpResponse(simplejson.dumps(result))
 
 @login_required
 def get_desease(request):
-	id = request.GET.get('id', '')
-	desease = Desease.objects.get(pk=int(id))
+	desease_id = request.GET.get('id', '')
+	desease = Desease.objects.get(pk=int(desease_id))
 	if desease.user == request.user:
-		return HttpResponse(serializers.serialize('json', [desease]), mimetype='application/json');
+		return HttpResponse(serializers.serialize('json', [desease]), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
 	
@@ -188,10 +187,10 @@ def get_data(request):
 	
 	# calculating weekly averages
 	weekly_weights = {}
-	Week = namedtuple("Week", ["year", "week"])
+	week = namedtuple("Week", ["year", "week"])
 	
 	for weight in weights:
-		w = Week(year=weight.date.year, week=weight.date.isocalendar()[1])
+		w = week(year=weight.date.year, week=weight.date.isocalendar()[1])
 		if w not in weekly_weights:
 			weekly_weights[w] = []
 		weekly_weights[w].append(weight.weight) 
@@ -228,6 +227,7 @@ def get_data(request):
 def add_pulse(request):
 	try:
 		if request.method == 'POST':
+			datestring = ""
 			logging.debug("add_pulse post request with items %s" % repr(request.POST.items()))
 			if not ("rest" in request.POST or "maximum" in request.POST):
 				logging.error("Received neither rest nor maximum pulse")
@@ -238,7 +238,7 @@ def add_pulse(request):
 					d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 					date = datetime.date(year=d.year, month=d.month, day=d.day)
 				except ValueError, exc:
-					logging.exception("Exception occured in add_weight")
+					logging.exception("Exception occured in add_pulse: %s" % exc)
 					result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
 					return HttpResponse(simplejson.dumps(result))
 				
@@ -252,7 +252,6 @@ def add_pulse(request):
 		else:
 			return HttpResponseBadRequest
 	except Exception, exc:
-		logging.exception("Exception occured in add_weight")
-		raise
+		logging.exception("Exception occured in add_pulse: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten:: %s" % exc}
 		return HttpResponse(simplejson.dumps(result))

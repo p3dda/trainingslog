@@ -77,6 +77,7 @@ def importtrack_from_tcx(request, newtrack):
 	laps = []
 	time_start = None
 	time_end = None
+	position_start = None
 
 	for xmllap in xmlactivity.findall(xmlns + "Lap"):
 		date = dateutil.parser.parse(xmllap.get("StartTime"))
@@ -127,9 +128,7 @@ def importtrack_from_tcx(request, newtrack):
 		elev_gain = 0
 		elev_loss = 0
 		last_elev = None
-		
-		position_start = None
-		
+
 		for xmltrack in xmllap.findall(xmlns + "Track"):
 			for xmltp in xmltrack.findall(xmlns + "Trackpoint"):
 				if not position_start:
@@ -245,7 +244,7 @@ def importtrack_from_tcx(request, newtrack):
 	except AttributeError:
 		wunderground_key = False
 	
-	if wunderground_key:
+	if wunderground_key and position_start:
 		try:
 			(lat, lon) = position_start
 			logging.debug("Getting weather data for position %r %r" % (lat,lon))
@@ -290,7 +289,12 @@ def importtrack_from_tcx(request, newtrack):
 			logging.error("Failed to load weather data: %s" % exc)
 			for line in traceback.format_exc(sys.exc_info()[2]).splitlines():
 				logging.error(line)
-	
+	else:
+		if not position_start:
+			logging.debug("Do not fetch weather data due to missing position data")
+		if not wunderground_key:
+			logging.debug("Do not fetch weather data due to missing wunderground key")
+
 	if cadence_avg==0:
 		activity.cadence_avg = None
 	else:	

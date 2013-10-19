@@ -260,6 +260,22 @@
 	
 		function onDataReceived(data) {
 			plot_data_raw = data;
+
+			for(var graph in graphs){
+				var dataname = graphs[graph]["dataname"];
+				if(plot_data_raw[dataname].length > 0){
+					var first = plot_data_raw[dataname][0];
+					var last = plot_data_raw[dataname][plot_data_raw[dataname].length-1];
+
+					// check if position value increases, otherwise use time as plot base
+					if (first[0] == last[0]) {
+						plot_base = "time";
+						$("#plot_xaxis").val(1);
+					}
+					break;
+				}
+			}
+
 			update_plots();
 		}
 
@@ -474,8 +490,7 @@
 		
 		var updateCursorTimeout = null;
 		var latestPosition = null;
-		
-		
+
 		function updateCursor() {
 			updateCursorTimeout = null;
 			var pos = latestPosition;

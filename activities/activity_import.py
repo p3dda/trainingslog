@@ -134,7 +134,7 @@ def importtrack_from_tcx(request, newtrack):
 			for xmltp in xmltrack.findall(xmlns + "Trackpoint"):
 				if not position_start:
 					xmlpos = xmltp.find(xmlns + "Position")
-					if xmlpos:
+					if xmlpos is not None:
 						if xmlpos.find(xmlns + "LatitudeDegrees") is not None and xmlpos.find( xmlns + "LongitudeDegrees") is not None:
 							lat = float(xmlpos.find(xmlns + "LatitudeDegrees").text)
 							lon = float(xmlpos.find(xmlns + "LongitudeDegrees").text)

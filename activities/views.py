@@ -729,8 +729,8 @@ def get_report_data(request):
 def calendar_get_events(request):
 	events = []
 
-	start_datetime = datetime.datetime.fromtimestamp(float(request.GET.get('start')))
-	end_datetime = datetime.datetime.fromtimestamp(float(request.GET.get('end')))
+	start_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('start'))),timezone.get_default_timezone())
+	end_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('end'))), timezone.get_default_timezone())
 	start_date = datetime.date.fromtimestamp(float(request.GET.get('start')))
 	end_date = datetime.date.fromtimestamp(float(request.GET.get('end')))
 	activity_list = Activity.objects.select_related('sport').filter(user=request.user).filter(date__gte=str(start_datetime)).filter(date__lt=str(end_datetime))

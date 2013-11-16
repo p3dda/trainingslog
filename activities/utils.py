@@ -24,6 +24,14 @@ if not found_xml_parser:
 	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
 
 def latlon_distance(origin, destination):
+	"""Calculate distance between two gps coordinates
+	@param origin: Origin gps coordinates (lat, lon)
+	@type origin: tuple
+	@param destination: Destination gps coordinates (lat, lon)
+	@type destination: tuple
+	@return: distance (meters)
+	@rtype: float
+	"""
 	lat1, lon1 = origin
 	lat2, lon2 = destination
 	radius = 6371000 # m
@@ -74,6 +82,8 @@ class TCXTrack:
 		for xmllap in xmlactivity.findall(self.xmlns+"Lap"):
 			distance_offset = 0
 			# check if lap starts with distance 0
+			if len(xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")) == 0:
+				continue		# skip empty laps
 			xmltp = xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")[0]
 			if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
 				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)

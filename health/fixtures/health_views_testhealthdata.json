@@ -1,0 +1,184 @@
+[
+    {
+        "pk": 1, 
+        "model": "health.weight", 
+        "fields": {
+            "muscles_weight": null, 
+            "bones_weight": null, 
+            "weight": "73.6", 
+            "body_fat": null, 
+            "user": 2, 
+            "body_water": null, 
+            "date": "2012-01-05"
+        }
+    }, 
+    {
+        "pk": 2,
+        "model": "health.weight", 
+        "fields": {
+            "muscles_weight": null, 
+            "bones_weight": null, 
+            "weight": "71.2", 
+            "body_fat": null, 
+            "user": 3, 
+            "body_water": null, 
+            "date": "2010-10-03"
+        }
+    }, 
+    {
+        "pk": 3,
+        "model": "health.weight", 
+        "fields": {
+            "muscles_weight": null, 
+            "bones_weight": null, 
+            "weight": "70.4", 
+            "body_fat": null, 
+            "user": 2,
+            "body_water": null, 
+            "date": "2010-10-16"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "health.desease",
+        "fields": {
+            "comment": "",
+            "user": 2,
+            "start_date": "2012-10-11",
+            "end_date": "2012-10-15",
+            "name": "Erk\u00e4ltung"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "health.desease",
+        "fields": {
+            "comment": "fies mit langer Schonung hinterher",
+            "user": 3,
+            "start_date": "2012-09-21",
+            "end_date": "2012-09-23",
+            "name": "Erk\u00e4ltung"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "health.desease",
+        "fields": {
+            "comment": "Sportverbot f\u00fcr einen Tag",
+            "user": 3,
+            "start_date": "2012-10-18",
+            "end_date": "2012-10-18",
+            "name": "Grippeimpfung"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-01-07",
+            "due_date": "2012-05-09",
+            "target_weight": "72",
+            "user": 2
+        }
+    },
+    {
+        "pk": 2,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-01-08",
+            "due_date": "2012-09-30",
+            "target_weight": "71",
+            "user": 2
+        }
+    },
+    {
+        "pk": 3,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-01-26",
+            "due_date": "2012-04-22",
+            "target_weight": "63",
+            "user": 3
+        }
+    },
+    {
+        "pk": 7,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-04-23",
+            "due_date": "2012-05-31",
+            "target_weight": "60",
+            "user": 3
+        }
+    },
+    {
+        "pk": 8,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-05-31",
+            "due_date": "2012-06-16",
+            "target_weight": "59.5",
+            "user": 3
+        }
+    },
+    {
+        "pk": 9,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-06-16",
+            "due_date": "2012-07-07",
+            "target_weight": "59",
+            "user": 3
+        }
+    },
+    {
+        "pk": 10,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-07-07",
+            "due_date": "2012-07-29",
+            "target_weight": "58.5",
+            "user": 2
+        }
+    },
+    {
+        "pk": 11,
+        "model": "health.goal",
+        "fields": {
+            "date": "2012-09-18",
+            "due_date": "2012-09-18",
+            "target_weight": "65",
+            "user": 3
+        }
+    },
+    {
+        "pk": 1,
+        "model": "health.pulse",
+        "fields": {
+            "date": "2012-01-24",
+            "user": 2,
+            "rest": 48,
+            "maximum": null
+        }
+    },
+    {
+        "pk": 2,
+        "model": "health.pulse",
+        "fields": {
+            "date": "2012-01-23",
+            "user": 3,
+            "rest": 48,
+            "maximum": null
+        }
+    },
+    {
+        "pk": 3,
+        "model": "health.pulse",
+        "fields": {
+            "date": "2012-01-25",
+            "user": 2,
+            "rest": null,
+            "maximum": 202
+        }
+    }
+]

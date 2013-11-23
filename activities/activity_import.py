@@ -123,11 +123,11 @@ def importtrack_from_tcx(request, newtrack):
 		else:
 			speed_avg = None
 		
-		cadence_max = 0
-		elev_min = 65535
-		elev_max = 0
-		elev_gain = 0
-		elev_loss = 0
+		cadence_max = None
+		elev_min = None
+		elev_max = None
+		elev_gain = None
+		elev_loss = None
 		last_elev = None
 
 		for xmltrack in xmllap.findall(xmlns + "Track"):
@@ -149,16 +149,29 @@ def importtrack_from_tcx(request, newtrack):
 					elev = last_elev
 				
 				if elev != last_elev:
-					if elev > elev_max:
+					if elev_max is not None:
+						if elev > elev_max:
+							elev_max = elev
+					else:
 						elev_max = elev
-					if elev < elev_min:
+
+					if elev_min is not None:
+						if elev < elev_min:
+							elev_min = elev
+					else:
 						elev_min = elev
-					
+
 					if last_elev:
 						if elev > last_elev:
-							elev_gain += elev - last_elev
+							if elev_gain is None:
+								elev_gain = elev - last_elev
+							else:
+								elev_gain += elev - last_elev
 						else:
-							elev_loss += last_elev - elev
+							if elev_loss is None:
+								elev_loss = last_elev - elev
+							else:
+								elev_loss += last_elev - elev
 					last_elev = elev
 				
 				if xmltp.find(xmlns + "Cadence") != None:
@@ -189,32 +202,46 @@ def importtrack_from_tcx(request, newtrack):
 
 		laps.append(lap)
 	
-	# FIXME: Values should be None instead of 0 / 65535 if no values found in XML file
-	cadence_avg = 0
-	cadence_max = 0
-	calories_sum = 0
-	distance_sum = 0
-	elev_min = 65535
-	elev_max = 0
-	elev_gain = 0
-	elev_loss = 0
-	hf_avg = 0
-	hf_max = 0
-	speed_max = 0
+	cadence_avg = None
+	cadence_max = None
+	calories_sum = None
+	distance_sum = None
+	elev_min = None
+	elev_max = None
+	elev_gain = None
+	elev_loss = None
+	hf_avg = None
+	hf_max = None
+	speed_max = None
 	time_sum = 0
 	for lap in laps:
 		if lap.calories:
-			calories_sum = calories_sum + lap.calories
+			if calories_sum is None:
+				calories_sum = lap.calories
+			else:
+				calories_sum = calories_sum + lap.calories
 		if lap.distance:
-			distance_sum += float(lap.distance)
+			if distance_sum is None:
+				distance_sum = float(lap.distance)
+			else:
+				distance_sum += float(lap.distance)
 		time_sum = time_sum + lap.time
-		
-		if lap.elevation_max > elev_max:
+
+		if lap.elevation_max > elev_max or elev_max is None:
 			elev_max = lap.elevation_max
-		if lap.elevation_min < elev_min:
+		if lap.elevation_min < elev_min or elev_min is None:
 			elev_min = lap.elevation_min
-		elev_gain = elev_gain + lap.elevation_gain
-		elev_loss = elev_loss + lap.elevation_loss
+
+		if lap.elevation_gain is not None:
+			if elev_gain is None:
+				elev_gain = lap.elevation_gain
+			else:
+				elev_gain = elev_gain + lap.elevation_gain
+		if lap.elevation_loss is not None:
+			if elev_loss is None:
+				elev_loss = lap.elevation_loss
+			else:
+				elev_loss = elev_loss + lap.elevation_loss
 		
 		if lap.hf_max > hf_max:
 			hf_max = lap.hf_max
@@ -225,17 +252,20 @@ def importtrack_from_tcx(request, newtrack):
 				speed_max = float(lap.speed_max)
 				logging.debug("New global speed_max: %s" % speed_max)
 		
-		if lap.cadence_max > cadence_max:
+		if lap.cadence_max > cadence_max or cadence_max is None:
 			cadence_max = lap.cadence_max
 		
 		if lap.cadence_avg:
-			cadence_avg = cadence_avg + lap.time * lap.cadence_avg
+			if cadence_avg is None:
+				cadence_avg = lap.time * lap.cadence_avg
+			else:
+				cadence_avg = cadence_avg + lap.time * lap.cadence_avg
 		if lap.hf_avg:
-			hf_avg = hf_avg + lap.time * lap.hf_avg
-		
-		print hf_avg
-		print cadence_avg
-	
+			if hf_avg is None:
+				hf_avg = lap.time * lap.hf_avg
+			else:
+				hf_avg = hf_avg + lap.time * lap.hf_avg
+
 	try:
 		wunderground_key = django_settings.WUNDERGROUND_KEY
 	except AttributeError:
@@ -295,7 +325,7 @@ def importtrack_from_tcx(request, newtrack):
 		if not wunderground_key:
 			logging.debug("Do not fetch weather data due to missing wunderground key")
 
-	if cadence_avg==0:
+	if cadence_avg==0 or cadence_avg is None:
 		activity.cadence_avg = None
 	else:	
 		activity.cadence_avg = int(cadence_avg / time_sum)

@@ -17,7 +17,6 @@ def parsefloat(float_string):
 			while midle_string.count(".") != 0:
 				midle_string.remove(".")
 			out_string = str.replace("".join(midle_string), ",", ".")
-		return str(float(out_string))
+		return float(out_string)
 	except ValueError, error:
-		print "%s\n%s" %(errormsg, error)
 		raise

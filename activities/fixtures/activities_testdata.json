@@ -1,0 +1,114 @@
+[
+    {
+        "pk": 1, 
+        "model": "activities.calorieformula", 
+        "fields": {
+            "public": true, 
+            "user": null, 
+            "weight_time_factor": 6.359999999999999, 
+            "name": "Aerobic", 
+            "weight_dist_factor": 0.0
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "activities.calorieformula", 
+        "fields": {
+            "public": true, 
+            "user": null, 
+            "weight_time_factor": 6.0, 
+            "name": "Badminton", 
+            "weight_dist_factor": 0.0
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "activities.equipment", 
+        "fields": {
+            "user": 2, 
+            "distance": 0, 
+            "archived": false, 
+            "name": "Schwimmbrille", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "activities.equipment", 
+        "fields": {
+            "user": 3, 
+            "distance": 0, 
+            "archived": false, 
+            "name": "Asics Noosa Tri 7", 
+            "description": "Kaufdatum 31.01.2012"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "activities.equipment", 
+        "fields": {
+            "user": 2, 
+            "distance": 3704, 
+            "archived": false, 
+            "name": "Rennrad Radon", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "activities.event", 
+        "fields": {
+            "name": "Training", 
+            "user": 2
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "activities.event", 
+        "fields": {
+            "name": "Wettkampf", 
+            "user": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "activities.event", 
+        "fields": {
+            "name": "Freizeit", 
+            "user": 2
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "activities.sport", 
+        "fields": {
+            "color": "#66ccff", 
+            "calorie_formula": 20, 
+            "speed_as_pace": false, 
+            "name": "Schwimmen", 
+            "user": 2
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "activities.sport", 
+        "fields": {
+            "color": "#cc6600", 
+            "calorie_formula": 11, 
+            "speed_as_pace": true, 
+            "name": "Laufen", 
+            "user": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "activities.sport", 
+        "fields": {
+            "color": "#528232", 
+            "calorie_formula": null, 
+            "speed_as_pace": false, 
+            "name": "Rennrad", 
+            "user": 2
+        }
+    }
+]

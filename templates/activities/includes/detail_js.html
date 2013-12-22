@@ -43,8 +43,10 @@
 		{ "name": "hf", "dataname": "hf", "label": "HF", "label_short": "HF","rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
 		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "rounding": 1, "unit": speed_unit, "unit_short": speed_unit},
 		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "rounding": 0, "unit": "m", "unit_short": "m"},
-		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."}
-	];	
+		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."},
+		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "rounding": 1, "unit": "Millisekunden","unit_short": "ms"},
+		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "rounding": 1, "unit": "cm","unit_short": "cm"}
+	];
 {% else %}
 	var graphs = [];
 {% endif %}
@@ -404,6 +406,7 @@
 		}
 
 		for (i in graphs) {
+			console.debug("Plot data for " + graphs[i]["name"] + ": " +  data[graphs[i]["dataname"]].length);
 			plot_data[graphs[i]["name"]]=new Object();
 			plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};

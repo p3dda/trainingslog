@@ -43,7 +43,8 @@ class Sport(models.Model):
 class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
 	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
-	
+	filetype = models.CharField(max_length=10, null=True)	#FIXME: Need database update procedure; set default "tcx"
+
 	def delete(self, *args, **kwargs):
 		files = []
 		if self.trackfile:

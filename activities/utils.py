@@ -415,7 +415,7 @@ def str_float_or_none(val):
 		return None
 
 def time_to_seconds(t_string):
-	"""Converts time string to seconds
+	"""Converts time string or minutes float to seconds
 	"""
 	fields = t_string.split(':')
 	if len(fields)==3:
@@ -447,7 +447,12 @@ def seconds_to_time(seconds, force_hour=False):
 def pace_to_speed(val):
 	"""Converts pace min/km (mm:ss) to speed (km/h)
 	"""
-	seconds = time_to_seconds(val)
+	if isinstance(val, basestring):
+		seconds = time_to_seconds(val)
+	elif isinstance(val, float):
+		seconds = val * 60
+	else:
+		raise ValueError("Bad value for pace_to_speed conversion: %s with type %s" % (val, type(val)))
 	speed = 3600.0 / seconds
 	return speed
 

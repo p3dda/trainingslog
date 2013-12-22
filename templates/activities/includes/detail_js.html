@@ -416,10 +416,12 @@
 			if(data[graphs[i]["dataname"]].length == 0) {
 				plot_data[graphs[i]["name"]]["data"] = [];
 				$("#details_"+graphs[i]["name"]).hide();
+				console.debug("Hide plot " + graphs[i]["dataname"]);
 				
 				// Delete entry from graph list for non-existing graphs
 				delete graphs[i];
 			} else {
+				console.debug("Plot data " + graphs[i]["dataname"] + " has length " + data[graphs[i]["dataname"]].length);
 				var gdata=transpose(data[graphs[i]["dataname"]]);
 				if(plot_base == "time"){
 					var graphdata=transpose([gdata[1], gdata[2]]);

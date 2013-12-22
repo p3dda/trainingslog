@@ -59,8 +59,6 @@ class ActivityFile:
 		self.track_by_distance={}
 		self.position_start = None
 
-
-
 	def get_activity(self):
 		return self.activity
 
@@ -274,7 +272,6 @@ class ActivityFile:
 		raise NotImplementedError
 
 	def create_preview(self):
-		print "Create preview image"
 		logging.debug("Creating preview image for track")
 		if self.track:
 			pos_list = self.get_pos(90)
@@ -282,7 +279,8 @@ class ActivityFile:
 			if len(pos_list) > 1:
 				gmap_coords = []
 				for (lat, lon) in pos_list:
-					gmap_coords.append("%s,%s" % (round(lat, 4), round(lon, 4)))
+					if lat is not None and lon is not None:
+						gmap_coords.append("%s,%s" % (round(lat, 4), round(lon, 4)))
 				gmap_path = "|".join(gmap_coords)
 
 				url = "http://maps.google.com/maps/api/staticmap?size=480x480&path=color:0xff0000ff|"+gmap_path+"&sensor=true"
@@ -908,8 +906,6 @@ class FITFile(ActivityFile):
 		except Exception, msg:
 			logging.debug("Exception occured in convert: %s" % msg)
 
-		print "GPS fixes/nofixes: %s/%s" % (gps_fixes, gps_no_fixes)
-
 	def parse_file(self):
 		self.laps = []
 		self.position_start = None
@@ -934,8 +930,12 @@ class FITFile(ActivityFile):
 				lap.distance = message.get_value("total_distance")/1000
 				lap.elevation_gain = message.get_value("total_ascent")
 				lap.elevation_loss = message.get_value("total_descent")
-				lap.cadence_avg = message.get_value("avg_running_cadence") * 2	# TODO: if activity type is not running, take bike cadence
-				lap.cadence_max = message.get_value("max_running_cadence") * 2
+
+				if message.get_value("avg_running_cadence") is not None:
+					lap.cadence_avg = message.get_value("avg_running_cadence") * 2	# TODO: if activity type is not running, take bike cadence
+				if message.get_value("max_running_cadence") is not None:
+					lap.cadence_max = message.get_value("max_running_cadence") * 2
+
 				lap.calories = message.get_value("total_calories")
 				lap.hf_avg = message.get_value("avg_heart_rate")
 				lap.hf_max = message.get_value("max_heart_rate")
@@ -994,19 +994,23 @@ class FITFile(ActivityFile):
 
 			# Get altitude
 			alt = message.get_value("altitude")
-			self.track_by_distance[distance]["alt"]=alt
-			alt_data.append((distance,trackpoint_time,alt))
+			if alt is not None:
+				self.track_by_distance[distance]["alt"]=alt
+				alt_data.append((distance,trackpoint_time,alt))
+
 # 			# Get Cadence data (from Bike cadence sensor)
 			cad = message.get_value("cadence")
+			if cad is not None:
+				self.track_by_distance[distance]["cad"]=cad
+				cad_data.append((distance,trackpoint_time,cad))
 
-			self.track_by_distance[distance]["cad"]=cad
-			cad_data.append((distance,trackpoint_time,cad))
-# 			# Locate heart rate in beats per minute
+# 			# Get heart rate in beats per minute
 			hf = message.get_value("heart_rate")
-			self.track_by_distance[distance]["hf"]=hf
-			hf_data.append((distance,trackpoint_time,hf))
+			if hf is not None:
+				self.track_by_distance[distance]["hf"]=hf
+				hf_data.append((distance,trackpoint_time,hf))
 #
-# 			# Locate time stamps for speed calculation based on GPS
+# 			# Get time stamps for speed calculation based on GPS
 			track_time = message.get_value("timestamp")
 			self.track_by_distance[distance]["gps"]=track_time
 			speed_gps_data.append((distance,track_time))
@@ -1014,15 +1018,18 @@ class FITFile(ActivityFile):
 # 			# Get position coordinates
 			lat = message.get_value("position_lat")
 			lon = message.get_value("position_long")
-			pos_data.append((lat, lon))
+			if lat is not None and lon is not None:
+				pos_data.append((lat, lon))
 
 			stance_time = message.get_value("stance_time")
-			stance_time_data.append((distance, trackpoint_time, stance_time))
-			self.track_by_distance[distance]["stance_time"] = stance_time
+			if stance_time is not None:
+				stance_time_data.append((distance, trackpoint_time, stance_time))
+				self.track_by_distance[distance]["stance_time"] = stance_time
 
 			vertical_oscillation = message.get_value("vertical_oscillation")
-			vertical_oscillation_data.append((distance, trackpoint_time, vertical_oscillation))
-			self.track_by_distance[distance]["vertical_oscillation"] = vertical_oscillation
+			if vertical_oscillation is not None:
+				vertical_oscillation_data.append((distance, trackpoint_time, vertical_oscillation))
+				self.track_by_distance[distance]["vertical_oscillation"] = vertical_oscillation
 
 		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"]=alt_data

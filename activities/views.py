@@ -14,10 +14,9 @@ import traceback
 import logging
 
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
-from activities.forms import ActivityForm, EquipmentForm
-from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time, TCXTrack
-from activities.activity_import import importtrack_from_tcx
-from activities.preview import create_preview
+from activities.forms import EquipmentForm
+from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
+from activities.extras.activityfile import ActivityFile
 from activities.django_datatables_view.base_datatable_view import BaseDatatableView
 
 from health.models import Desease, Weight, Goal
@@ -255,12 +254,23 @@ def list_activities(request):
 		newtrack=None
 		if len(request.FILES)>0:
 			# This is a direct manual file upload
-			logging.debug("Creating activity from tcx file upload")
+			logging.debug("Creating activity from file upload")
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
 				newtrack.save()
 				is_saved=True
-				activity = importtrack_from_tcx(request, newtrack)
+				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
+				if fileExtension.lower() == '.tcx':
+					newtrack.filetype = "tcx"
+					activityfile = ActivityFile.TCXFile(newtrack, request)
+				elif fileExtension.lower() == '.fit':
+					newtrack.filetype = "fit"
+					activityfile = ActivityFile.FITFile(newtrack, request)
+				else:
+					raise Exception("File type %s cannot be imported" % fileExtension)
+				activityfile.import_activity()
+				activity = activityfile.get_activity()
+				activity.save()
 			except Exception, msg:
 				logging.error("Exception occured in import with message %s" % msg)
 				if is_saved:
@@ -290,7 +300,9 @@ def list_activities(request):
 				is_saved=True
 				logging.debug("Filename: %s" % filename)
 	
-				activity = importtrack_from_tcx(request, newtrack)
+#				activity = importtrack_from_tcx(request, newtrack)
+				activityfile = ActivityFile.TCXFile(request, newtrack)
+				activity = activityfile.get_activity()
 				tmpfile.close()
 				os.remove(tmpfilename)
 				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
@@ -533,18 +545,19 @@ def detail(request, activity_id):
 		# no parameter given, reply with activity detail template
 		
 		if act.track:
-			tcx = act.track.trackfile
+			trackfile = act.track.trackfile
 			
-			if os.path.isfile(tcx.path + ".gpx"):
-				gpx_url = tcx.url + ".gpx"
+			if os.path.isfile(trackfile.path + ".gpx"):
+				gpx_url = trackfile.url + ".gpx"
 			else:
 				gpx_url = None
 				
 			#check if preview image is missing
 			if not act.track.preview_img:
 				logging.debug("No preview image found")
-				create_preview(act.track)
-	
+				actfile = ActivityFile.ActivityFile(act.track, request)
+				actfile.create_preview()
+
 			# build absolute URL with domain part for preview image
 			# https seems not to be supported by facebook
 			if act.track.preview_img:
@@ -553,7 +566,7 @@ def detail(request, activity_id):
 				preview_img = None
 				
 		else:
-			tcx = None
+			trackfile = None
 			gpx_url = None
 			preview_img = None
 
@@ -602,19 +615,26 @@ def detail(request, activity_id):
 			else:
 				weight = None
 			
-			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': tcx, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
+			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
 		else:
-			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': tcx, 'gpx_url': gpx_url, 'public': public})
+			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public})
 	if param == 'plots':
 		if act.track:
-			tcxtrack = TCXTrack(act.track)
-			
+			if act.track.filetype == 'tcx' or act.track.filetype is None:
+				tcxtrack = ActivityFile.TCXFile(act.track)
+			elif act.track.filetype == 'fit':
+				tcxtrack = ActivityFile.FITFile(act.track)
+			else:
+				raise RuntimeError('Invalid file trackfile type: %s' % act.track.filetype)
+
 			data = {'altitude': tcxtrack.get_alt(),
 					'cadence': tcxtrack.get_cad(),
 					'hf': tcxtrack.get_hf(),
 					'pos': tcxtrack.get_pos(),
 					'speed': tcxtrack.get_speed(act.sport.speed_as_pace),
-					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace)
+					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace),
+					'stance_time': tcxtrack.get_stance_time(),
+					'vertical_oscillation': tcxtrack.get_vertical_oscillation()
 					}
 			
 			return HttpResponse(json.dumps(data, sort_keys=True, indent=4),content_type="text/plain")

@@ -4,11 +4,12 @@ when you run "manage.py test".
 
 Replace this with more appropriate tests for your application.
 """
-
+import json
 import os
 from decimal import Decimal
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
-
+import activities.utils
+from activities.extras.activityfile import ActivityFile
 import django.test.client
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -29,6 +30,22 @@ class ActivityTest(TestCase):
 		"""
 		cf = CalorieFormula.objects.get(pk=1)
 		self.assertEqual(cf.__unicode__(), cf.name)
+
+	def test_pace_to_speed(self):
+		"""
+		Tests utils.pace_to_speed method
+		"""
+		speed = activities.utils.pace_to_speed("7:30")
+		self.assertEqual(speed, 8.0)
+		speed = activities.utils.pace_to_speed(7.5)
+		self.assertEqual(speed, 8.0)
+
+	def test_speed_to_pace(self):
+		"""
+		Tests utils.speed_to_pace method
+		"""
+		speed = activities.utils.speed_to_pace(8)
+		self.assertEqual(speed, "7:30")
 
 	def test_tcx_nogps_upload(self):
 		"""
@@ -76,6 +93,28 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.elevation_gain, 346)
 		self.assertEqual(act.elevation_loss, 347)
 
+		act_track = ActivityFile.TCXFile(act.track)
+		self.assertEqual(len(act_track.track_data["hf"]), 804)
+		self.assertEqual(len(act_track.track_data["cad"]), 0)
+		self.assertEqual(len(act_track.track_by_distance), 796)
+
+		url = "/activities/1/"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+
+		url = "/activities/1/?p=plots"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		data = json.loads(response.content)
+		self.assertIsInstance(data, dict)
+		self.assertTrue(data.has_key('altitude'))
+		self.assertEqual(len(data['altitude']), 804)
+		self.assertTrue(data.has_key('cadence'))
+		self.assertEqual(data['cadence'], [])
+		self.assertTrue(data.has_key('speed'))
+		self.assertTrue(data.has_key('speed_foot'))
+
+
 		act.delete()
 
 	def test_tcx_bike(self):
@@ -90,6 +129,8 @@ class ActivityTest(TestCase):
 		self.assertEqual(response.status_code, 302)
 
 		act=Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
 		self.assertEqual(act.time_elapsed, 7723)
 		self.assertEqual(act.time, 4857)
 		self.assertEqual(act.distance, Decimal('25.508'))
@@ -105,4 +146,51 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.speed_max, Decimal('48.1'))
 
 		act.delete()
+
+	def test_fit_run(self):
+		"""
+		Tests fit file import and parsing with gps and cadence
+		"""
+		url="/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', '16MileLongRun.FIT'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+		act = Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		laps = Lap.objects.filter(activity = act)
+		self.assertEqual(len(laps), 24)
+		self.assertEqual(act.distance, Decimal('26.049'))
+		self.assertEqual(act.time, 6939)
+		self.assertEqual(act.time_elapsed, 7135)
+
+		act_track = ActivityFile.FITFile(act.track)
+		self.assertEqual(len(act_track.track_data["hf"]), 6940)
+		self.assertEqual(len(act_track.track_data["cad"]), 6940)
+		self.assertEqual(len(act_track.track_by_distance), 6928)
+
+		self.assertEqual(act.elevation_min, 9)	# FIXME: Garmin Connect reports 25; seems as if they filter spikes
+		self.assertEqual(act.elevation_max, 68)	# FIXME: Garmin Connect reports 69; altitude is a float, do we floor?
+		self.assertEqual(act.cadence_avg, 174)
+		self.assertEqual(act.cadence_max, 214)
+
+		url = "/activities/1/"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+
+		url = "/activities/1/?p=plots"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		data = json.loads(response.content)
+
+		self.assertIsInstance(data, dict)
+		self.assertTrue(data.has_key('altitude'))
+		self.assertEqual(len(data['altitude']), 6940)
+		self.assertTrue(data.has_key('cadence'))
+		self.assertNotEqual(data['cadence'], [])
+		self.assertTrue(data.has_key('speed'))
+		self.assertTrue(data.has_key('speed_foot'))
+
 

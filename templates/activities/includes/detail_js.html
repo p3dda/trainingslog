@@ -406,7 +406,6 @@
 		}
 
 		for (i in graphs) {
-			console.debug("Plot data for " + graphs[i]["name"] + ": " +  data[graphs[i]["dataname"]].length);
 			plot_data[graphs[i]["name"]]=new Object();
 			plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
@@ -416,12 +415,10 @@
 			if(data[graphs[i]["dataname"]].length == 0) {
 				plot_data[graphs[i]["name"]]["data"] = [];
 				$("#details_"+graphs[i]["name"]).hide();
-				console.debug("Hide plot " + graphs[i]["dataname"]);
-				
+
 				// Delete entry from graph list for non-existing graphs
 				delete graphs[i];
 			} else {
-				console.debug("Plot data " + graphs[i]["dataname"] + " has length " + data[graphs[i]["dataname"]].length);
 				var gdata=transpose(data[graphs[i]["dataname"]]);
 				if(plot_base == "time"){
 					var graphdata=transpose([gdata[1], gdata[2]]);

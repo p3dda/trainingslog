@@ -407,7 +407,7 @@
 				tickDecimals: "1",
 				tickFormatter: distanceSuffixFormatter,
 				min: xmin,
-				max: xmax,
+				max: xmax
 			},
 			crosshair : {
 				mode : "x"
@@ -584,7 +584,7 @@
 			$("#details_"+graphs[graph]["name"]+"_container").tooltip({
 					disabled: true,
 					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
-					tooltipClass: "details_plot_tooltip",
+					tooltipClass: "details_plot_tooltip"
 			});
 			$("#details_"+graphs[graph]["name"]+"_container").bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
@@ -653,7 +653,7 @@
 
 		$("#details_map_tooltip").tooltip({
 			disabled: true,
-			tooltipClass: "details_plot_tooltip",
+			tooltipClass: "details_plot_tooltip"
 		});
 	}
 	
@@ -740,7 +740,7 @@
 				// init the FB JS SDK
 				FB.init({
 					appId: "{{fb_app_id}}",
-					status : false, // check the login status upon init?
+					status : false // check the login status upon init?
 				});
 			};
 		

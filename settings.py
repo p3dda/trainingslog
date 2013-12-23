@@ -8,12 +8,6 @@ PROJECT_ROOT = os.path.dirname(__file__)
 import sys
 sys.path.append(os.path.join(PROJECT_ROOT, 'libs'))
 
-library_path = 'libs' #Relative paths to libraries
-for dir in os.listdir(library_path):
-    path = os.path.join(library_path, dir)
-    if not path in sys.path:
-        sys.path.append(path)
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

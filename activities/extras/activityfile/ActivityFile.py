@@ -57,6 +57,7 @@ class ActivityFile:
 		self.laps = None
 		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'vertical_oscillation': []}
 		self.track_by_distance={}
+		self.detail_entries = {}
 		self.position_start = None
 
 	def get_activity(self):
@@ -490,6 +491,13 @@ class ActivityFile:
 		@rtype: list
 		"""
 		return self.track_data["vertical_oscillation"]
+
+	def get_detail_entries(self):
+		""" Returns dict containing title and value for additional entries in activity detail view
+		@returns dict
+		"""
+		return self.detail_entries
+
 
 class TCXFile(ActivityFile):
 	#TCX_NS="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"
@@ -973,9 +981,25 @@ class FITFile(ActivityFile):
 
 		for message in self.fitfile.get_messages(name="session"):
 			start_time = message.get_value("start_time")
+			total_strides = message.get_value("total_strides")
+			if total_strides is not None:
+				total_strides *= 2 				# TODO: At least when running with FR620, check with cycling
+			total_distance = message.get_value("total_distance")
+
+			if total_distance is not None and total_distance is not None and total_strides > 0:
+				self.detail_entries["avg_stride_len"] = total_distance / total_strides
+
+			if message.get_value("avg_stance_time") is not None:
+				self.detail_entries["avg_stance_time"] = message.get_value("avg_stance_time")
+			if message.get_value("avg_vertical_oscillation") is not None:
+				self.detail_entries["avg_vertical_oscillation"] = message.get_value("avg_vertical_oscillation")
+			if message.get_value("total_training_effect") is not None:
+				self.detail_entries["total_training_effect"] = message.get_value("total_training_effect")
 
 		for message in self.fitfile.get_messages(name='record'):
 			distance = message.get_value("distance")*1000
+			if distance is not None:
+				distance *= 1000 	# convert from km -> m
 			delta = message.get_value('timestamp')-start_time
 			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 

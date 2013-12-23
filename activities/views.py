@@ -303,7 +303,9 @@ def list_activities(request):
 	
 #				activity = importtrack_from_tcx(request, newtrack)
 				activityfile = ActivityFile.TCXFile(newtrack, request)
+				activityfile.import_activity()
 				activity = activityfile.get_activity()
+				activity.save()
 				tmpfile.close()
 				os.remove(tmpfilename)
 				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))

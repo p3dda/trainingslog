@@ -997,7 +997,7 @@ class FITFile(ActivityFile):
 				self.detail_entries["total_training_effect"] = message.get_value("total_training_effect")
 
 		for message in self.fitfile.get_messages(name='record'):
-			distance = message.get_value("distance")*1000
+			distance = message.get_value("distance")
 			if distance is not None:
 				distance *= 1000 	# convert from km -> m
 			delta = message.get_value('timestamp')-start_time

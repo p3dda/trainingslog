@@ -295,13 +295,14 @@ def list_activities(request):
 				tmpfile.write(content)
 				tmpfile.close()
 
-				#create new trackfile 
+				#create new trackfile
+				newtrack.filetype="tcx"
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
 				is_saved=True
 				logging.debug("Filename: %s" % filename)
 	
 #				activity = importtrack_from_tcx(request, newtrack)
-				activityfile = ActivityFile.TCXFile(request, newtrack)
+				activityfile = ActivityFile.TCXFile(newtrack, request)
 				activity = activityfile.get_activity()
 				tmpfile.close()
 				os.remove(tmpfilename)

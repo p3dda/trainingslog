@@ -636,8 +636,10 @@ def detail(request, activity_id):
 					'stance_time': tcxtrack.get_stance_time(),
 					'vertical_oscillation': tcxtrack.get_vertical_oscillation()
 					}
-			
-			return HttpResponse(json.dumps(data, sort_keys=True, indent=4),content_type="text/plain")
+
+			details_data = tcxtrack.get_detail_entries()
+
+			return HttpResponse(json.dumps({"plot_data": data, "details_data": details_data}, sort_keys=True, indent=4),content_type="text/plain")
 	
 	# last resort
 	return Http404()

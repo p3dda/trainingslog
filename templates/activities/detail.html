@@ -79,11 +79,12 @@
 			<div class="details_left_tables" id="details_details">
 				<h3><a href="#">Details</a></h3>
 				<div>
-					<table class = "activity_details">
+					<table class = "activity_details" id="activity_details_table">
 						<colgroup>
 							<col style="width: 200px">
 							<col style="width: 100px">
 						</colgroup>
+						<tbody>
 {% if not public %}
 						<tr><td>Ausr&uuml;stung</td><td>{{ activity.equipment.all|join:", " }}</td></tr>
 {% endif %}
@@ -99,6 +100,7 @@
 						{% if activity.speed_avg_movement %}<tr><td>Ø Geschwindigkeit in Bewegung</td><td>{{ activity.speed_avg_movement|default_if_none:"-" }} {{speed_unit}}</td></tr>{% endif %}
 						{% if activity.time_elapsed %}<tr><td>Gesamtzeit</td><td>{{ activity.time_elapsed|default_if_none:"-" }}</td></tr>{% endif %}
 						{% if activity.time_movement %}<tr><td>Zeit in Bewegung</td><td>{{ activity.time_movement|default_if_none:"-" }}</td></tr>{% endif %}
+						</tbody>
 					</table>
 				</div>
 			</div>

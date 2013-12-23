@@ -105,15 +105,21 @@ class ActivityTest(TestCase):
 		url = "/activities/1/?p=plots"
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, 200)
-		data = json.loads(response.content)
-		self.assertIsInstance(data, dict)
-		self.assertTrue(data.has_key('altitude'))
-		self.assertEqual(len(data['altitude']), 804)
-		self.assertTrue(data.has_key('cadence'))
-		self.assertEqual(data['cadence'], [])
-		self.assertTrue(data.has_key('speed'))
-		self.assertTrue(data.has_key('speed_foot'))
+		jsondata = json.loads(response.content)
+		self.assertIsInstance(jsondata, dict)
+		pdata = jsondata["plot_data"]
+		ddata = jsondata["details_data"]
 
+		self.assertIsInstance(pdata, dict)
+		self.assertTrue(pdata.has_key('altitude'))
+		self.assertEqual(len(pdata['altitude']), 804)
+		self.assertTrue(pdata.has_key('cadence'))
+		self.assertEqual(pdata['cadence'], [])
+		self.assertTrue(pdata.has_key('speed'))
+		self.assertTrue(pdata.has_key('speed_foot'))
+
+		self.assertNotIsInstance(ddata, dict)
+		self.assertEqual(ddata, {})
 
 		act.delete()
 
@@ -183,14 +189,18 @@ class ActivityTest(TestCase):
 		url = "/activities/1/?p=plots"
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, 200)
-		data = json.loads(response.content)
+		jsondata = json.loads(response.content)
 
-		self.assertIsInstance(data, dict)
-		self.assertTrue(data.has_key('altitude'))
-		self.assertEqual(len(data['altitude']), 6940)
-		self.assertTrue(data.has_key('cadence'))
-		self.assertNotEqual(data['cadence'], [])
-		self.assertTrue(data.has_key('speed'))
-		self.assertTrue(data.has_key('speed_foot'))
+		self.assertIsInstance(jsondata, dict)
+		pdata=jsondata["plot_data"]
+		ddata = jsondata["details_data"]
+		self.assertTrue(pdata.has_key('altitude'))
+		self.assertEqual(len(pdata['altitude']), 6940)
+		self.assertTrue(pdata.has_key('cadence'))
+		self.assertNotEqual(pdata['cadence'], [])
+		self.assertTrue(pdata.has_key('speed'))
+		self.assertTrue(pdata.has_key('speed_foot'))
 
+		self.assertIsInstance(ddata, dict)
+		self.assertEqual(ddata["avg_stance_time"], 240.6)
 

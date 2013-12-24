@@ -118,7 +118,7 @@ class ActivityTest(TestCase):
 		self.assertTrue(pdata.has_key('speed'))
 		self.assertTrue(pdata.has_key('speed_foot'))
 
-		self.assertNotIsInstance(ddata, dict)
+		self.assertIsInstance(ddata, dict)
 		self.assertEqual(ddata, {})
 
 		act.delete()
@@ -152,6 +152,25 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.speed_max, Decimal('48.1'))
 
 		act.delete()
+
+	def test_tcx_communicator_plugin(self):
+		"""
+		Tests tcx file import and parsing with gps
+		"""
+		url="/activities/"
+		self.client.login(username='test1', password='test1')
+
+		with open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike.tcx'), 'r') as tcxfile:
+			tcx_content = tcxfile.read()
+
+		response = self.client.post(url, {'content': tcx_content, 'filename': 'test.tcx'})
+		self.assertEqual(response.status_code, 200)
+
+		act=Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+		self.assertEqual(act.time_elapsed, 7723)
+		self.assertEqual(act.time, 4857)
+
 
 	def test_fit_run(self):
 		"""

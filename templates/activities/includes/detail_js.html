@@ -276,6 +276,7 @@
 					console.debug("Unknown detail entry: " + detail_name);
 				}
 			}
+			$( "#details_details" ).accordion( "refresh" );
 
 			for(var graph in graphs){
 				var dataname = graphs[graph]["dataname"];

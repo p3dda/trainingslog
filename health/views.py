@@ -67,7 +67,7 @@ def add_weight(request):
 			result = {'success': True}
 			return HttpResponse(simplejson.dumps(result))
 		else:
-			return HttpResponseBadRequest
+			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_weight: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
@@ -100,7 +100,7 @@ def add_weightgoal(request):
 			result = {'success': True}
 			return HttpResponse(simplejson.dumps(result))
 		else:
-			return HttpResponseBadRequest
+			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_weightgoal: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
@@ -148,7 +148,7 @@ def add_desease(request):
 			result = {'success': True}
 			return HttpResponse(simplejson.dumps(result))
 		else:
-			return HttpResponseBadRequest
+			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_desease: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
@@ -250,7 +250,7 @@ def add_pulse(request):
 				new_pulse.save()
 				return HttpResponse(simplejson.dumps({"success": True }))
 		else:
-			return HttpResponseBadRequest
+			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_pulse: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten:: %s" % exc}

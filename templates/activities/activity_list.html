@@ -38,58 +38,55 @@
 	$(document).ready(function() {
 		{%  if garmin_keys %}
 		try {
-			control = new Garmin.DeviceControl();
-			if (control && control.isPluginInitialized()) {
-				var uploads_succeeded=0;
-				
-			   	var display = new Garmin.DeviceDisplay("garminDisplay", { 
-					pathKeyPairsArray: [{% for url, key in garmin_keys %}"{{url}}", "{{key}}", {% endfor %}],
-					autoFindDevices: true,
-					autoHideUnusedElements: true,
-					dataFound: "#{tracks} activities found on device",
-					deviceSelectLabel: "Choose Device <br/>",
-					lookingForDevices: 'Searching for Device <br/><br/> <img src="/media/css/garmin/ajax-loader.gif"/>',
-					readDataButtonText:			"List Activities",
-					readDataType: Garmin.DeviceControl.FILE_TYPES.tcxDir,
-					showDeviceButtonsOnLoad: false,
-					showDeviceButtonsOnFound: false,
-					showDeviceSelectOnLoad: true,
-					showFindDevicesElement: true,
-					showFindDevicesButton: false,
-					showReadDataElement: true,
-					showReadDataTypesSelect: false,
-					showProgressBar: true,
-					showCancelReadDataButton: false,
-					showReadDataElementOnDeviceFound: true,
-					uploadCompressedData: false,    // Turn on data compression by setting to true.
-					uploadMaximum: 5, 
-					uploadsFinished: "Transfer Complete",
-					uploadSelectedActivities: true,
-					postActivityHandler: function(activityXml, display) {
-						data = { filename: "test.tcx", content:activityXml}
-						$.post('.', data, function(data) {
-							if(data["success"]){
-								uploads_succeeded = uploads_succeeded + 1;
-								if (display.activities.length == 1) {
-									//redirect to activity details if only one has been imported
-									window.location=data["redirect_to"];
-								}
-								
-								if (uploads_succeeded == display.activities.length) {
-									act_table.fnDraw();
-									noty({text: "Import abgeschlossen", type: 'success', timeout: 5000});
-									$('#garminDisplay').hide();
-								}
-							} else {
-								noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+			var uploads_succeeded=0;
+
+			var display = new Garmin.DeviceDisplay("garminDisplay", {
+				pathKeyPairsArray: [{% for url, key in garmin_keys %}"{{url}}", "{{key}}", {% endfor %}],
+				autoFindDevices: true,
+				autoHideUnusedElements: true,
+				dataFound: "#{tracks} activities found on device",
+				deviceSelectLabel: "Choose Device <br/>",
+				lookingForDevices: 'Searching for Device <br/><br/> <img src="/media/css/garmin/ajax-loader.gif"/>',
+				readDataButtonText:			"List Activities",
+//				readDataTypes: [ Garmin.DeviceControl.FILE_TYPES.tcxDir],
+				readDataTypes: [Garmin.DeviceControl.FILE_TYPES.fitDir, Garmin.DeviceControl.FILE_TYPES.tcxDir],
+				showDeviceButtonsOnLoad: false,
+				showDeviceButtonsOnFound: false,
+				showDeviceSelectOnLoad: true,
+				showFindDevicesElement: true,
+				showFindDevicesButton: false,
+				showReadDataElement: true,
+				showProgressBar: true,
+				showCancelReadDataButton: false,
+				showReadDataElementOnDeviceFound: true,
+
+				uploadCompressedData: false,    // Turn on data compression by setting to true.
+				uploadMaximum: 5,
+				uploadsFinished: "Transfer Complete",
+				uploadSelectedActivities: true,
+				postActivityHandler: function(activityXml, display) {
+					data = { filename: "test.tcx", content:activityXml}
+					$.post('.', data, function(data) {
+						if(data["success"]){
+							uploads_succeeded = uploads_succeeded + 1;
+							if (display.numQueuedActivities == 1) {
+								//redirect to activity details if only one has been imported
+								window.location=data["redirect_to"];
 							}
-						}, "json");
-					}
-				});
-				$('#garminDisplay').show();
 
+							if (uploads_succeeded == display.numQueuedActivities) {
+								act_table.fnDraw();
+								noty({text: "Import abgeschlossen", type: 'success', timeout: 5000});
+								$('#garminDisplay').hide();
+							}
+						} else {
+							noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+						}
+					}, "json");
+				}
+			});
+			$('#garminDisplay').show();
 
-			}
 		} catch (e) {
 			$('#garminDisplay').hide();			
 		}

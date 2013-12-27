@@ -284,25 +284,38 @@ def list_activities(request):
 			# This is a Garmin Communicator plugin upload
 			logging.debug("Creating activity from text upload")
 			try:
-				filename = "%s.tcx" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
-				newtrack = Track()
-
-				# create a temp file from Garmin Communicator Plugin Content
-				tmpfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
-				tmpfilename = tmpfile.name
-
 				content = request.POST['content']
-				tmpfile.write(content)
+				newtrack = Track()
+				tmpfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+
+				if content.splitlines()[0].startswith("<?xml"):
+					filename = "%s.tcx" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
+					newtrack.filetype="tcx"
+					tmpfilename = tmpfile.name
+
+					tmpfile.write(content)
+
+					#create new trackfile
+				elif ".fit" in content.splitlines()[0].lower():
+					filename = "%s.fit" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
+					newtrack.filetype="fit"
+					tmpfilename = tmpfile.name
+
+					for line in content.splitlines()[1:]:
+						tmpfile.write(b64decode(line))
 				tmpfile.close()
 
-				#create new trackfile
-				newtrack.filetype="tcx"
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
 				is_saved=True
 				logging.debug("Filename: %s" % filename)
 	
 #				activity = importtrack_from_tcx(request, newtrack)
-				activityfile = ActivityFile.TCXFile(newtrack, request)
+				if newtrack.filetype=="tcx":
+					activityfile = ActivityFile.TCXFile(newtrack, request)
+				elif newtrack.filetype=="fit":
+					activityfile = ActivityFile.FITFile(newtrack, request)
+				else:
+					raise RuntimeError("Unsupported file type: %s" % newtrack.filetype)
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()

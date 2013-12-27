@@ -20,7 +20,7 @@
  			"bJQueryUI": true,
 			"bFilter": false,
 			"bInfo": false,
-			"bPaginate": false,
+			"bPaginate": false
 		});
 
 		now = new Date();
@@ -28,14 +28,14 @@
 			{ dateFormat: 'dd.mm.yy',
 			  firstDay: 1,
 			  monthNames: monthNames,
-			  dayNamesMin: dayNamesMin,
+			  dayNamesMin: dayNamesMin
 			}
 		);
 		$( "#custom_end_date" ).datepicker(
 			{ dateFormat: 'dd.mm.yy',
 			  firstDay: 1,
 			  monthNames: monthNames,
-			  dayNamesMin: dayNamesMin,
+			  dayNamesMin: dayNamesMin
 			}
 		);
 		
@@ -159,20 +159,20 @@
 				xaxis : {
 					mode : "time",
 					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter,
+					tickFormatter:weekTickFormatter
 				},
 				yaxis: {
-					tickFormatter:timeTickFormatter,
+					tickFormatter:timeTickFormatter
 				},
 				series: {
 					stack: true,
 					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
 				},
 				grid: {
-					show: true,
+					show: true
 				},
 				legend: {
-					show: false,
+					show: false
 				}
 			});
 
@@ -180,17 +180,17 @@
 				xaxis : {
 					mode : "time",
 					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter,
+					tickFormatter:weekTickFormatter
 				},
 				series: {
 					stack: true,
 					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
 				},
 				grid: {
-					show: true,
+					show: true
 				},
 				legend: {
-					show: false,
+					show: false
 				}
 			});
 
@@ -198,17 +198,17 @@
 				xaxis : {
 					mode : "time",
 					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter,
+					tickFormatter:weekTickFormatter
 				},
 				series: {
 					stack: true,
 					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
 				},
 				grid: {
-					show: true,
+					show: true
 				},
 				legend: {
-					show: false,
+					show: false
 				}
 			});
 			
@@ -216,17 +216,17 @@
 				xaxis : {
 					mode : "time",
 					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter,
+					tickFormatter:weekTickFormatter
 				},
 				series: {
 					stack: true,
 					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
 				},
 				grid: {
-					show: true,
+					show: true
 				},
 				legend: {
-					show: false,
+					show: false
 				}
 			});
 

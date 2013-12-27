@@ -44,6 +44,12 @@ div .inner_div {
 	padding:10px;
 }
 
+div .hidden {
+    display:none;
+}
+
+
+
 div#result{ background-color: #E6E6E6;font-weight: bold;color: #FF0000;}
 body { /*height: 10px;*/font-family: verdana;font-size: small;color: #9CA9CB;}
 p#head{ color: #0F35FF;}
@@ -128,77 +134,21 @@ div #details_left_tables {
 div #plot_selection{
 	height: 200px;
 }
-div #details_map{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
+
 div #details_map_container {
 	height: 400px;
 	position:relative;
 	z-index:0
 }
-div #details_map_tooltip {
+
+
+div .details_plot {
 	font-size: small;
 	width: 600px;
 	margin-left: 305px;
 }
-div #details_hf{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_hf_container {
-	width: 100%;
-	height: 250px;
-	overflow: hidden;
-}
-div #details_speed{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_speed_container {
-	width: 100%;
-	height: 250px;
-	overflow: hidden;
-}
-div #details_alt{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_alt_container {
-	width: 100%;
-	height: 250px;
-	overflow: hidden;
-}
-div #details_cad{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_cad_container {
-	width: 100%;
-	height: 250px;
-	overflow: hidden;
-}
-div #details_stance_time{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_stance_time_container {
-	width: 100%;
-	height: 250px;
-	overflow: hidden;
-}
-div #details_vertical_oscillation{
-	font-size: small;
-	width: 600px;
-	margin-left: 305px;
-}
-div #details_vertical_oscillation_container {
+
+div .details_plot_container{
 	width: 100%;
 	height: 250px;
 	overflow: hidden;

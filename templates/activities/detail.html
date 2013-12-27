@@ -125,38 +125,42 @@
 {% endif %}
 		</div>
 		{% if gpx_url %}
-		<div id="details_map">
+		<div id="details_map" class="details_plot">
 			<h3><a href="#">Karte</a></h3>
-			<div id="details_map_container" style="visibility:hidden"></div>
+			<div id="details_map_container" class="hidden"></div>
 		</div>
-		<div id="details_map_tooltip" title="Tooltip"></div>
+		<div id="details_map_tooltip" class="details_plot" title="Tooltip"></div>
 		{% endif %}
 		{% if tcx %}
-		<div id="details_hf">
-			<h3><a href="#">Herzfrequenz</a></h3>
-			<div class="details_plot" title="HF" id="details_hf_container"></div>
+		<div id="spinning_icon" class="details_plot ">
+			<img src="/media/img/spinning-icon.gif"/>
 		</div>
-		<div id="details_speed">
+
+		<div id="details_speed" class="details_plot hidden">
 			<h3><a href="#">Geschwindigkeit</a></h3>
-			<div class="details_plot" title="Geschwindigkeit" id="details_speed_container"></div>
+			<div class="details_plot_container" title="Geschwindigkeit" id="details_speed_container"></div>
 		</div>
-		<div id="details_alt">
+		<div id="details_hf" class="details_plot hidden">
+			<h3><a href="#">Herzfrequenz</a></h3>
+			<div class="details_plot_container" title="HF" id="details_hf_container"></div>
+		</div>
+		<div id="details_alt" class="details_plot hidden">
 			<h3><a href="#">H&ouml;he</a></h3>
-			<div class="details_plot" title="Hoehe" id="details_alt_container"></div>
+			<div class="details_plot_container" title="Hoehe" id="details_alt_container"></div>
 		</div>
-		<div id="details_cad">
+		<div id="details_cad" class="details_plot hidden">
 			<h3><a href="#">Trittfrequenz</a></h3>
-			<div class="details_plot" title="Trittfrequenz" id="details_cad_container"></div>
+			<div class="details_plot_container" title="Trittfrequenz" id="details_cad_container"></div>
 		</div>
-		<div id="details_stance_time">
+		<div id="details_stance_time" class="details_plot hidden">
 			<h3><a href="#">Bodenkontaktzeit</a></h3>
-			<div class="details_plot" title="Bodenkontaktzeit" id="details_stance_time_container"></div>
+			<div class="details_plot_container" title="Bodenkontaktzeit" id="details_stance_time_container"></div>
 		</div>
-		<div id="details_vertical_oscillation">
+		<div id="details_vertical_oscillation" class="details_plot hidden">
 			<h3><a href="#">Vertikale Bewegung</a></h3>
-			<div class="details_plot" title="Vertikale Bewegung" id="details_vertical_oscillation_container"></div>
+			<div class="details_plot_container" title="Vertikale Bewegung" id="details_vertical_oscillation_container"></div>
 		</div>
-		<div id="plotbase_form">
+		<div id="plotbase_form" class="hidden">
 			<select id="plot_xaxis">
 				<option value = 0>Distanz</option>
 				<option value = 1>Zeit</option>

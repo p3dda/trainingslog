@@ -47,6 +47,20 @@ class ActivityTest(TestCase):
 		speed = activities.utils.speed_to_pace(8)
 		self.assertEqual(speed, "7:30")
 
+	def test_seconds_to_time(self):
+		"""
+		Tests utils.second_to_time method
+		"""
+		time = activities.utils.seconds_to_time(2)
+		self.assertEqual(time, "0:02")
+
+		time = activities.utils.seconds_to_time(2, force_hour=True)
+		self.assertEqual(time, "0:00:02")
+
+		time = activities.utils.seconds_to_time(3602, force_hour=True)
+		self.assertEqual(time, "1:00:02")
+
+
 	def test_tcx_nogps_upload(self):
 		"""
 		Tests tcx file upload and parsing without gps

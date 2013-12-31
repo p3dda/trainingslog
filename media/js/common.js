@@ -131,24 +131,42 @@ function paceToSpeed(val){
  * 
  * @param {Integer} val The time in seconds
  */
-function secondsToTime(val, with_hours){
+function secondsToTime(val, with_hours, with_days){
 	if(with_hours==null){
 		with_hours = true;
 	}
+	if(with_days==null){
+		with_days = false;
+	}
+
+	if(with_days) {
+		var days = Math.floor(val/86400);
+		val %= 86400;
+	}
 	if(with_hours) {
 		var hours =  Math.floor(val/3600);
-		var minutes = ( Math.floor(val/60)) % 60;
-	} else {
-		var minutes = ( Math.floor(val/60)) % 60;
+		val %= 3600
+//		var minutes = ( Math.floor(val/60)) % 60;
 	}
+	var minutes = ( Math.floor(val/60)) % 60;
 	var seconds = Math.floor(val % 60);
 //	var timeString = '%02d:%02d:%02d'.sprintf(hours, minutes, seconds);
 
-	if(with_hours) {
-		var timeString = pad(hours, 2) + ':' + pad(minutes, 2) + ':' + pad(seconds, 2);
-	} else { 
-		var timeString = pad(minutes, 2) + ':' + pad(seconds, 2);
+	var timeString="";
+
+	if(with_days){
+		if(days==1){
+			timeString = days + ' Tag '
+		} else {
+			timeString = days + ' Tage '
+		}
 	}
+	if(with_hours) {
+		timeString += pad(hours, 2) + ':' + pad(minutes, 2) + ':' + pad(seconds, 2);
+	} else {
+		timeString += pad(minutes, 2) + ':' + pad(seconds, 2);
+	}
+
 	return timeString;
 }
 

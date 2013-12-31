@@ -17,7 +17,33 @@
 <script>
 	$(document).ready(function() {
 		$( ".datatable").dataTable({
- 			"bJQueryUI": true,
+			"aoColumnDefs": [
+				{
+					"mRender": function ( data, type, full ) {
+						if(type=="display"){
+							return secondsToTime(data, with_hours=true, with_days=true);
+						} else {
+							return data;
+						}
+					},
+					"aTargets": [3]
+				},
+				{
+					"mRender": function ( data, type, full ) {
+						if(type=="display"){
+							if (data != ""){
+								return parseFloat(data).toFixed(2).replace( /\./,"," ) + " km";
+							} else {
+								return "-";
+							}
+						} else {
+							return data;
+						}
+					},
+					"aTargets": [2]
+				}
+			],
+			"bJQueryUI": true,
 			"bFilter": false,
 			"bInfo": false,
 			"bPaginate": false
@@ -256,13 +282,16 @@
 		for(var key in data) {
 			var item = data[key];
 			if(item['num_activities'] > 0) {
+		//		var time = secondsToTime(item['total_seconds']);
 				$('#table_report').dataTable().fnAddData( [
 						key,
 						item['num_activities'],
 						item['total_distance'],
-						item['total_time_str'],
+						item['total_time'],
 						item['total_elev_gain'],
-						item['total_calories'] ]);
+						item['total_calories']
+					]
+				);
 			}
 		}
 

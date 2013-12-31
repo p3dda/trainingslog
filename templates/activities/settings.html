@@ -45,6 +45,7 @@
 		});
 
 		$( "#tabs" ).tabs();
+
 		$( ".datatable").dataTable({
  			"bJQueryUI": true,
 			"bFilter": false,
@@ -52,9 +53,58 @@
 			"bPaginate": false,
 			"oLanguage": {
 				"sUrl":   "/media/lang/dataTables.de_DE.txt",
-			},
+			}
 		});
-		
+		$( ".datatable_equipment").dataTable({
+			"aoColumnDefs": [
+				{
+					"mRender": function ( data, type, full ) {
+						if(type=="display"){
+							return secondsToTime(data, with_hours=true, with_days=true);
+						} else {
+							return data;
+						}
+					},
+					"aTargets": [2]
+				},
+				{
+					"mRender": function ( data, type, full ) {
+						if(type=="display"){
+							if (data != ""){
+								return parseFloat(data).toFixed(2).replace( /\./,"," ) + " km/h";
+							} else {
+								return "-";
+							}
+						} else {
+							return data;
+						}
+					},
+					"aTargets": [3]
+				},
+				{
+					"mRender": function ( data, type, full ) {
+						if(type=="display"){
+							if (data != ""){
+								return parseFloat(data).toFixed(2).replace( /\./,"," ) + " km";
+							} else {
+								return "-";
+							}
+						} else {
+							return data;
+						}
+					},
+					"aTargets": [1]
+				}
+			],
+ 			"bJQueryUI": true,
+			"bFilter": false,
+			"bInfo": false,
+			"bPaginate": false,
+			"oLanguage": {
+				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+			}
+		});
+
 		$("#equipment_dialog").dialog({
 			autoOpen: false,
 			show: "blind",
@@ -391,7 +441,7 @@
 	</ul>
 	<div id="tabs-equipment">
 {% if equipments %}
-	<table id="equipment_table" class="datatable">
+	<table id="equipment_table" class="datatable_equipment">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
@@ -403,9 +453,9 @@
 					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_equipment_dialog({{equ.id}})"/>
 					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_equipment_delete_dialog({{equ.id}})"/>
 				</td>
-				<td>{{equ.distance}} km</td>
+				<td>{{equ.distance}}</td>
 				<td>{{equ.time}}</td>
-				<td>{{equ.speed}} km/h</td>
+				<td>{{equ.speed}}</td>
 			</tr>
 		{%endfor %}
 		</tbody>
@@ -417,7 +467,7 @@
 
 {% if equipments_archived %}
 <h2>Archiv</h2>
-	<table id="equipment_table" class="datatable">
+	<table id="equipment_archived_table" class="datatable_equipment">
 		<thead>
 		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
 		</thead>
@@ -431,7 +481,7 @@
 				</td>
 				<td>{{equ.distance}}</td>
 				<td>{{equ.time}}</td>
-				<td>{{equ.speed}} km/h</td>
+				<td>{{equ.speed}}</td>
 			</tr>
 		{%endfor %}
 		</tbody>

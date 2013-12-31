@@ -55,7 +55,7 @@
 		"avg_stance_time": {"label": "Ø Bodenkontaktzeit", "unit": "ms", "rounding": 0},
 		"avg_stride_len": {"label": "Ø Schrittlaenge", "unit": "m", "rounding": 2},
 		"avg_vertical_oscillation": {"label": "Ø vert. Bewegung", "unit": "mm", "rounding": 0},
-		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 0}
+		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 1}
 	};
 	
 {%  if gpx_url %}
@@ -451,7 +451,6 @@
 				} else {
 					var graphdata=transpose([gdata[0], gdata[2]]);
 					plot_data[graphs[i]["name"]]["data"]=graphdata;
-					
 					plot_default_options["xaxis"] = {
 						min: xmin,
 						max: xmax,

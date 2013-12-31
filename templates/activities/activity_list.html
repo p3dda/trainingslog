@@ -146,23 +146,25 @@
 		
 		var act_table = $('#activities_table').dataTable({
 			"aaSorting": [[ 2, "desc" ]],
-			"aoColumnDefs": [{ 
-				"aTargets": [3],
-				"bSearchable": false, 
-				"mRender": function ( data, type, full ) {
-					return secondsToTime(data);
+			"aoColumnDefs": [
+				{
+					"aTargets": [3],
+					"bSearchable": false,
+					"mRender": function ( data, type, full ) {
+						return secondsToTime(data);
+					}
+				},
+				{ "aTargets": [2],
+					"bSearchable": false,
+					"sType": 'date',
+					"mRender": function ( data, type, full ) {
+						var javascriptDate = new Date(data);
+						var dateString = pad(javascriptDate.getDate(),2) + "." + pad(javascriptDate.getMonth() + 1,2) + "." + javascriptDate.getFullYear() + " " + pad(javascriptDate.getHours(),2) + ":" + pad(javascriptDate.getMinutes(),2);
+						//javascriptDate = javascriptDate.getDate()+"/"+javascriptDate.getMonth()+1+"/"+javascriptDate.getFullYear();
+						return dateString;
+					}
 				}
-			},
-			{ "aTargets": [2], 
-				"bSearchable": false, 
-				"sType": 'date',
-				"mRender": function ( data, type, full ) {
-					var javascriptDate = new Date(data);
-					var dateString = pad(javascriptDate.getDate(),2) + "." + pad(javascriptDate.getMonth() + 1,2) + "." + javascriptDate.getFullYear() + " " + pad(javascriptDate.getHours(),2) + ":" + pad(javascriptDate.getMinutes(),2); 
-					//javascriptDate = javascriptDate.getDate()+"/"+javascriptDate.getMonth()+1+"/"+javascriptDate.getFullYear();
-					return dateString;
-				}
-			}],
+			],
  			"bJQueryUI": true,
 			"bServerSide": true,
 			"oLanguage": {

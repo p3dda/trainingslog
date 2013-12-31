@@ -826,13 +826,14 @@ def settings(request):
 
 		if activity_time > 0 and activity_distance['distance__sum']:
 			logging.debug("Distance: %s" % activity_distance['distance__sum'])
-			equipment.speed = round(float(activity_distance['distance__sum']) * 3600.0 / activity_time['time__sum'], 2)
+			equipment.speed = str(float(activity_distance['distance__sum']) * 3600.0 / activity_time['time__sum'])
 		else:
-			equipment.speed = "-"
+			equipment.speed = ""
 
-		equipment.time = seconds_to_time(equipment.time, force_hour=True)
-		
+		equipment.distance = str(equipment.distance)
+
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
+
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting
 	# order is important and should be same as order of columns

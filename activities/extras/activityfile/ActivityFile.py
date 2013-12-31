@@ -938,6 +938,10 @@ class FITFile(ActivityFile):
 				lap.distance = message.get_value("total_distance")/1000
 				lap.elevation_gain = message.get_value("total_ascent")
 				lap.elevation_loss = message.get_value("total_descent")
+				if lap.elevation_gain == None:
+					lap.elevation_gain = 0
+				if lap.elevation_loss == None:
+					lap.elevation_loss = 0
 
 				if message.get_value("avg_running_cadence") is not None:
 					lap.cadence_avg = message.get_value("avg_running_cadence") * 2	# TODO: if activity type is not running, take bike cadence
@@ -953,17 +957,21 @@ class FITFile(ActivityFile):
 				lap_altitude = []
 
 				max_speed = message.get("max_speed")
-				if max_speed is not None:
-					if max_speed.units == "m/s":
-						lap.speed_max = activities.utils.pace_to_speed(max_speed.value)
-					else:
-						lap.speed_max = max_speed.valued
+				if max_speed.units == "m/s":
+					lap.speed_max = (max_speed.value * 3600.0) / 1000
+				elif max_speed.units == "km/h":
+					lap.speed_max = max_speed.value
+				else:
+					raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
 				avg_speed = message.get("avg_speed")
 				if avg_speed is not None:
 					if avg_speed.units == "m/s":
-						lap.speed_avg = activities.utils.pace_to_speed(max_speed.value)
+						lap.speed_avg = (avg_speed.value * 3600.0) / 1000
+					elif max_speed.units == "km/h":
+						lap.speed_avg = avg_speed.value
 					else:
-						lap.speed_avg = max_speed.value
+						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
+
 				self.laps.append(lap)
 
 	def parse_trackpoints(self):

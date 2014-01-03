@@ -485,11 +485,14 @@ def add_activity(request):
 				try:
 					date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M:%S")
 				except ValueError:
-					if request.POST.get('is_template'):
-						date = None
-					else:
-						return HttpResponse(simplejson.dumps(
-							dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+					try:
+						date = datetime.datetime.strptime(datestring, "%Y-%m-%d %H:%M")
+					except ValueError:
+						if request.POST.get('is_template'):
+							date = None
+						else:
+							return HttpResponse(simplejson.dumps(
+								dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
 
 	
 			act.date = date

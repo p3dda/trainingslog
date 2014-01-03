@@ -1,35 +1,13 @@
-{% extends "base.html" %}
+{% extends "base_m.html" %}
 
-{% block title %}Activities list{% endblock %}
-{% block head %} 
+{% block head %}
 
-<script type="text/javascript" src="/media/js/common.js"></script>
+{% endblock %}
+{% block content %}
 
-<script type="text/javascript" src="/media/js/jquery.js"></script>
-<script type="text/javascript" src="/media/js/jquery.tablesorter.js"></script>
-<script type="text/javascript" src="/media/js/jquery.tablesorter.pager.js"></script>
-<script type="text/javascript" src="/media/js/jquery.ui.timepicker.js"></script>
-<script type="text/javascript" src="/media/js/jquery.dataTables.js"></script>
-<script type="text/javascript" src="/media/js/jquery.mobile-1.4.0.min.js"></script>
-
-<script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
-<script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
-<script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
-<script type="text/javascript" src="/media/jquery-ui/js/jquery-ui-1.10.1.custom.js"></script>
-
-<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
-<link rel='stylesheet' type='text/css' href='/media/css/jquery.mobile-1.4.0.min.css' />
-<link rel='stylesheet' type='text/css' href='/media/css/jquery.ui.timepicker.css'/>
-
-	<link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
+<div data-role="page" id="act_list_page">
 	<script>
-	var garmincontrol;
-	var sport_data = Array();
-	
-	$(document).ready(function() {
-		$("#activity_add").click(function(){show_activity_dialog();});
-		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
-		
+	$("#act_list_page").on('pageinit', function() {
 		var act_table = $('#activities_table').dataTable({
 			"aaSorting": [[ 2, "desc" ]],
 			"aoColumnDefs": [
@@ -52,57 +30,170 @@
 				}
 			],
  			"bJQueryUI": true,
+			"bPaginate": true,
 			"bServerSide": true,
+			"sPaginationType": "two_button",
 			"oLanguage": {
-				"sUrl":   "/media/lang/dataTables.de_DE.txt"
+			"sUrl":   "/media/lang/dataTables.de_DE.txt"
 			},
 			"sAjaxSource": "/activities/get"
 		});
 	});
-	
-	// Initialize sport_data array with speed / pace unit information
-	{% for sport in sports %}
-		{% if sport.speed_as_pace %}
-			sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
-		{% else %}
-			sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
-		{% endif %}
-	{% endfor %}
-</script>
-{% endblock %}
-{% block content %}
 
-MOBILE
-	<a href="http://localhost:8000/activities/914/">914</a>
-	<table id="activities_table" class="activities_table">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Datum</th>
-				<th>Dauer</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-	<br/>
-	<hr/>
+	</script>
+	<div data-role="header">
+		<h1>Aktivit&auml;ten</h1>
+		<a href="#act_form_page1" data-icon="plus" data-rel="dialog" data-theme="c">New</a>
+	</div>
+	<div data-role="content">
+		<table cellspacing="0" class="ui-responsive table-stroke" data-role="table" id="activities_table" >
+			<thead>
+				<tr>
+					<th data-priority="1">Name</th>
+					<th data-priority="2">Datum</th>
+					<th data-priority="3">Dauer</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+</div>
 
-		<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">
-		<br/><br/>
-		<!-- Upload form. Note enctype attribute! -->
-		<form method="post" enctype="multipart/form-data">
-		    <input id = "newact_fileform" type="file" name="trackfile" />
-			<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>
-		</form>
+<div data-role="page" id="act_form_page1">
+	{%  include "activities/includes/activity_list_js.html" %}
+	<div data-role="header"  data-theme="b">
+		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>
+		<h1>Neue Aktivit&auml;t 1/3</h1>
+		<a href="#act_form_page2" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" data-transition="slide">Weiter</a>
+	</div>
 
-<div style="clear:both"></div>
+	<div data-role="content">
+	<select id="new_act_template">
+		<option value = -1 data-placeholder="true"> Vorlage... </option>
+		{% for template in activitytemplates %}
+			<option value={{template.id}}>{{template.name}}</option>
+		{% endfor %}
+	</select>
 
-{% comment %}
-{% include "activities/includes/activity_dialog.html" %}
-{% endcomment %}
-<div id="alert_dialog" title="Fehler">
-	<div id="alert_dialog_content"></div>
+	<div data-role="fieldcontain">
+		<label for="new_act_name">Name</label>
+		<input type="text" id="new_act_name" value="" data-mini="true" />
+		<label for="new_act_comment">Kommentar</label>
+		<textarea rows=3 cols=30 id="new_act_comment"></textarea>
+		<label for="new_act_date">Datum</label>
+		<input type="date" id="new_act_date" value="" data-mini="true" />
+		<label for="new_act_datetime">Uhrzeit</label>
+		<input type="time" id="new_act_datetime" value="" data-mini="true" />
+
+		<label for="new_act_time">Dauer</label>
+		<input type="time" id="new_act_time" value="" data-mini="true" />
+		<label for="new_act_distance">Distanz</label>
+		<input type="text" id="new_act_distance" data-mini="true" />
+
+		<label for="new_act_sport">Sportart</label>
+		<select id="new_act_sport" data-mini="true">
+			<option value = -1 data-placeholder="true"> Kalorienformel... </option>
+			{% for sport in sports %}
+				<option value={{sport.id}}>{{sport.name}}</option>
+			{% endfor %}
+		</select>
+		<label for="new_act_calformula">Kalorienformel</label>
+		<select id="new_act_calformula" data-mini="true">
+			<option value = -1 data-placeholder="true"> Kalorienformel... </option>
+			{% for calformula in calformulas %}
+				<option value={{calformula.id}}>{{calformula.name}}</option>
+			{% endfor %}
+		</select>
+		<label for="new_act_event">Ereignis:</label>
+		<select id="new_act_event" data-mini="true">
+			{% for event in events %}
+				<option value={{event.id}}>{{event.name}}</option>
+			{% endfor %}
+		</select>
+
+	</div>
+	<fieldset>
+	  <div data-role="fieldcontain">
+		<label for="new_act_public">&Ouml;ffentlich:</label>
+		<input type="checkbox" id="new_act_public" data-role="flipswitch">
+	  </div>
+	</fieldset>
+<!--	<a href="#act_list_page" data-role="button" data-inline="true">Abbrechen</a><a href="#act_form_page2" data-role="button" data-rel="dialog" data-transition="slide" data-inline="true">Weiter</a></p>-->
+	</div>
+</div>
+
+<div data-role="page" id="act_form_page2">
+	<div data-role="header"  data-theme="b">
+<!--		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>-->
+		<a href="#act_form_page1" data-icon="arrow-l" data-iconpos="left" data-rel="dialog" data-transition="slide" data-direction="reverse">Zur&uuml;ck</a>
+		<h1>Neue Aktivit&auml;t 2/3</h1>
+		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" data-transition="slide">Weiter</a>
+	</div>
+
+	<div data-role="content">
+	<div data-role="fieldcontain">
+
+	<label for="new_act_calories">Kalorien</label>
+	<input type="text" id="new_act_calories" data-mini="true" />
+
+	<label for="new_act_hr_max">Max. Puls</label>
+	<input type="text" id="new_act_hr_max" data-mini="true" />
+	<label for="new_act_hr_avg">Avg. Puls</label>
+	<input type="text" id="new_act_hr_avg" data-mini="true" />
+
+			<label for="new_act_equipment">Ausr&uuml;stung</label>
+			<select id="new_act_equipment" size=3 multiple>
+				{% for equipment in equipments %}
+					<option value={{equipment.id}}>{{equipment.name}}</option>
+				{% endfor %}
+			</select>
+
+
+			<label for="new_act_cadence_avg">Avg. TF</label>
+			<input type="text" id="new_act_cadence_avg" data-mini="true"/>
+
+			<label for="new_act_cadence_max">Max. TF</label><input type="text" id="new_act_cadence_max" data-mini="true"/>
+			<label for="new_act_elevation_gain">Aufstieg</label><input type="text" id="new_act_elevation_gain" data-mini="true"/>
+			<label for="new_act_elevation_loss">Abstieg</label>
+			<input type="text" id="new_act_elevation_loss" data-mini="true"/>
+			<label for="new_act_elevation_max">Max. H&ouml;he</label>
+			<input type="text" id="new_act_elevation_max" data-mini="true"/>
+			<label for="new_act_elevation_min">Min. H&ouml;he</label>
+			<input type="text" id="new_act_elevation_min" data-mini="true"/>
+			<label for="new_act_speed_max">Vmax (<span class="speed_unit">km/h</span>)</label>
+			<input type="text" id="new_act_speed_max" data-mini="true"/>
+			<label for="new_act_elapsed_time">Ges. Zeit</label><input type="text" id="new_act_elapsed_time" data-mini="true"/>
+			<label for="new_act_time_movement">Zeit / Bwg.</label><input type="text" id="new_act_time_movement" data-mini="true"/>
+			<label for="new_act_speed_avg">V avg. (<span class="speed_unit">km/h</span>)</label><input type="text" id="new_act_speed_avg" data-mini="true">
+			<label for="new_act_speed_avg_movement">V avg./ bwg. (<span class="speed_unit">km/h</span>)</label><input type="text" id="new_act_speed_avg_movement" data-mini="true">
+	</div>
+	</div>
+</div>
+<div data-role="page" id="act_form_page3">
+	<div data-role="header"  data-theme="b">
+<!--		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>-->
+		<a href="#act_form_page2" data-icon="arrow-l" data-iconpos="left" data-rel="dialog" data-transition="slide" data-direction="reverse">Zur&uuml;ck</a>
+		<h1>Neue Aktivit&auml;t 3/3</h1>
+		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_activity_clicked(); return false" rel="external">Speichern</a>
+	</div>
+
+	<div data-role="content">
+	<div data-role="fieldcontain">
+		<label for="new_act_weather_stationname">Ort</label>
+		<input type="text" id="new_act_weather_stationname"  data-mini="true"/>
+		<label for="new_act_weather_temp">Temperatur</label>
+		<input type="text" id="new_act_weather_temp"  data-mini="true"/>
+		<label for="new_act_weather_hum">Luftfeuchtigkeit</label>
+		<input type="text" id="new_act_weather_hum"  data-mini="true"/>
+		<label for="new_act_weather_winddir">Windrichtung</label>
+		<input type="text" id="new_act_weather_winddir"  data-mini="true"/>
+		<label for="new_act_weather_windspeed">Windgeschwindigkeit</label>
+		<input type="text" id="new_act_weather_windspeed"  data-mini="true"/>
+		<label for="new_act_weather_rain">Niederschlag</label>
+		<input type="text" id="new_act_weather_rain"  data-mini="true"/>
+	</div>
+	</div>
 </div>
 
 {% endblock %} 

@@ -463,8 +463,10 @@
 		}
 
 		pace_plot = {
-			transform: function(v) { return -v; },
-			inverseTransform: function (v) { return -v; },
+		//	transform: function(v) { return -v; },
+		//	inverseTransform: function (v) { return -v; },
+			transform: function(v) { return -Math.log(v); },
+			inverseTransform: function (v) { return Math.exp(-v); },
 			ticks: function (axis) {
 				var res = [], i = Math.floor(axis.min);
 				do {

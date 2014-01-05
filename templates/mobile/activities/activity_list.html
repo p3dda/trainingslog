@@ -6,6 +6,7 @@
 {% block content %}
 
 <div data-role="page" id="act_list_page">
+
 	<script>
 	$("#act_list_page").on('pageinit', function() {
 		var act_table = $('#activities_table').dataTable({
@@ -42,9 +43,11 @@
 
 	</script>
 	<div data-role="header">
-		<h1>Aktivit&auml;ten</h1>
-		<a href="#act_form_page1" data-icon="plus" data-rel="dialog" data-theme="c">New</a>
+		<h1 id="act_list_header">Aktivit&auml;ten</h1>
+		<a href="#navpanel" data-role="button" data-inline="true" data-mini="true">Men&uuml;</a>
+		<a href="#act_form_page1" data-icon="plus" data-rel="dialog" data-theme="c">Neu...</a>
 	</div>
+
 	<div data-role="content">
 		<table cellspacing="0" class="ui-responsive table-stroke" data-role="table" id="activities_table" >
 			<thead>
@@ -58,6 +61,8 @@
 			</tbody>
 		</table>
 	</div>
+
+	{% include "activities/includes/navpanel.html" %}
 </div>
 
 <div data-role="page" id="act_form_page1">

@@ -6,8 +6,8 @@ class MobileTemplatesMiddleware(object):
     ORIG_TEMPLATE_DIRS = settings.TEMPLATE_DIRS
 
     def process_request(self, request):
-        ua_string = request.META['HTTP_USER_AGENT']
-        if 'iPad' in ua_string or 'iPhone' in ua_string or 'android' in ua_string:	# FIXME Use list file
+        ua_string = request.META['HTTP_USER_AGENT'].lower()
+        if 'ipad' in ua_string or 'iphone' in ua_string or 'android' in ua_string:	# FIXME Use list file
             settings.TEMPLATE_DIRS = settings.MOBILE_TEMPLATE_DIRS + self.ORIG_TEMPLATE_DIRS
             request.mobile=True
         else:

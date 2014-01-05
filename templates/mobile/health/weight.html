@@ -1,0 +1,270 @@
+{% extends "base_m.html" %}
+
+{% block head %}
+<script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/media/js/jquery.validate.min.js"></script>
+	<style>
+		label.error {
+				color: red;
+				font-size: 16px;
+				font-weight: normal;
+				line-height: 1.4;
+				margin-top: 0.5em;
+				width: 100%;
+				float: none;
+		}
+	</style>
+{% endblock %}
+{% block content %}
+
+<div data-role="page" id="health_page">
+
+	<script>
+	var plot = null;
+	var series;
+	var weight_data = null;
+	$("#health_page").on('pageinit', function() {
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async : false,
+			url : "/health/data/?timespan=31",
+			dataType : "json",
+			success : onDataReceived
+		});
+	});
+
+	function onDataReceived(rcvd_series) {
+		series = rcvd_series;
+		update_plot();
+	}
+	function update_plot() {
+		plotweight_data = new Object();
+		if( $("#weight_avg").is(':checked')) {
+			plotweight_data["data"] = series["weight_weekly_list"];
+		} else {
+			plotweight_data["data"] = series["weight_list"];
+		}
+		plotweight_data["label"] = "Gewicht = 0.0";
+		plotweight_data["lines"] = {"show": true};
+		plotweight_data["points"] = {"show": true};
+
+		plotpulsemin_data = new Object();
+		plotpulsemin_data["data"] = series["pulse_min_list"];
+		plotpulsemin_data["label"] = "Ruhepuls = 0.0";
+		plotpulsemin_data["yaxis"] = 2;
+		plotpulsemin_data["lines"] = {"show": true};
+		plotpulsemin_data["points"] = {"show": true};
+		plotpulsemax_data = new Object();
+		plotpulsemax_data["data"] = series["pulse_max_list"];
+		plotpulsemax_data["label"] = "Maximalpuls = 0.0";
+		plotpulsemax_data["yaxis"] = 2;
+		plotpulsemax_data["lines"] = {"show": true};
+		plotpulsemax_data["points"] = {"show": true};
+
+		plotgoal_data = {"data": series["goal_data"],
+						"label": "Zielgewicht",
+						"lines": {"show": true}
+						}
+
+		plot = $.plot($("#placeholder"), [plotweight_data, plotgoal_data, plotpulsemin_data, plotpulsemax_data], {
+			xaxis : {
+				mode : "time",
+				minTickSize : [1, "day"],
+				timeformat : "%d.%m.%y"
+			},
+			yaxes : [{
+				position : "left"
+			}, {
+				position : "right"
+			}, {
+				position : "right"
+			}],
+			crosshair : {
+				mode : "x"
+			},
+			grid : {
+				hoverable : true,
+				autoHighlight : false
+			}
+		});
+		return series
+	}
+
+	</script>
+
+	<div data-role="header">
+		<a href="#navpanel" data-role="button" data-inline="true" data-mini="true">Men&uuml;</a>
+		<h1 id="act_list_header">Gesundheit</h1>
+		<div class="ui-btn-right" data-role="controlgroup" data-type="horizontal">
+			<a href="#new_weight_page" data-rel="dialog" data-theme="c" data-role="button" data-icon="plus">Gewicht</a>
+			<a href="#new_pulse_page" data-rel="dialog" data-theme="c" data-role="button" data-icon="plus">Puls</a>
+		</div>
+	</div>
+
+	<div data-role="content">
+			<div id="placeholder" style="width:600px;height:300px;margin:5px;"></div>
+	</div>
+	{% include "activities/includes/navpanel.html" %}
+</div>
+
+<div data-role="page" id="new_weight_page">
+	<script>
+		function add_weight(){
+			// retrieve the text entered
+			var date = $("#weight_date").val();
+			var weight =$("#weight_input").val();
+			if(date != "") {
+				// store value in data variable
+				var data = {
+					date: date,
+					weight: weight
+				};
+				$.post("/health/weights/add/", data, function(data) {
+					if (data["success"]) {
+						noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
+						$("#weight_dialog").dialog("close");
+						ajaxDataGetter();
+						{% if goal %}
+						last_weight = weight_data[weight_data.length-1];
+						distance = last_weight[1] - {{goal.target_weight}};
+						$("#td_goal_distance").html(distance.toFixed(1));
+						{% endif %}
+					} else {
+						noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+					}
+				}, "json");
+
+			} else {
+				alert("Enter some text silly!");
+			}
+			return false;
+		};
+
+		function add_pulse() {
+			var date = $("#pulse_date").val();
+
+			var data = {
+				date : date,
+			};
+
+			if(! isNaN(parseInt($("#pulse_rest").val()))) {
+				data["rest"] = parseInt($("#pulse_rest").val());
+			}
+			if(! isNaN(parseInt($("#pulse_maximum").val()))) {
+				data["maximum"] = parseInt($("#pulse_maximum").val());
+			}
+			$.post("/health/pulses/add/", data, function(data) {
+				if (data["success"]) {
+					noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
+					$("#pulse_dialog").dialog("close");
+					ajaxDataGetter();
+				} else {
+//					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+				}
+			}, "json");
+		};
+
+		$("#new_weight_page").on('pageinit', function() {
+			console.debug("Add validation")
+			$('#weight_form').validate({
+				rules:{
+					weight_date: {
+						required: true,
+						date: true
+					},
+					weight_input: {
+						required: true,
+						number: true
+					}
+				}
+			});
+		});
+
+	</script>
+	<div data-role="header"  data-theme="b">
+		<a href="#health_page" data-icon="delete" iconpos="notext">Abbr.</a>
+		<h1>Gewicht</h1>
+		<a href="#new_weight_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_weight_clicked(); return false" rel="external">Speichern</a>
+	</div>
+
+	<div data-role="content">
+		<form id="weight_form">
+		<div data-role="fieldcontain">
+			<label for="weight_date">Datum</label>
+			<input type="date" id="weight_date"/>
+			<label for="weight_input">Gewicht</label>
+			<input type="text" id="weight_input"/>
+		</div>
+		</form>
+	</div>
+</div>
+
+<div data-role="page" id="new_pulse_page">
+	<script>
+		function add_pulse() {
+			var date = $("#pulse_date").val();
+
+			var data = {
+				date : date,
+			};
+
+			if(! isNaN(parseInt($("#pulse_rest").val()))) {
+				data["rest"] = parseInt($("#pulse_rest").val());
+			}
+			if(! isNaN(parseInt($("#pulse_maximum").val()))) {
+				data["maximum"] = parseInt($("#pulse_maximum").val());
+			}
+			$.post("/health/pulses/add/", data, function(data) {
+				if (data["success"]) {
+					noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
+					$("#pulse_dialog").dialog("close");
+					ajaxDataGetter();
+				} else {
+//					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+				}
+			}, "json");
+		};
+
+		$("#new_pulse_page").on('pageinit', function() {
+			console.debug("Add pulse validation")
+			$('#pulse_form').validate({
+				rules:{
+					pulse_date: {
+						required: true,
+						date: true
+					},
+					pulse_rest: {
+						required: false,
+						number: true
+					},
+					pulse_maximum: {
+						required: false,
+						number: true
+					}
+				}
+			});
+		});
+
+	</script>
+	<div data-role="header"  data-theme="b">
+		<a href="#health_page" data-icon="delete" iconpos="notext">Abbr.</a>
+		<h1>Puls</h1>
+		<a href="#new_pulse_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_weight_clicked(); return false" rel="external">Speichern</a>
+	</div>
+
+	<div data-role="content">
+		<form id="pulse_form">
+		<div data-role="fieldcontain">
+			<label for="pulse_date">Datum</label>
+			<input type="date" id="pulse_date"/>
+			<label for="pulse_rest">Ruhepuls</label>
+			<input type="text" id="pulse_rest"/>
+			<label for="pulse_max">Maximalpuls</label>
+			<input type="text" id="pulse_max"/>
+		</div>
+		</form>
+	</div>
+</div>
+
+{% endblock %}

@@ -884,6 +884,7 @@ class FITFile(ActivityFile):
 		self.fitfile = fitparse.FitFile(
 			self.track.trackfile,
 			data_processor=fitparse.StandardUnitsDataProcessor(),
+			check_crc=False
 		)
 
 		self.parse_trackpoints()

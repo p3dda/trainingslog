@@ -111,10 +111,9 @@
 <div data-role="page" id="new_weight_page">
 	<script>
 		function add_weight(){
-			// retrieve the text entered
-			var date = $("#weight_date").val();
-			var weight =$("#weight_input").val();
-			if(date != "") {
+			if( $( "#weight_form" ).valid() ){
+				var date = $("#weight_date").val();
+				var weight =$("#weight_input").val();
 				// store value in data variable
 				var data = {
 					date: date,
@@ -122,108 +121,69 @@
 				};
 				$.post("/health/weights/add/", data, function(data) {
 					if (data["success"]) {
-						noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
-						$("#weight_dialog").dialog("close");
-						ajaxDataGetter();
-						{% if goal %}
-						last_weight = weight_data[weight_data.length-1];
-						distance = last_weight[1] - {{goal.target_weight}};
-						$("#td_goal_distance").html(distance.toFixed(1));
-						{% endif %}
+						location.href = window.location.pathname;
 					} else {
-						noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+						alert("Fehler aufgetreten: " + data["msg"]);
 					}
 				}, "json");
-
-			} else {
-				alert("Enter some text silly!");
 			}
 			return false;
 		};
 
-		function add_pulse() {
-			var date = $("#pulse_date").val();
-
-			var data = {
-				date : date,
-			};
-
-			if(! isNaN(parseInt($("#pulse_rest").val()))) {
-				data["rest"] = parseInt($("#pulse_rest").val());
-			}
-			if(! isNaN(parseInt($("#pulse_maximum").val()))) {
-				data["maximum"] = parseInt($("#pulse_maximum").val());
-			}
-			$.post("/health/pulses/add/", data, function(data) {
-				if (data["success"]) {
-					noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
-					$("#pulse_dialog").dialog("close");
-					ajaxDataGetter();
-				} else {
-//					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
-				}
-			}, "json");
-		};
-
 		$("#new_weight_page").on('pageinit', function() {
-			console.debug("Add validation")
+			console.debug("Add weight validation")
 			$('#weight_form').validate({
-				rules:{
-					weight_date: {
-						required: true,
-						date: true
-					},
-					weight_input: {
-						required: true,
-						number: true
+					rules: {
+						weight_date: {required: true, date: true},
+						weight_input: {required: true, number: true}
 					}
-				}
 			});
-		});
 
+		});
 	</script>
 	<div data-role="header"  data-theme="b">
 		<a href="#health_page" data-icon="delete" iconpos="notext">Abbr.</a>
 		<h1>Gewicht</h1>
-		<a href="#new_weight_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_weight_clicked(); return false" rel="external">Speichern</a>
+		<a href="#new_weight_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="add_weight(); return false" rel="external">Speichern</a>
 	</div>
 
 	<div data-role="content">
 		<form id="weight_form">
 		<div data-role="fieldcontain">
 			<label for="weight_date">Datum</label>
-			<input type="date" id="weight_date"/>
+			<input name="weight_date" type="date" id="weight_date" data-mini="true"/>
 			<label for="weight_input">Gewicht</label>
-			<input type="text" id="weight_input"/>
+			<input name="weight_input" type="text" id="weight_input" data-mini="true"/>
 		</div>
 		</form>
 	</div>
 </div>
 
 <div data-role="page" id="new_pulse_page">
+
 	<script>
 		function add_pulse() {
-			var date = $("#pulse_date").val();
+			if( $( "#pulse_form" ).valid() ){
+				var date = $("#pulse_date").val();
 
-			var data = {
-				date : date,
-			};
+				var data = {
+					date : date
+				};
 
-			if(! isNaN(parseInt($("#pulse_rest").val()))) {
-				data["rest"] = parseInt($("#pulse_rest").val());
-			}
-			if(! isNaN(parseInt($("#pulse_maximum").val()))) {
-				data["maximum"] = parseInt($("#pulse_maximum").val());
-			}
-			$.post("/health/pulses/add/", data, function(data) {
-				if (data["success"]) {
-					noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
-					$("#pulse_dialog").dialog("close");
-					ajaxDataGetter();
-				} else {
-//					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+				if(! isNaN(parseInt($("#pulse_rest").val()))) {
+					data["rest"] = parseInt($("#pulse_rest").val());
 				}
-			}, "json");
+				if(! isNaN(parseInt($("#pulse_max").val()))) {
+					data["maximum"] = parseInt($("#pulse_max").val());
+				}
+				$.post("/health/pulses/add/", data, function(data) {
+					if (data["success"]) {
+						location.href = window.location.pathname;
+					} else {
+						alert("Fehler aufgetreten: " + data["msg"]);
+					}
+				}, "json");
+			}
 		};
 
 		$("#new_pulse_page").on('pageinit', function() {
@@ -238,7 +198,7 @@
 						required: false,
 						number: true
 					},
-					pulse_maximum: {
+					pulse_max: {
 						required: false,
 						number: true
 					}
@@ -250,18 +210,18 @@
 	<div data-role="header"  data-theme="b">
 		<a href="#health_page" data-icon="delete" iconpos="notext">Abbr.</a>
 		<h1>Puls</h1>
-		<a href="#new_pulse_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_weight_clicked(); return false" rel="external">Speichern</a>
+		<a href="#new_pulse_page" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="add_pulse(); return false" rel="external">Speichern</a>
 	</div>
 
 	<div data-role="content">
 		<form id="pulse_form">
 		<div data-role="fieldcontain">
 			<label for="pulse_date">Datum</label>
-			<input type="date" id="pulse_date"/>
+			<input name="pulse_date" type="date" id="pulse_date" data-mini="true"/>
 			<label for="pulse_rest">Ruhepuls</label>
-			<input type="text" id="pulse_rest"/>
+			<input name="pulse_rest" type="text" id="pulse_rest" data-mini="true"/>
 			<label for="pulse_max">Maximalpuls</label>
-			<input type="text" id="pulse_max"/>
+			<input name="pulse_max" type="text" id="pulse_max" data-mini="true"/>
 		</div>
 		</form>
 	</div>

@@ -147,7 +147,7 @@ var override_calories = false;
 
 	var change_sport = function(){
 		var sport_id = $("#new_act_sport").val();
-		if(sport_id != -1){
+		if(sport_id != -1 && sport_id !== ""){
 			if(pace != sport_data[sport_id]["pace"]) {
 				$('.speed_unit').html(sport_data[sport_id]["label"]);
 
@@ -192,7 +192,7 @@ var override_calories = false;
 			var distance = parseFloat($("#new_act_distance").val().replace( /,/,"." ));
 			var time = timeToSeconds($("#new_act_time").val());
 
-			if(calformula_id != -1) {
+			if(calformula_id != -1 && calformula_id !== "") {
 				if(calformula_data[calformula_id]['weight_time_factor']!=0.0) {
 					if( time != 0 ) {
 						wtcal = {{ weight.weight|stringformat:"f" }} * time/3600 * calformula_data[calformula_id]['weight_time_factor'];

@@ -869,7 +869,7 @@ class ActivityListJson(BaseDatatableView):
 		# queryset is already paginated here
 		json_data = []
 		for item in qs:
-			if self.request.mobile == True:
+			if self.request.is_mobile == True:
 				json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
 			else:
 				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])

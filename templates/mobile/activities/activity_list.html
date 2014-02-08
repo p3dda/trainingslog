@@ -1,7 +1,19 @@
 {% extends "base_m.html" %}
 
 {% block head %}
-
+<script type="text/javascript" src="/media/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/media/js/jquery.validate.min.js"></script>
+	<style>
+		label.error {
+				color: red;
+				font-size: 16px;
+				font-weight: normal;
+				line-height: 1.4;
+				margin-top: 0.5em;
+				width: 100%;
+				float: none;
+		}
+	</style>
 {% endblock %}
 {% block content %}
 
@@ -66,14 +78,39 @@
 </div>
 
 <div data-role="page" id="act_form_page1">
+	<script>
+		$("#act_form_page1").on('pageinit', function() {
+			console.debug("Add form1 validation")
+			$('#new_act_form1').validate({
+					rules: {
+						new_act_name: {required: true},
+						new_act_date: {required: true, date: true},
+						new_act_datetime: {required: true},
+						new_act_time: {required: true},
+						new_act_sport: {required: true},
+						new_act_calformula: {required: true},
+						new_act_event: {required: true},
+					}
+			});
+
+		});
+		function submit_form1() {
+			if( $("#new_act_form1").valid() ){
+				$.mobile.changePage("#act_form_page2", {role: 'dialog', transition: 'slide'});
+			}
+		}
+	</script>
 	{%  include "activities/includes/activity_list_js.html" %}
 	<div data-role="header"  data-theme="b">
 		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>
 		<h1>Neue Aktivit&auml;t 1/3</h1>
-		<a href="#act_form_page2" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" data-transition="slide">Weiter</a>
+<!--		<a href="#act_form_page2" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" data-transition="slide">Weiter</a>-->
+		<a href="#act_form_page2" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_form1(); return false">Weiter</a>
+
 	</div>
 
 	<div data-role="content">
+	<form id="new_act_form1">
 	<select id="new_act_template">
 		<option value = -1 data-placeholder="true"> Vorlage... </option>
 		{% for template in activitytemplates %}
@@ -83,35 +120,35 @@
 
 	<div data-role="fieldcontain">
 		<label for="new_act_name">Name</label>
-		<input type="text" id="new_act_name" value="" data-mini="true" />
+		<input name="new_act_name" type="text" id="new_act_name" value="" data-mini="true" />
 		<label for="new_act_comment">Kommentar</label>
 		<textarea rows=3 cols=30 id="new_act_comment"></textarea>
 		<label for="new_act_date">Datum</label>
-		<input type="date" id="new_act_date" value="" data-mini="true" />
+		<input name="new_act_date" type="date" id="new_act_date" value="" data-mini="true" />
 		<label for="new_act_datetime">Uhrzeit</label>
-		<input type="time" id="new_act_datetime" value="" data-mini="true" />
+		<input name="new_act_datetime" type="time" id="new_act_datetime" value="" data-mini="true" />
 
 		<label for="new_act_time">Dauer</label>
-		<input type="time" id="new_act_time" value="" data-mini="true" />
+		<input name="new_act_time" type="time" id="new_act_time" value="" data-mini="true" />
 		<label for="new_act_distance">Distanz</label>
-		<input type="text" id="new_act_distance" data-mini="true" />
+		<input name="new_act_distance" type="text" id="new_act_distance" data-mini="true" />
 
 		<label for="new_act_sport">Sportart</label>
-		<select id="new_act_sport" data-mini="true">
-			<option value = -1 data-placeholder="true"> Kalorienformel... </option>
+		<select name="new_act_sport" id="new_act_sport" data-mini="true">
+			<option value = "" data-placeholder="true"> Sportart... </option>
 			{% for sport in sports %}
 				<option value={{sport.id}}>{{sport.name}}</option>
 			{% endfor %}
 		</select>
 		<label for="new_act_calformula">Kalorienformel</label>
-		<select id="new_act_calformula" data-mini="true">
-			<option value = -1 data-placeholder="true"> Kalorienformel... </option>
+		<select name="new_act_calformula" id="new_act_calformula" data-mini="true">
+			<option value = "" data-placeholder="true"> Kalorienformel... </option>
 			{% for calformula in calformulas %}
 				<option value={{calformula.id}}>{{calformula.name}}</option>
 			{% endfor %}
 		</select>
 		<label for="new_act_event">Ereignis:</label>
-		<select id="new_act_event" data-mini="true">
+		<select name="new_act_event" id="new_act_event" data-mini="true">
 			{% for event in events %}
 				<option value={{event.id}}>{{event.name}}</option>
 			{% endfor %}
@@ -124,19 +161,39 @@
 		<input type="checkbox" id="new_act_public" data-role="flipswitch">
 	  </div>
 	</fieldset>
-<!--	<a href="#act_list_page" data-role="button" data-inline="true">Abbrechen</a><a href="#act_form_page2" data-role="button" data-rel="dialog" data-transition="slide" data-inline="true">Weiter</a></p>-->
+	</form>
+
+		<!--	<a href="#act_list_page" data-role="button" data-inline="true">Abbrechen</a><a href="#act_form_page2" data-role="button" data-rel="dialog" data-transition="slide" data-inline="true">Weiter</a></p>-->
 	</div>
 </div>
 
 <div data-role="page" id="act_form_page2">
+	<script>
+		$("#act_form_page2").on('pageinit', function() {
+			console.debug("Add form2 validation")
+			$('#new_act_form2').validate({
+					rules: {
+
+					}
+			});
+
+		});
+		function submit_form2() {
+			if( $("#new_act_form2").valid() ){
+				$.mobile.changePage("#act_form_page3", {role: 'dialog', transition: 'slide'});
+			}
+		}
+	</script>
+
 	<div data-role="header"  data-theme="b">
 <!--		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>-->
 		<a href="#act_form_page1" data-icon="arrow-l" data-iconpos="left" data-rel="dialog" data-transition="slide" data-direction="reverse">Zur&uuml;ck</a>
 		<h1>Neue Aktivit&auml;t 2/3</h1>
-		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" data-transition="slide">Weiter</a>
+		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_form2(); return false">Weiter</a>
 	</div>
 
 	<div data-role="content">
+	<form id="new_act_form2">
 	<div data-role="fieldcontain">
 
 	<label for="new_act_calories">Kalorien</label>
@@ -173,14 +230,34 @@
 			<label for="new_act_speed_avg">V avg. (<span class="speed_unit">km/h</span>)</label><input type="text" id="new_act_speed_avg" data-mini="true">
 			<label for="new_act_speed_avg_movement">V avg./ bwg. (<span class="speed_unit">km/h</span>)</label><input type="text" id="new_act_speed_avg_movement" data-mini="true">
 	</div>
+	</form>
 	</div>
 </div>
+
 <div data-role="page" id="act_form_page3">
+	<script>
+		$("#act_form_page3").on('pageinit', function() {
+			console.debug("Add form3 validation")
+			$('#new_act_form2').validate({
+					rules: {
+
+					}
+			});
+		});
+
+		function submit_form3() {
+			if( $("#new_act_form2").valid() ){
+				$.mobile.changePage("#act_form_page3", {role: 'dialog', transition: 'slide'});
+			}
+			submit_activity_clicked();
+		}
+
+	</script>
 	<div data-role="header"  data-theme="b">
 <!--		<a href="#act_list_page" data-icon="delete" iconpos="notext">Abbr.</a>-->
 		<a href="#act_form_page2" data-icon="arrow-l" data-iconpos="left" data-rel="dialog" data-transition="slide" data-direction="reverse">Zur&uuml;ck</a>
 		<h1>Neue Aktivit&auml;t 3/3</h1>
-		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_activity_clicked(); return false" rel="external">Speichern</a>
+		<a href="#act_form_page3" data-icon="arrow-r" data-iconpos="right" data-rel="dialog" onclick="submit_form3(); return false" rel="external">Speichern</a>
 	</div>
 
 	<div data-role="content">

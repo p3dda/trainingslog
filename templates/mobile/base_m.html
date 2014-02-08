@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script type="text/javascript" src="/media/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/media/js/jquery.mobile-1.4.0.min.js"></script>
+	<link rel='stylesheet' type='text/css' href='/media/css/jquery.mobile-1.4.0.min.css' />
+	<title>{% block title %}TrainingsLog{% endblock %}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<script type="text/javascript" src="/media/js/common.js"></script>
+
+	{% block head %}{% endblock %}
+</head>
+
+<body>
+{% if not public %}
+<!--    <div id="navi">
+        {% block navi %}
+        	<a href="/activities/">Aktivit&auml;ten</a>&nbsp;
+        	<a href="/calendar/">Kalender</a>&nbsp;
+			<a href="/reports/">Berichte</a>&nbsp;
+        	<a href="/health/">Gesundheit</a>&nbsp;&nbsp;
+			<a href="/settings/">Einstellungen</a>&nbsp;
+        {% endblock %}
+        <div id="user_logout">
+        	{% if username %}
+				Angemeldet als <a href="/admin/password_change/">{{username}}</a>&nbsp;
+			{% endif %}
+			<a href="/accounts/logout">Logout</a>
+        </div>
+    </div>
+	<div id="subnavi">
+		{% block subnavi %}{% endblock %}
+	</div>
+-->
+{% endif %}
+{% block content %}{% endblock %}
+</body>
+</html>

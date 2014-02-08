@@ -58,9 +58,13 @@ def add_weight(request):
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 				date = datetime.date(year=d.year, month=d.month, day=d.day)
 			except ValueError, exc:
-				logging.exception("Exception occured in add_weight: %s" % exc)
-				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-				return HttpResponse(simplejson.dumps(result))
+				try:
+					d = datetime.datetime.strptime(datestring, "%Y-%m-%d")
+					date = datetime.date(year=d.year, month=d.month, day=d.day)
+				except ValueError, exc:
+					logging.exception("Exception occured in add_weight: %s" % exc)
+					result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
+					return HttpResponse(simplejson.dumps(result))
 	
 			new_weight = Weight(date=date, weight=weight, user=request.user)
 			new_weight.save()
@@ -227,20 +231,23 @@ def get_data(request):
 def add_pulse(request):
 	try:
 		if request.method == 'POST':
-			datestring = ""
+			datestring=request.POST.get('date')
 			logging.debug("add_pulse post request with items %s" % repr(request.POST.items()))
 			if not ("rest" in request.POST or "maximum" in request.POST):
 				logging.error("Received neither rest nor maximum pulse")
 				return HttpResponse(simplejson.dumps({"success": False, 'msg': "Keine Pulswerte uebermittelt"}))
 			else:
 				try:
-					datestring=request.POST.get('date')
 					d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 					date = datetime.date(year=d.year, month=d.month, day=d.day)
 				except ValueError, exc:
-					logging.exception("Exception occured in add_pulse: %s" % exc)
-					result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-					return HttpResponse(simplejson.dumps(result))
+					try:
+						d = datetime.datetime.strptime(datestring, "%Y-%m-%d")
+						date = datetime.date(year=d.year, month=d.month, day=d.day)
+					except ValueError, exc:
+						logging.exception("Exception occured in add_pulse: %s" % exc)
+						result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
+						return HttpResponse(simplejson.dumps(result))
 				
 				new_pulse = Pulse(user=request.user, date = date)
 				if "rest" in request.POST:

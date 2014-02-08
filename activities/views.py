@@ -485,11 +485,14 @@ def add_activity(request):
 				try:
 					date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M:%S")
 				except ValueError:
-					if request.POST.get('is_template'):
-						date = None
-					else:
-						return HttpResponse(simplejson.dumps(
-							dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+					try:
+						date = datetime.datetime.strptime(datestring, "%Y-%m-%d %H:%M")
+					except ValueError:
+						if request.POST.get('is_template'):
+							date = None
+						else:
+							return HttpResponse(simplejson.dumps(
+								dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
 
 	
 			act.date = date
@@ -866,7 +869,9 @@ class ActivityListJson(BaseDatatableView):
 		# queryset is already paginated here
 		json_data = []
 		for item in qs:
-			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), 
-			item.sport.name, item.date.isoformat(), item.time])
+			if self.request.is_mobile == True:
+				json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
+			else:
+				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
 			
 		return json_data

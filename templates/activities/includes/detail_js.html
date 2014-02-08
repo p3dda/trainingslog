@@ -422,6 +422,20 @@
 			},
 			selection: { mode: "x" }
 		}
+		pace_plot = {
+		//	transform: function(v) { return -v; },
+		//	inverseTransform: function (v) { return -v; },
+			transform: function(v) { return -Math.log(v); },
+			inverseTransform: function (v) { return Math.exp(-v); },
+			ticks: function (axis) {
+				var res = [], i = Math.floor(axis.min);
+				do {
+					res.push([i,secondsToTime(i*60, with_hours=false)]);
+					i=i+0.5;
+				} while (i<axis.max);
+				return res;
+			}
+		}
 
 		for (i in graphs) {
 			plot_data[graphs[i]["name"]]=new Object();
@@ -429,7 +443,9 @@
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
 			plot_data[graphs[i]["name"]]["points"]={"show": false};
 			plot_data[graphs[i]["name"]]["color"]=graphs[i]["color"];
-			
+
+			var gdata = [];
+
 			if(data[graphs[i]["dataname"]].length == 0) {
 				plot_data[graphs[i]["name"]]["data"] = [];
 				$("#details_"+graphs[i]["name"]).hide();
@@ -460,24 +476,7 @@
 				}
 				$("#details_"+graphs[i]["name"]).show();
 			}
-		}
 
-		pace_plot = {
-		//	transform: function(v) { return -v; },
-		//	inverseTransform: function (v) { return -v; },
-			transform: function(v) { return -Math.log(v); },
-			inverseTransform: function (v) { return Math.exp(-v); },
-			ticks: function (axis) {
-				var res = [], i = Math.floor(axis.min);
-				do {
-					res.push([i,secondsToTime(i*60, with_hours=false)]);
-					i=i+0.5;
-				} while (i<axis.max);
-				return res;
-			}
-		}
-			
-		for (var i in graphs) {
 			plot_options = cloneObject(plot_default_options);
 			if (plot_data[graphs[i]["name"]]["data"].length>0) {
 				var avg=0;
@@ -499,8 +498,12 @@
 			} else {
 				plot_options["yaxis"]=new Object();
 			//	plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
-				plot_options["yaxis"]["min"]=Math.floor(min);
-				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+	//			plot_options["yaxis"]["min"]=Math.floor(min);
+	//			plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+				plot_options["yaxis"]["min"]=quantile(gdata[2], 0.20*1.5);
+				plot_options["yaxis"]["max"]=quantile(gdata[2], 0.80*1.5);
+
+//				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
 			}
 
 			plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
@@ -508,6 +511,7 @@
 			legends[graphs[i]["name"]].each(function() {
 				$(this).css('width', $(this).width());
 			});
+
 		}
 		
 		var updateCursorTimeout = null;

@@ -1,0 +1,640 @@
+<script>
+var sport_data = Array();
+var calformula_data = new Array();
+var act_id = null;
+var act_tmpl_id = null;
+var pace = false;
+
+var override_speed_avg = false;
+var override_speed_avg_movement = false;
+var override_calories = false;
+
+	// Initialize sport_data array with speed / pace unit information
+	{% for sport in sports %}
+		{% if sport.speed_as_pace %}
+			sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
+		{% else %}
+			sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
+		{% endif %}
+	{% endfor %}
+
+
+	var update_speed_avg = function() {
+		console.debug("Execute update_speed_avg");
+		if(!override_speed_avg) {
+			distance = $("#new_act_distance").val()
+			distance = distance.replace( /,/,"." );
+
+			if( isNum(distance) ) {
+				if (isTime($("#new_act_time").val()) ){
+					time = timeToSeconds($("#new_act_time").val());
+					distance = new Number(distance);
+
+					speed = distance * 3600 / time;
+
+					if(sport_data[$("#new_act_sport").val()]["pace"]){
+						$("#new_act_speed_avg").val(speedToPace(speed));
+					} else {
+						$("#new_act_speed_avg").val(speed.toFixed(2).replace( /\./,"," ));
+					}
+				}
+			}
+		}
+	}
+
+	var update_speed_avg_movement = function() {
+		if(!override_speed_avg_movement) {
+			distance = $("#new_act_distance").val()
+			distance = distance.replace( /,/,"." );
+
+			if( isNum(distance) ) {
+				if (isTime($("#new_act_time_movement").val()) ){
+					time = timeToSeconds($("#new_act_time_movement").val());
+					distance = new Number(distance);
+
+					speed = distance * 3600 / time;
+
+					if(sport_data[$("#new_act_sport").val()]["pace"]){
+						$("#new_act_speed_avg_movement").val(speedToPace(speed));
+					} else {
+						$("#new_act_speed_avg_movement").val(speed.toFixed(2).replace( /\./,"," ));
+					}
+				}
+			}
+		}
+	}
+	$( '#act_form_page1' ).on( 'pageinit', function() {
+//	$(document).ready(function() {
+		console.debug("form1_pageinit called");
+		$('#new_act_time').blur(function() {
+			update_speed_avg();
+		});
+
+		$('#new_act_distance').blur(function() {
+			update_speed_avg();
+			update_speed_avg_movement();
+		});
+
+		$('#new_act_speed_avg').blur(function() {
+			override_speed_avg = true;
+		});
+
+		$('#new_act_time_movement').blur(function() {
+			update_speed_avg_movement();
+		});
+
+		$('#new_act_speed_avg_movement').blur(function() {
+			override_speed_avg_movement = true;
+		});
+		init_activity_form();
+
+		$('#new_act_calories').blur(function() {
+			override_calories = true;
+		});
+	});
+
+	var init_activity_form = function() {
+		console.debug("init_activity_form");
+		// initialize speed_unit array
+		{% for sport in sports %}
+			{% if sport.speed_as_pace %}
+				sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
+			{% else %}
+				sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
+			{% endif %}
+			{% if sport.calorie_formula %}
+				sport_data[{{sport.id}}]['calformula_id'] = {{sport.calorie_formula.id}};
+			{% else %}
+				sport_data[{{sport.id}}]['calformula_id'] = -1;
+			{% endif %}
+		{% endfor %}
+
+		{% for calformula in calformulas %}
+			calformula_data[{{calformula.id}}] = {'weight_dist_factor': {{calformula.weight_dist_factor|stringformat:"f"}}, 'weight_time_factor': {{calformula.weight_time_factor|stringformat:"f"}} };
+		{% endfor %}
+
+		var d = new Date();
+		var curr_date = d.getDate();
+		var curr_month = d.getMonth() + 1; //Months are zero based
+		var curr_year = d.getFullYear();
+	    var today = pad(curr_date, 2) + "." + pad(curr_month, 2) + "." + curr_year;
+		$( "#new_act_date" ).val(today);
+
+	//	$( "#new_act_date" ).datepicker("setDate", now);
+	//	$( "#new_act_datetime" ).timepicker({hourText: "Stunde"});
+	//	$( "#new_act_time" ).timepicker({hourText: "Stunde"});
+	//	$( "#new_act_elapsed_time" ).timepicker({hourText: "Stunde"});
+	//	$( "#new_act_time_movement" ).timepicker({hourText: "Stunde"});
+	//	$( "#tabs" ).tabs();
+
+	//	$("#new_act_save").click(submit_activity_clicked);
+	//	$("#new_act_template_save").click(submit_activitytemplate_clicked);
+
+		$("#new_act_sport").change(change_sport);
+		$("#new_act_calformula").change(change_calformula);
+		$("#new_act_time").change(change_calformula);
+		$("#new_act_distance").change(change_calformula);
+		$("#new_act_template").change(change_template);
+		//initially set correct speed_units
+		change_sport();
+
+	};
+	var change_template = function() {
+		var template_id = $("#new_act_template").val();
+		console.debug("Populate with new template "+template_id);
+		populate_activity_dialog(template_id, true);
+	};
+
+	var change_sport = function(){
+		var sport_id = $("#new_act_sport").val();
+		if(sport_id != -1 && sport_id !== ""){
+			if(pace != sport_data[sport_id]["pace"]) {
+				$('.speed_unit').html(sport_data[sport_id]["label"]);
+
+				pace = sport_data[sport_id]["pace"];
+				if(pace) {
+					if( isNum($("#new_act_speed_avg").val().replace( /,/,"." ))) {
+						$("#new_act_speed_avg").val(speedToPace(parseFloat($("#new_act_speed_avg").val().replace( /,/,"." ))));
+					}
+					if( isNum($("#new_act_speed_avg_movement").val().replace( /,/,"." ))) {
+						$("#new_act_speed_avg_movement").val(speedToPace(parseFloat($("#new_act_speed_avg_movement").val().replace( /,/,"." ))));
+					}
+					if( isNum($("#new_act_speed_max").val().replace( /,/,"." ))) {
+						$("#new_act_speed_max").val(speedToPace(parseFloat($("#new_act_speed_max").val().replace( /,/,"." ))));
+					}
+				} else {
+					if( isTime($("#new_act_speed_avg").val())) {
+						$("#new_act_speed_avg").val(paceToSpeed($("#new_act_speed_avg").val()).toFixed(2).replace( /\./, ","));
+					}
+					if( isTime($("#new_act_speed_avg_movement").val())) {
+						$("#new_act_speed_avg_movement").val(paceToSpeed($("#new_act_speed_avg_movement").val()).toFixed(2).replace( /\./, ","));
+					}
+					if( isTime($("#new_act_speed_max").val())) {
+						$("#new_act_speed_max").val(paceToSpeed($("#new_act_speed_max").val()).toFixed(2).replace( /\./, ","));
+					}
+				}
+			}
+
+			$("#new_act_calformula").val(sport_data[sport_id]['calformula_id']);
+			$("#new_act_calformula").selectmenu('refresh', true);
+
+			change_calformula();
+		}
+	};
+
+	var change_calformula = function () {
+		if ( !override_calories ) {
+		{% if not weight %}
+			return;
+		{% else  %}
+			var calformula_id = $("#new_act_calformula").val();
+			var sport_id = $("#new_act_sport").val();
+			var distance = parseFloat($("#new_act_distance").val().replace( /,/,"." ));
+			var time = timeToSeconds($("#new_act_time").val());
+
+			if(calformula_id != -1 && calformula_id !== "") {
+				if(calformula_data[calformula_id]['weight_time_factor']!=0.0) {
+					if( time != 0 ) {
+						wtcal = {{ weight.weight|stringformat:"f" }} * time/3600 * calformula_data[calformula_id]['weight_time_factor'];
+					} else {
+						return;
+					}
+				}else{
+					wtcal = 0;
+				}
+				if(calformula_data[calformula_id]['weight_dist_factor']!=0.0) {
+					if( !isNaN(distance) ) {
+						wdcal = {{ weight.weight|stringformat:"f" }} * distance * calformula_data[calformula_id]['weight_dist_factor'];
+					} else {
+						return;
+					}
+				} else {
+					wdcal = 0;
+				}
+				calories = wtcal+wdcal;
+				$("#new_act_calories").val(Math.round(calories));
+			}
+		{% endif %}
+		}
+	}
+
+	var submit_activitytemplate_clicked = function () {
+		submit_activity(true);
+	}
+
+	var submit_activity_clicked = function() {
+		submit_activity(false);
+	}
+
+	function submit_activity(is_template) {
+		// FIXME: Review validations in submit_activity
+		var new_act_data = {};
+
+		if(is_template) {
+			if(act_tmpl_id != null) {
+				new_act_data.update_id = act_tmpl_id;
+			}
+		} else {
+			if(act_id != null){
+				new_act_data.update_id = act_id;
+			}
+		}
+
+		new_act_data.name = $("#new_act_name").val();
+		new_act_data.comment = $("#new_act_comment").val();
+		new_act_data.date = $("#new_act_date").val();
+		new_act_data.datetime = $("#new_act_datetime").val();
+		new_act_data.event = $("#new_act_event").val();
+		new_act_data.sport = $("#new_act_sport").val();
+
+		var equipment = new Array();
+		$("#new_act_equipment option:selected").each(function (){
+			equipment.push($(this).val());
+		});
+
+		new_act_data.equipment = equipment.join(" ");	//FIXME: This is a dirty hack to send array, better with json encode;
+		new_act_data.cadence_avg = $("#new_act_cadence_avg").val();
+		new_act_data.cadence_max = $("#new_act_cadence_max").val();
+		new_act_data.calories = $("#new_act_calories").val();
+		new_act_data.calformula = $("#new_act_calformula").val();
+		new_act_data.distance = $("#new_act_distance").val();
+		new_act_data.elevation_gain = $("#new_act_elevation_gain").val();
+		new_act_data.elevation_loss = $("#new_act_elevation_loss").val();
+		new_act_data.elevation_min = $("#new_act_elevation_min").val();
+		new_act_data.elevation_max = $("#new_act_elevation_max").val();
+		new_act_data.hr_max = $("#new_act_hr_max").val();
+		new_act_data.hr_avg = $("#new_act_hr_avg").val();
+		new_act_data.speed_max = $("#new_act_speed_max").val();
+		new_act_data.speed_avg = $("#new_act_speed_avg").val();
+		new_act_data.speed_avg_movement = $("#new_act_speed_avg_movement").val();
+		new_act_data.time = $("#new_act_time").val();
+		new_act_data.elapsed_time = $("#new_act_elapsed_time").val();
+		new_act_data.time_movement = $("#new_act_time_movement").val();
+
+		new_act_data.weather_stationname = $("#new_act_weather_stationname").val()
+		new_act_data.weather_temp = $("#new_act_weather_temp").val()
+		new_act_data.weather_hum = $("#new_act_weather_hum").val()
+		new_act_data.weather_rain = $("#new_act_weather_rain").val()
+		new_act_data.weather_windspeed = $("#new_act_weather_windspeed").val()
+		new_act_data.weather_winddir = $("#new_act_weather_winddir").val()
+
+
+		new_act_data.distance = new_act_data.distance.replace( /,/,"." );
+		new_act_data.speed_max = new_act_data.speed_max.replace( /,/,"." );
+		new_act_data.speed_avg = new_act_data.speed_avg.replace( /,/,"." );
+		new_act_data.speed_avg_movement = new_act_data.speed_avg_movement.replace( /,/,"." );
+		new_act_data.weather_temp = new_act_data.weather_temp.replace( /,/,"." );
+		new_act_data.weather_rain = new_act_data.weather_rain.replace( /,/,"." );
+		new_act_data.weather_windspeed = new_act_data.weather_windspeed.replace( /,/,"." );
+
+
+		if ($("#new_act_public:checked").val() != undefined){
+			new_act_data.public = 1;
+            var act_is_public = true;
+		} else {
+			new_act_data.public = 0;
+            var act_is_public = false;
+		}
+
+		res = validate_act_data(new_act_data, is_template);
+		console.debug(res)
+		if(!res[0]){
+			var alert_string = "<ul>";
+			for(i in res[1]){
+				alert_string = alert_string +"<li>"+res[1][i]+"</li>";
+			}
+			alert_string = alert_string + "</ul>";
+			console.debug("Form errors");
+			console.debug(alert_string);	//FIXME: Need usefull highlighting in form
+			//noty({text: "Ung&uuml;ltige Angaben:<br/> " + alert_string, type: 'error', timeout: 5000});
+
+//			$("#alert_dialog_content").html(alert_string);
+//			$("#alert_dialog").dialog("open");
+		}  else {
+			parse_act_data(new_act_data, is_template);
+
+			$.post("/activities/add/", {
+				name: new_act_data.name,
+				comment: new_act_data.comment,
+				date: new_act_data.date,
+				datetime: new_act_data.datetime,
+				event: new_act_data.event,
+				sport: new_act_data.sport,
+				equipment: new_act_data.equipment,
+				cadence_avg: new_act_data.cadence_avg,
+				cadence_max: new_act_data.cadence_max,
+				calories: new_act_data.calories,
+				calformula: new_act_data.calformula,
+				distance: new_act_data.distance,
+				elevation_gain: new_act_data.elevation_gain,
+				elevation_loss: new_act_data.elevation_loss,
+				elevation_min: new_act_data.elevation_min,
+				elevation_max: new_act_data.elevation_max,
+				hr_max: new_act_data.hr_max,
+				hr_avg: new_act_data.hr_avg,
+				speed_max: new_act_data.speed_max,
+				speed_avg: new_act_data.speed_avg,
+				speed_avg_movement: new_act_data.speed_avg_movement,
+				time: new_act_data.time,
+				time_elapsed: new_act_data.elapsed_time,
+				time_movement: new_act_data.time_movement,
+				public: new_act_data.public,
+				update_id: new_act_data.update_id,
+				weather_stationname: new_act_data.weather_stationname,
+				weather_temp: new_act_data.weather_temp,
+				weather_hum: new_act_data.weather_hum,
+				weather_rain: new_act_data.weather_rain,
+				weather_windspeed: new_act_data.weather_windspeed,
+				weather_winddir: new_act_data.weather_winddir,
+				is_template: is_template
+				}, function(data) {
+
+					if (data["success"]) {
+						$("#activity_dialog").dialog("close");
+
+						// redirect to activity in non-edit mode
+						if(typeof act_table != 'undefined') {
+							// reload activities list if in list view
+							act_table.fnDraw();
+						} else {
+							// reload page otherwise
+							location.href = window.location.pathname;
+							//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
+						}
+					} else {
+			//			noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+					}
+				}, "json");
+
+		}
+	}
+
+	var validate_act_data = function(data, is_template) {
+		var errors = new Array();
+		if(data.name == ""){
+			errors.push("Name nicht angegeben");
+		}
+
+		if(!is_template) {
+			// datetime and time values are optional in templates
+			if(!isTime(data.datetime)){
+				errors.push("Uhrzeit ung&uuml;ltig");
+			}
+			if(!isTime(data.time)){
+				errors.push("Zeit ung&uuml;ltig");
+			}
+		}
+
+		if(data.cadence_avg != "" && !isInt(data.cadence_avg)){
+			errors.push("Durchschnittliche Trittfrequenz ung&uuml;ltig");
+		}
+		if(data.cadence_max != "" && !isInt(data.cadence_max)){
+			errors.push("Maximale Trittfrequenz ung&uuml;ltig");
+		}
+		if(data.calories != "" && !isInt(data.calories)){
+			errors.push("Kalorien ung&uuml;ltig");
+		}
+		if(data.distance != "" && !isNum(data.distance)){
+			errors.push("Distanz ung&uuml;ltig");
+		}
+		if(data.elevation_gain != "" && !isInt(data.elevation_gain)){
+			errors.push("Pos. H&oouml;henmeter ung&uuml;ltig");
+		}
+		if(data.elevation_loss != "" && !isInt(data.elevation_loss)){
+			errors.push("Neg. H&oouml;henmeter ung&uuml;ltig");
+		}
+		if(data.elevation_max != "" && !isInt(data.elevation_max)){
+			errors.push("Max. H&oouml;he ung&uuml;ltig");
+		}
+		if(data.elevation_min != "" && !isInt(data.elevation_min)){
+			errors.push("Min. H&oouml;he ung&uuml;ltig");
+		}
+		if(data.hr_max != "" && !isInt(data.hr_max)){
+			errors.push("Max. Puls ung&uuml;ltig");
+		}
+		if(data.hr_avg != "" && !isInt(data.hr_avg)){
+			errors.push("Durchschnittl. Puls ung&uuml;ltig");
+		}
+
+		if(data.speed_max != "" && !isNum(data.speed_max) && !isTime(data.speed_max)){
+			errors.push("Max. Geschwindigkeit ung&uuml;ltig");
+		}
+		if(data.speed_avg != "" && !isNum(data.speed_avg) && !isTime(data.speed_avg)){
+			errors.push("Durchschnittsgeschwindigkeit ung&uuml;ltig");
+		}
+		if(data.speed_avg_movement != "" && !isNum(data.speed_avg_movement) && !isTime(data.speed_avg_movement)){
+			errors.push("Durchschnittsgeschw. in Bewegung ung&uuml;ltig");
+		}
+
+		if(data.elapsed_time != "" && !isTime(data.elapsed_time)){
+			errors.push("Verstrichene Zeit ung&uuml;ltig");
+		}
+		if(data.time_movement != "" && !isTime(data.time_movement)){
+			errors.push("Zeit in Bewegung ung&uuml;ltig");
+		}
+
+		if(data.weather_temp != "" && !isNum(data.weather_temp)){
+			errors.push("Temperatur ung&uuml;ltig");
+		}
+		if(data.weather_rain != "" && !isNum(data.weather_rain)){
+			errors.push("Niederschlag ung&uuml;ltig");
+		}
+		if(data.weather_hum != "" && !isInt(data.weather_hum)){
+			errors.push("Luftfeuchtigkeit ung&uuml;ltig");
+		}
+		if(data.weather_windspeed != "" && !isNum(data.weather_windspeed)){
+			errors.push("Windgeschwindigkeit ung&uuml;ltig");
+		}
+
+		if(errors.length > 0){
+			return [false, errors];
+		} else {
+			return [true, errors];
+		}
+	}
+
+	var parse_act_data = function(data,is_template) {
+		if(data.time==""){
+			data.time = null;
+		} else {
+			data.time = timeToSeconds(data.time);
+		}
+		if(data.elapsed_time==""){
+			data.elapsed_time=null;
+		} else {
+			data.elapsed_time=timeToSeconds(data.elapsed_time);
+		}
+		if(data.time_movement==""){
+			data.time_movement=null;
+		} else {
+			data.time_movement=timeToSeconds(data.time_movement);
+		}
+
+		if(data.cadence_avg=="") data.cadence_avg = null;
+		if(data.cadence_max=="") data.cadence_max = null;
+		if(data.calories=="") data.calories = null;
+		if(data.elevation_gain=="") data.elevation_gain = null;
+		if(data.elevation_loss=="") data.elevation_loss = null;
+		if(data.elevation_max=="") data.elevation_max = null;
+		if(data.elevation_min=="") data.elevation_min = null;
+		if(data.hr_max=="") data.hr_max = null;
+		if(data.hr_avg=="") data.hr_avg = null;
+		if(data.speed_max=="") data.speed_max = null;
+		if(data.speed_avg=="") data.speed_avg = null;
+		if(data.speed_avg_movement=="") data.speed_avg_movement = null;
+		if(data.elapsed_time=="") data.elapsed_time = null;
+		if(data.time_movement=="") data.time_movement = null;
+
+		if(data.weather_temp=="") data.weather_temp = null;
+		if(data.weather_hum=="") data.weather_hum = null;
+		if(data.weather_rain=="") data.weather_rain = null;
+		if(data.weather_windspeed=="") data.weather_windspeed = null;
+//		if(data.weather_winddir=="") data.weather_winddir = null;
+		console.debug(data)
+
+	}
+	var populate_activity_dialog = function(activity_id, is_template) {
+		var url = "/activities/get_json/?id=" + activity_id + "&template=" + is_template;
+		if(!is_template) {
+			act_id = activity_id;
+		} else {
+			act_tmpl_id = activity_id;
+		}
+
+		function onDataReceived(data) {
+			// Populate dialog with received data if data is not null
+			act = eval(data.activity);
+			var fields = act[0].fields;
+
+			if(fields.name != null){
+				console.debug("Set name");
+				$("#new_act_name").val(fields.name);
+			}
+			if(fields.comment != null){
+				console.debug("Set comment")
+				$("#new_act_comment").val(fields.comment);
+			}
+			if(fields.time != null){
+				$("#new_act_time").val(secondsToTime(fields.time));
+			}
+			if(fields.distance != null){
+				$("#new_act_distance").val(fields.distance);
+			}
+			if(fields.calories != null){
+				$("#new_act_calories").val(fields.calories);
+			}
+
+			console.debug("Set sport type to val "+fields.sport);
+			$("#new_act_sport").val(fields.sport);
+			$("#new_act_sport").selectmenu('refresh', true);
+			console.debug("Set event type to val "+fields.event);
+			$("#new_act_event").val(fields.event);
+			$("#new_act_event").selectmenu('refresh', true);
+
+			for( var i in fields.equipment) {
+				$('#new_act_equipment option').filter(function(){
+					return this.value == fields.equipment[i];
+				}).prop("selected", true);
+			}
+
+			if(fields.time != null){
+				$("#new_act_cadence_avg").val(fields.cadence_avg);
+			}
+			if(fields.cadence_max != null){
+				$("#new_act_cadence_max").val(fields.cadence_max);
+			}
+			if(fields.elevation_gain != null){
+				$("#new_act_elevation_gain").val(fields.elevation_gain);
+			}
+			if(fields.elevation_loss != null){
+				$("#new_act_elevation_loss").val(fields.elevation_loss);
+			}
+			if(fields.elevation_min != null){
+				$("#new_act_elevation_min").val(fields.elevation_min);
+			}
+			if(fields.elevation_max != null){
+				$("#new_act_elevation_max").val(fields.elevation_max);
+			}
+			if(fields.hf_max != null){
+				$("#new_act_hr_max").val(fields.hf_max);
+			}
+			if(fields.hf_avg != null){
+				$("#new_act_hr_avg").val(fields.hf_avg);
+			}
+
+			if(sport_data[fields.sport]["pace"]){
+				if(fields.speed_max != null){
+					$("#new_act_speed_max").val(speedToPace(fields.speed_max));
+				}
+				if(fields.speed_avg != null){
+					$("#new_act_speed_avg").val(speedToPace(fields.speed_avg));
+				}
+				if(fields.speed_avg_movement != null){
+					$("#new_act_speed_avg_movement").val(speedToPace(fields.speed_avg_movement));
+				}
+			} else {
+				if(fields.speed_max != null){
+					$("#new_act_speed_max").val(fields.speed_max);
+				}
+				if(fields.speed_avg != null){
+					$("#new_act_speed_avg").val(fields.speed_avg);
+				}
+				if(fields.speed_avg_movement != null){
+					$("#new_act_speed_avg_movement").val(fields.speed_avg_movement);
+				}
+			}
+			if(fields.time_elapsed != null) {
+				$("#new_act_elapsed_time").val(secondsToTime(fields.time_elapsed));
+			}
+
+			if(fields.time_movement != null) {
+				$("#new_act_time_movement").val(secondsToTime(fields.time_movement));
+			}
+
+			if(!is_template) {
+				// Populate weather data
+				if(fields.weather_stationname != null) {
+					$("#new_act_weather_stationname").val(fields.weather_stationname);
+				}
+				if(fields.weather_temp != null) {
+					$("#new_act_weather_temp").val(fields.weather_temp);
+				}
+				if(fields.weather_rain != null) {
+					$("#new_act_weather_rain").val(fields.weather_rain);
+				}
+				if(fields.weather_hum != null) {
+					$("#new_act_weather_hum").val(fields.weather_hum);
+				}
+				if(fields.weather_windspeed != null) {
+					$("#new_act_weather_windspeed").val(fields.weather_windspeed);
+				}
+				if(fields.weather_winddir != null) {
+					$("#new_act_weather_winddir").val(fields.weather_winddir);
+				}
+			}
+
+			$("#new_act_public").attr('checked', fields.public);
+			$( ".selector" ).flipswitch( "refresh" );
+
+			if(!is_template) {
+				override_calories = true;	// avoid existing calorie values to be overridden
+			}
+			change_sport();
+			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after change_sport for not being overwritten
+			if(!is_template) {
+				override_calories = false;
+			}
+
+		}
+
+		$.ajax({
+			// have to use synchronous here, else the function
+			// will return before the data is fetched
+			async:false,
+			url: url,
+			dataType:"json",
+			success: onDataReceived
+		});
+	}
+
+</script>

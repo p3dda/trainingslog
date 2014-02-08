@@ -288,3 +288,10 @@ function base64Decode(data){
 
 	return result.join('');
 }
+
+function quantile(data, q) {
+	var count = data.length;
+	//data.sort();
+	data.sort(function(a,b){return a - b})
+	return data[Math.floor(count*q)];
+}

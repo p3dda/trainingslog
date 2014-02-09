@@ -29,6 +29,8 @@ var defaults = {
 	weekNumbers: false,
 	weekNumberCalculation: 'iso',
 	weekNumberTitle: 'W',
+	weekSummary: false,
+	weekSummaryTitle: 'Total',
 	
 	// editing
 	//editable: false,
@@ -527,7 +529,17 @@ function Calendar(element, options, eventSources) {
 	
 	// called when event data arrives
 	function reportEvents(_events) {
-		events = _events;
+		// Filter week summary events here
+		for(var i = 0; i < _events.length; i++) {
+			if( _events[i].type == 'week_summary') {
+				if( options.weekSummary ){
+					events.push(_events[i]);
+				}
+			} else {
+				events.push(_events[i]);
+			}
+		}
+		//events = _events;
 		renderEvents();
 	}
 
@@ -2184,8 +2196,10 @@ function BasicView(element, calendar, viewName) {
 	var showWeekNumbers;
 	var weekNumberTitle;
 	var weekNumberFormat;
-	
-	
+
+	var showWeekSummary;
+	var weekSummaryTitle;
+
 	
 	/* Rendering
 	------------------------------------------------------------*/
@@ -2221,6 +2235,9 @@ function BasicView(element, calendar, viewName) {
 		else {
 			weekNumberFormat = "W";
 		}
+		showWeekSummary = opt('weekSummary')
+		weekSummaryTitle = opt('weekSummaryTitle');
+		console.debug(showWeekSummary);
 	}
 	
 	
@@ -2305,6 +2322,13 @@ function BasicView(element, calendar, viewName) {
 				"</th>";
 		}
 
+		if (showWeekSummary) {
+			html +=
+				"<th class='fc-day-header fc-week-number " + headerClass + "'>" +
+				htmlEscape(weekSummaryTitle) +
+				"</th>";
+		}
+
 		html += "</tr></thead>";
 
 		return html;
@@ -2339,6 +2363,18 @@ function BasicView(element, calendar, viewName) {
 				html += buildCellHTML(date);
 			}
 
+			if (showWeekSummary) {
+//				date = cellToDate(row, 0);
+				html +=
+					"<td class='fc-day fc-week-summary " + contentClass + "'>" +
+					"<div>" +
+					"<div class='fc-day-number'></div>" +
+					"<div class='fc-day-content'>" +
+					"<div style='position:relative'>&nbsp;</div>" +
+					"</div>" +
+					"</div>" +
+					"</td>";
+			}
 			html += "</tr>";
 		}
 
@@ -2440,8 +2476,13 @@ function BasicView(element, calendar, viewName) {
 			weekNumberWidth = head.find('th.fc-week-number').outerWidth();
 		}
 
-		colWidth = Math.floor((viewWidth - weekNumberWidth) / colCnt);
-		setOuterWidth(headCells.slice(0, -1), colWidth);
+		if (showWeekSummary) {
+			colWidth = Math.floor((viewWidth - weekNumberWidth) / (colCnt+1));
+			setOuterWidth(headCells.slice(0), colWidth);
+		} else {
+			colWidth = Math.floor((viewWidth - weekNumberWidth) / colCnt);
+			setOuterWidth(headCells.slice(0, -1), colWidth);
+		}
 	}
 	
 	
@@ -3708,10 +3749,12 @@ function AgendaEventRenderer() {
 			dayEvents=[],
 			slotEvents=[];
 		for (i=0; i<len; i++) {
-			if (events[i].allDay) {
-				dayEvents.push(events[i]);
-			}else{
-				slotEvents.push(events[i]);
+			if (events[i].type != 'week_summary'){
+				if (events[i].allDay) {
+					dayEvents.push(events[i]);
+				}else{
+					slotEvents.push(events[i]);
+				}
 			}
 		}
 
@@ -5265,6 +5308,12 @@ function DayEventRenderer() {
 		var segments = rangeToSegments(startDate, endDate);
 		for (var i=0; i<segments.length; i++) {
 			segments[i].event = event;
+
+			if( event.type == 'week_summary') {
+				segments[i].leftCol = 7;
+				segments[i].rightCol = 7;
+
+			}
 		}
 		return segments;
 	}
@@ -5463,8 +5512,13 @@ function DayEventRenderer() {
 	// (the height displaced by the vertically stacked events in the row).
 	// Requires segments to have their `outerHeight` property already set.
 	function calculateVerticals(segments) {
+		var opt = t.opt;
+
 		var rowCnt = getRowCnt();
 		var colCnt = getColCnt();
+		if( opt('weekSummary')) {
+			colCnt += 1;
+		}
 		var rowContentHeights = []; // content height for each row
 		var segmentRows = buildSegmentRows(segments); // an array of segment arrays, one for each row
 

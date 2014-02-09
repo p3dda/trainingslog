@@ -769,6 +769,7 @@ def get_report_data(request):
 @login_required
 def calendar_get_events(request):
 	events = []
+	summary = {}
 
 	start_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('start'))),timezone.get_default_timezone())
 	end_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('end'))), timezone.get_default_timezone())
@@ -797,7 +798,21 @@ def calendar_get_events(request):
 		
 	for desease in desease_list:
 		events.append({'title': desease.name, 'allDay': True, 'start': desease.start_date.isoformat(), 'end': desease.end_date.isoformat(), 'desease_id': desease.pk, 'color': '#ff0000', 'className': 'fc_desease'})
-	
+
+	for activity in activity_list:
+		week = activity.date.isocalendar()[1]
+		if not week in summary:
+			summary[week] = {'distance': 0, 'calories': 0, 'time': 0}
+		if activity.distance:
+			summary[week]['distance'] += activity.distance
+		if activity.calories:
+			summary[week]['calories'] += activity.calories
+		summary[week]['time'] += activity.time
+		summary[week]['date'] = activity.date
+
+	for week in summary:
+		events.append({'title': "Distanz:\n%s km\nZeit\n%s\nKalorien\n%s kcal" % (summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']), 'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat()})
+
 	return HttpResponse(simplejson.dumps(events))
 
 @login_required

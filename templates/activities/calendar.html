@@ -7,7 +7,7 @@
 <script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
 
 
-<script type='text/javascript' src='/media/js/fullcalendar.min.js'></script>
+<script type='text/javascript' src='/media/js/fullcalendar.js'></script>
 <script type="text/javascript">
 	// we will add our javascript code here
 
@@ -41,8 +41,9 @@
 			},
 			monthNames: monthNames,
 			monthNamesShort: monthNamesMin,
+			weekSummary: true,
 			dayNamesShort: dayNamesMin,
-			events : '/calendar/events/',
+			eventSources : ['/calendar/events/'],
 			dayClick : function() {
 				$("#new_act_date").datepicker("setDate", arguments[0]);
 				$("#activity_dialog").dialog("open");

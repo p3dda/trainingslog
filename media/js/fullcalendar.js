@@ -2324,7 +2324,7 @@ function BasicView(element, calendar, viewName) {
 
 		if (showWeekSummary) {
 			html +=
-				"<th class='fc-day-header fc-week-number " + headerClass + "'>" +
+				"<th class='fc-day-header fc-week-summary " + headerClass + "'>" +
 				htmlEscape(weekSummaryTitle) +
 				"</th>";
 		}

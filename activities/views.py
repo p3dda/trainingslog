@@ -811,7 +811,10 @@ def calendar_get_events(request):
 		summary[week]['date'] = activity.date
 
 	for week in summary:
-		events.append({'title': "Distanz:\n%s km\nZeit\n%s\nKalorien\n%s kcal" % (summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']), 'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat()})
+		events.append({'title': "Distanz:\n%s km\n\nZeit\n%s\n\nKalorien\n%s kcal" %
+								(summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']),
+					   'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat(),
+					   'color': '#3baae3'})
 
 	return HttpResponse(simplejson.dumps(events))
 

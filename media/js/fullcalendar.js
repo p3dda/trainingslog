@@ -529,6 +529,7 @@ function Calendar(element, options, eventSources) {
 	
 	// called when event data arrives
 	function reportEvents(_events) {
+		events = [];
 		// Filter week summary events here
 		for(var i = 0; i < _events.length; i++) {
 			if( _events[i].type == 'week_summary') {

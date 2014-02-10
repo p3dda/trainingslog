@@ -14,6 +14,9 @@ class CalorieFormula(models.Model):
 	def __unicode__(self):
 		return self.name
 
+	class Meta:
+		ordering = ["name"]
+
 class Equipment(models.Model):
 	name = models.CharField(max_length=200)
 	description = models.TextField(blank=True)
@@ -24,12 +27,18 @@ class Equipment(models.Model):
 	def __unicode__(self):
 		return self.name
 
+	class Meta:
+		ordering = ["name"]
+
 class Event(models.Model):
 	name = models.CharField(max_length=200)
 	user = models.ForeignKey(User, null=True, blank=True)
 
 	def __unicode__(self):
 		return self.name
+
+	class Meta:
+		ordering = ["name"]
 
 class Sport(models.Model):
 	name = models.CharField(max_length=200)
@@ -39,6 +48,9 @@ class Sport(models.Model):
 	calorie_formula = models.ForeignKey(CalorieFormula, null=True, blank=True)
 	def __unicode__(self):
 		return self.name
+
+	class Meta:
+		ordering = ["name"]
 	
 class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')

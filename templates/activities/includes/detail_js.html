@@ -446,13 +446,7 @@
 
 			var gdata = [];
 
-			if(data[graphs[i]["dataname"]].length == 0) {
-				plot_data[graphs[i]["name"]]["data"] = [];
-				$("#details_"+graphs[i]["name"]).hide();
-
-				// Delete entry from graph list for non-existing graphs
-				delete graphs[i];
-			} else {
+			if(data[graphs[i]["dataname"]].length != 0) {
 				var gdata=transpose(data[graphs[i]["dataname"]]);
 				if(plot_base == "time"){
 					var graphdata=transpose([gdata[1], gdata[2]]);
@@ -475,10 +469,8 @@
 					}
 				}
 				$("#details_"+graphs[i]["name"]).show();
-			}
 
-			plot_options = cloneObject(plot_default_options);
-			if (plot_data[graphs[i]["name"]]["data"].length>0) {
+				plot_options = cloneObject(plot_default_options);
 				var avg=0;
 				var min=plot_data[graphs[i]["name"]]["data"][0][1];
 				var max=plot_data[graphs[i]["name"]]["data"][0][1];
@@ -490,28 +482,34 @@
 						max=plot_data[graphs[i]["name"]]["data"][j][1];
 				}
 				avg=avg/plot_data[graphs[i]["name"]]["data"].length;
-			}
-			if ((graphs[i]["name"]=="speed") && speed_as_pace) {
-				plot_options["yaxis"]=pace_plot;
-				plot_options["yaxis"]["min"]=Math.floor(min);
-				plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
+
+				if ((graphs[i]["name"]=="speed") && speed_as_pace) {
+					plot_options["yaxis"]=pace_plot;
+					plot_options["yaxis"]["min"]=Math.floor(min);
+					plot_options["yaxis"]["max"]=Math.floor(1.5*avg);
+				} else {
+					plot_options["yaxis"]=new Object();
+				//	plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
+					plot_options["yaxis"]["min"]=Math.floor(min);
+					plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+	//				plot_options["yaxis"]["min"]=quantile(gdata[2], 0.20*1.5);
+	//				plot_options["yaxis"]["max"]=quantile(gdata[2], 0.80*1.5	);
+
+	//				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+				}
+
+				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
+				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
+				legends[graphs[i]["name"]].each(function() {
+					$(this).css('width', $(this).width());
+				});
 			} else {
-				plot_options["yaxis"]=new Object();
-			//	plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
-				plot_options["yaxis"]["min"]=Math.floor(min);
-				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
-//				plot_options["yaxis"]["min"]=quantile(gdata[2], 0.20*1.5);
-//				plot_options["yaxis"]["max"]=quantile(gdata[2], 0.80*1.5	);
+				plot_data[graphs[i]["name"]]["data"] = [];
+				$("#details_"+graphs[i]["name"]).hide();
 
-//				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+				// Delete entry from graph list for non-existing graphs
+				delete graphs[i];
 			}
-
-			plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plot_options);
-			legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
-			legends[graphs[i]["name"]].each(function() {
-				$(this).css('width', $(this).width());
-			});
-
 		}
 		
 		var updateCursorTimeout = null;

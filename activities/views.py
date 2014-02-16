@@ -818,7 +818,7 @@ def calendar_get_events(request):
 		events.append({'title': "Distanz:\n%s km\n\nZeit\n%s\n\nKalorien\n%s kcal" %
 								(summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']),
 					   'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat(),
-					   'color': '#3baae3'})
+					    'className': 'fc-event-weeksummary'})
 
 	return HttpResponse(simplejson.dumps(events))
 

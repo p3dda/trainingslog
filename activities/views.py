@@ -775,7 +775,11 @@ def calendar_get_events(request):
 	end_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('end'))), timezone.get_default_timezone())
 	start_date = datetime.date.fromtimestamp(float(request.GET.get('start')))
 	end_date = datetime.date.fromtimestamp(float(request.GET.get('end')))
-	activity_list = Activity.objects.select_related('sport').filter(user=request.user).filter(date__gte=str(start_datetime)).filter(date__lt=str(end_datetime))
+	sportlist = request.GET.get('sports')
+	sports = json.loads(sportlist)
+	sports = [int(sport) for sport in sports]
+
+	activity_list = Activity.objects.select_related('sport').filter(user=request.user).filter(date__gte=str(start_datetime)).filter(date__lt=str(end_datetime)).filter(sport__in=sports)
 	desease_list = Desease.objects.filter(user=request.user).filter(end_date__gt=start_date).filter(start_date__lt=end_date)
 	weight_list = Weight.objects.filter(user=request.user).filter(date__gt=start_date).filter(date__lt=end_date)
 	weightgoal_list = Goal.objects.filter(user=request.user).filter(due_date__gt=start_date).filter(due_date__lt=end_date)

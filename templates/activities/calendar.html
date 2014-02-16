@@ -20,7 +20,31 @@
 			});
 		});
 		updateCalendar();
+		$(':checkbox').change(function() {
+			//updateCalendar();
+			$('#calendar').fullCalendar('refetchEvents');
+		});
+		$( "#filter_dialog" ).dialog({autoOpen: false});
+
+		$("#filter_button").on("click", function() {
+			$("#filter_dialog").dialog("open");
+		});
 	});
+
+	var get_filtered_events;
+	get_filtered_events = function (start, end, cb) {
+		console.debug("Get filtered events called");
+		sports = new Array();
+		$(".sport_cb:checked").each(function () {
+			sports.push($(this).val());
+		});
+
+		console.debug(sports);
+		$.getJSON("/calendar/events/", {start: Math.round(start.getTime() / 1000), end: Math.round(end.getTime() / 1000), sports: JSON.stringify(sports)}, function(data) {
+			console.debug(data);
+			cb(data);
+		})
+	};
 	
 	var updateCalendar = function() {
 		// do stuff when DOM is ready
@@ -43,7 +67,9 @@
 			monthNamesShort: monthNamesMin,
 			weekSummary: true,
 			dayNamesShort: dayNamesMin,
-			eventSources : ['/calendar/events/'],
+			events : function (start, end, cb) {
+				get_filtered_events(start, end, cb)
+			},
 			dayClick : function() {
 				$("#new_act_date").datepicker("setDate", arguments[0]);
 				$("#activity_dialog").dialog("open");
@@ -68,7 +94,27 @@
 {% endblock %}
 
 {% block content %} <!-- we will add our HTML content here -->
+
+<div id='outer'>
 <div id='calendar'></div>
+<input type="button" id="filter_button" value="Filter anzeigen">
+
+<div id="filter_dialog" title="Filter">
+	<table>
+		<tr>
+			<td valign="top">
+				{%  if sports %}
+				<p>
+					{% for sport in sports %}
+						<input type="checkbox" class="sport_cb" value="{{ sport.pk }}" checked>{{ sport.name }}<br/>
+					{% endfor %}
+				</p>
+				{%  endif %}
+			</td>
+		</tr>
+	</table>
+</div>
+</div>
 
 {% include "activities/includes/activity_dialog.html" %}
 {% include "health/includes/desease_dialog.html" %}

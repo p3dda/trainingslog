@@ -75,7 +75,6 @@
 			</tbody>
 		</table>
 	</div>
-
 	{% include "activities/includes/navpanel.html" %}
 </div>
 
@@ -127,12 +126,12 @@
 		<label for="new_act_comment">Kommentar</label>
 		<textarea rows=3 cols=30 id="new_act_comment"></textarea>
 		<label for="new_act_date">Datum</label>
-		<input name="new_act_date" type="date" id="new_act_date" value="" data-mini="true" />
+		<input name="new_act_date" type="date" id="new_act_date" value="{% now "Y-m-d" %}" data-mini="true" />
 		<label for="new_act_datetime">Uhrzeit</label>
-		<input name="new_act_datetime" type="time" id="new_act_datetime" value="" data-mini="true" />
+		<input name="new_act_datetime" type="time" id="new_act_datetime" value="{% now "H:i"%}" data-mini="true" />
 
 		<label for="new_act_time">Dauer</label>
-		<input name="new_act_time" type="time" id="new_act_time" value="" data-mini="true" />
+		<input name="new_act_time" type="time" id="new_act_time" value="00:00" data-mini="true" />
 		<label for="new_act_distance">Distanz</label>
 		<input name="new_act_distance" type="text" id="new_act_distance" data-mini="true" />
 

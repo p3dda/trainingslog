@@ -953,8 +953,9 @@ class FITFile(ActivityFile):
 				lap.hf_avg = message.get_value("avg_heart_rate")
 				lap.hf_max = message.get_value("max_heart_rate")
 
-				lap.elevation_max = max(lap_altitude)
-				lap.elevation_min = min(lap_altitude)
+				if len(lap_altitude) > 0:
+					lap.elevation_max = max(lap_altitude)
+					lap.elevation_min = min(lap_altitude)
 				lap_altitude = []
 
 				max_speed = message.get("max_speed")

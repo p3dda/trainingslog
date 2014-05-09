@@ -237,3 +237,26 @@ class ActivityTest(TestCase):
 		self.assertIsInstance(ddata, dict)
 		self.assertEqual(ddata["avg_stance_time"], 240.6)
 
+	def test_fit_nogps_upload(self):
+		"""
+		Tests tcx file upload and parsing without gps
+		"""
+		#url = reverse("activity.views.list_activities")
+		url="/activities/"
+
+		self.client.login(username='test1', password='test1')
+
+		resp = self.client.get(url, {"id": 1})
+		self.assertEqual(resp.status_code, 200)
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike_nogps.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+
+		nogps_act=Activity.objects.get(pk=1)
+		self.assertEqual(nogps_act.time_elapsed, 3285)
+		self.assertEqual(nogps_act.weather_stationname, None)
+		self.assertEqual(nogps_act.cadence_avg, 83)
+		self.assertEqual(nogps_act.cadence_max, 111)
+
+		nogps_act.delete()

@@ -257,8 +257,6 @@ def list_activities(request):
 			logging.debug("Creating activity from file upload")
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
-				newtrack.save()
-				is_saved=True
 				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
 				if fileExtension.lower() == '.tcx':
 					newtrack.filetype = "tcx"
@@ -268,6 +266,8 @@ def list_activities(request):
 					activityfile = ActivityFile.FITFile(newtrack, request)
 				else:
 					raise Exception("File type %s cannot be imported" % fileExtension)
+				newtrack.save()
+				is_saved=True
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()

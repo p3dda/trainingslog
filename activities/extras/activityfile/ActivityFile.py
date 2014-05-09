@@ -163,7 +163,8 @@ class ActivityFile:
 
 		# generate preview image for track
 		self.create_preview()
-		self.to_gpx()			# create gpx file from track
+		if len(self.get_pos()) > 0:
+			self.to_gpx()			# create gpx file from track
 
 
 	def calc_totals(self):
@@ -929,7 +930,8 @@ class FITFile(ActivityFile):
 		self.position_start = None
 
 		for message in self.fitfile.get_messages(name="session"):
-			self.position_start = (message.get_value("start_position_lat"), message.get_value("start_position_long"))
+			if message.get_value("start_position_lat") is not None and message.get_value("start_position_long") is not None:
+				self.position_start = (message.get_value("start_position_lat"), message.get_value("start_position_long"))
 			self.time_start = message.get_value("start_time")
 			self.time_end = message.get_value("timestamp")
 
@@ -949,10 +951,11 @@ class FITFile(ActivityFile):
 				if lap.elevation_loss == None:
 					lap.elevation_loss = 0
 
-				if message.get_value("avg_running_cadence") is not None:
-					lap.cadence_avg = message.get_value("avg_running_cadence") * 2	# TODO: if activity type is not running, take bike cadence
-				if message.get_value("max_running_cadence") is not None:
-					lap.cadence_max = message.get_value("max_running_cadence") * 2
+				lap.cadence_avg = message.get_value("avg_cadence")
+				lap.cadence_max = message.get_value("max_cadence")
+				if message.get_value("sport") == 'running':
+					lap.cadence_avg *= 2
+					lap.cadence_max *= 2
 
 				lap.calories = message.get_value("total_calories")
 				lap.hf_avg = message.get_value("avg_heart_rate")

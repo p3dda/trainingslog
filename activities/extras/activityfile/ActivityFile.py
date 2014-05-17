@@ -954,8 +954,10 @@ class FITFile(ActivityFile):
 				lap.cadence_avg = message.get_value("avg_cadence")
 				lap.cadence_max = message.get_value("max_cadence")
 				if message.get_value("sport") == 'running':
-					lap.cadence_avg *= 2
-					lap.cadence_max *= 2
+					if lap.cadence_avg is not None:
+						lap.cadence_avg *= 2
+					if lap.cadence_max is not None:
+						lap.cadence_max *= 2
 
 				lap.calories = message.get_value("total_calories")
 				lap.hf_avg = message.get_value("avg_heart_rate")

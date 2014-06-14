@@ -33,6 +33,9 @@
 			<br/>
 			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog({{ activity.id }})"/>&nbsp;&nbsp;
 			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog({{ activity.id }})">&nbsp;&nbsp;
+			{% if tcx %}
+				<a href="{{ tcx.url }}"><img src="/media/img/download-icon.png" alt="Download"></a>&nbsp;&nbsp;
+			{% endif %}
 			{% if fb_app_id %}
 				<img src="/media/img/facebook-icon.png" alt="Share on facebook" onclick="postToFeed()"/>
 			{% endif %}

@@ -31,8 +31,8 @@
 		{% if not public %}
 			<br/>
 			<br/>
-			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{ activity.id }})"/>&nbsp;&nbsp;
-			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{ activity.id }})">&nbsp;&nbsp;
+			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog({{ activity.id }})"/>&nbsp;&nbsp;
+			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog({{ activity.id }})">&nbsp;&nbsp;
 			{% if fb_app_id %}
 				<img src="/media/img/facebook-icon.png" alt="Share on facebook" onclick="postToFeed()"/>
 			{% endif %}

@@ -11,7 +11,7 @@
 <script>
 	var plot = null;
 	var series;
-	var weight_data = null;
+	var weightData = null;
 	//var weight_avg = False;
 	$(document).ready(function() {
 		$(function() {
@@ -20,7 +20,7 @@
 				show : "blind",
 				hide : "explode",
 				minWidth : 500,
-				minHeight : 300,
+				minHeight : 300
 			});
 		});
 		$(function() {
@@ -29,7 +29,7 @@
 				show : "blind",
 				hide : "explode",
 				minWidth : 500,
-				minHeight : 300,
+				minHeight : 300
 			});
 		});
 		$(function() {
@@ -38,72 +38,76 @@
 				show : "blind",
 				hide : "explode",
 				minWidth : 500,
-				minHeight : 300,
+				minHeight : 300
 			});
 		});
 		// Initialize datepicker input
 		$(function() {
 			now = new Date();
-			$("#weight_date").datepicker({
+			var weightDate = $("#weight_date");
+			var weightGoalDate = $("#weightgoal_date");
+			var pulseDate = $("#pulse_date");
+			weightDate.datepicker({
 				dateFormat : 'dd.mm.yy'
 			});
-			$("#weightgoal_date").datepicker({
+			weightGoalDate.datepicker({
 				dateFormat : 'dd.mm.yy'
 			});
-			$("#pulse_date").datepicker({
+			pulseDate.datepicker({
 				dateFormat : 'dd.mm.yy'
 			});
-			$("#weight_date").datepicker("setDate", now);
-			$("#weightgoal_date").datepicker("setDate", now);
-			$("#pulse_date").datepicker("setDate", now);
+			weightDate.datepicker("setDate", now);
+			weightGoalDate.datepicker("setDate", now);
+			pulseDate.datepicker("setDate", now);
 		});
 		// attach the click handler to the button
-		$("#weight_send").click(add_weight);
-		$("#pulse_send").click(add_pulse);
-		$("#weightgoal_send").click(add_weightgoal);
-		$("#pulse_add").click(show_pulse_dialog);
-		$("#weight_add").click(show_weight_dialog);
-		$("#weightgoal_add").click(show_weightgoal_dialog);
-		$("#weight_avg").change(update_plot);
-		$("#timespan").change(timespan_change);
+		$("#weight_send").click(addWeight);
+		$("#pulse_send").click(addPulse);
+		$("#weightgoal_send").click(addWeightgoal);
+		$("#pulse_add").click(showPulseDialog);
+		$("#weight_add").click(showWeightDialog);
+		$("#weightgoal_add").click(showWeightgoalDialog);
+		$("#weight_avg").change(updatePlot);
+		$("#timespan").change(timespanChange);
 		
 		ajaxDataGetter();
 	});
 
-	function onDataReceived(rcvd_series) {
-		series = rcvd_series;
-		update_plot();
+	function onDataReceived(rcvdSeries) {
+		series = rcvdSeries;
+		updatePlot();
 	}
-	function update_plot() {
-		plotweight_data = new Object();
+	function updatePlot() {
+		var plotweightData = {};
 		if( $("#weight_avg").is(':checked')) {
-			plotweight_data["data"] = series["weight_weekly_list"];
+			plotweightData["data"] = series["weight_weekly_list"];
 		} else {
-			plotweight_data["data"] = series["weight_list"];
+			plotweightData["data"] = series["weight_list"];
 		}
-		plotweight_data["label"] = "Gewicht = 0.0";
-		plotweight_data["lines"] = {"show": true};
-		plotweight_data["points"] = {"show": true};
+		plotweightData["label"] = "Gewicht = 0.0";
+		plotweightData["lines"] = {"show": true};
+		plotweightData["points"] = {"show": true};
 		
-		plotpulsemin_data = new Object();
-		plotpulsemin_data["data"] = series["pulse_min_list"];
-		plotpulsemin_data["label"] = "Ruhepuls = 0.0";
-		plotpulsemin_data["yaxis"] = 2;
-		plotpulsemin_data["lines"] = {"show": true};
-		plotpulsemin_data["points"] = {"show": true};
-		plotpulsemax_data = new Object();
-		plotpulsemax_data["data"] = series["pulse_max_list"];
-		plotpulsemax_data["label"] = "Maximalpuls = 0.0";
-		plotpulsemax_data["yaxis"] = 2;
-		plotpulsemax_data["lines"] = {"show": true};
-		plotpulsemax_data["points"] = {"show": true};
+		var plotpulseminData = {};
+		plotpulseminData["data"] = series["pulse_min_list"];
+		plotpulseminData["label"] = "Ruhepuls = 0.0";
+		plotpulseminData["yaxis"] = 2;
+		plotpulseminData["lines"] = {"show": true};
+		plotpulseminData["points"] = {"show": true};
+		var plotpulsemaxData = {};
+		plotpulsemaxData["data"] = series["pulse_max_list"];
+		plotpulsemaxData["label"] = "Maximalpuls = 0.0";
+		plotpulsemaxData["yaxis"] = 2;
+		plotpulsemaxData["lines"] = {"show": true};
+		plotpulsemaxData["points"] = {"show": true};
 		
-		plotgoal_data = {"data": series["goal_data"],
+		var plotgoalData = {"data": series["goal_data"],
 						"label": "Zielgewicht",
 						"lines": {"show": true}
-						}
-						
-		plot = $.plot($("#placeholder"), [plotweight_data, plotgoal_data, plotpulsemin_data, plotpulsemax_data], {
+						};
+
+		var plotPlaceHolder = $("#placeholder");
+		var plot = $.plot(plotPlaceHolder, [plotweightData, plotgoalData, plotpulseminData, plotpulsemaxData], {
 			xaxis : {
 				mode : "time",
 				minTickSize : [1, "day"],
@@ -122,10 +126,10 @@
 			grid : {
 				hoverable : true,
 				autoHighlight : false
-			},
+			}
 		});
 
-		var legends = $("#placeholder .legendLabel");
+		var legends = plotPlaceHolder.find(".legendLabel");
 		legends.each(function() {
 			// fix the widths so they don't jump around
 			$(this).css('width', $(this).width());
@@ -152,26 +156,26 @@
 					break;
 
 				// now interpolate
-				var y, p1 = series.data[j - 1], p2 = series.data[j];
-				if(p1 == null)
-					if(p2 != null)
-						y = p2[1];
+				var y, posA = series.data[j - 1], posB = series.data[j];
+				if(posA == null)
+					if(posB != null)
+						y = posB[1];
 					else
 						y = 0;
-				else if(p2 == null)
-					if(p1 != null)
-						y = p1[1];
+				else if(posB == null)
+					if(posA != null)
+						y = posA[1];
 					else
 						y = 0;
 				else
-					y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
+					y = posA[1] + (posB[1] - posA[1]) * (pos.x - posA[0]) / (posB[0] - posA[0]);
 
 				legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
 			}
 		}
 
 
-		$("#placeholder").bind("plothover", function(event, pos, item) {
+		plotPlaceHolder.bind("plothover", function(event, pos, item) {
 			latestPosition = pos;
 			if(!updateLegendTimeout)
 				updateLegendTimeout = setTimeout(updateLegend, 50);
@@ -181,20 +185,19 @@
 	}
 
 	var ajaxDataGetter = function() {
-		var url = "/health/weights/?timespan=" + $("#timespan").val();
-
+		var timespan = $("#timespan").val();
 
 		$.ajax({
 			// have to use synchronous here, else the function
 			// will return before the data is fetched
 			async : false,
-			url : "/health/data/?timespan=" + $("#timespan").val(),
+			url : "/health/data/?timespan=" + timespan,
 			dataType : "json",
 			success : onDataReceived
 		});
 	};
 
-	var add_weight = function() {
+	var addWeight = function() {
 		// retrieve the text entered
 		var date = $("#weight_date").val();
 		var weight =$("#weight_input").val();
@@ -210,8 +213,8 @@
 					$("#weight_dialog").dialog("close");
 					ajaxDataGetter();
 					{% if goal %}
-					last_weight = weight_data[weight_data.length-1];
-					distance = last_weight[1] - {{goal.target_weight}};
+					var lastWeight = weightData[weightData.length-1];
+					var distance = lastWeight[1] - {{goal.target_weight}};
 					$("#td_goal_distance").html(distance.toFixed(1));
 					{% endif %}
 				} else {
@@ -225,18 +228,19 @@
 		return false;
 	};
 
-	var add_pulse = function() {
+	var addPulse = function() {
 		var date = $("#pulse_date").val();
 
 		var data = {
-			date : date,
+			date : date
 		};
-
-		if(! isNaN(parseInt($("#pulse_rest").val()))) {
-			data["rest"] = parseInt($("#pulse_rest").val());
+		var pulseRest = $("#pulse_rest").val();
+		var pulseMax = $("#pulse_maximum").val();
+		if(! isNaN(parseInt(pulseRest))) {
+			data["rest"] = parseInt(pulseRest);
 		}
-		if(! isNaN(parseInt($("#pulse_maximum").val()))) {
-			data["maximum"] = parseInt($("#pulse_maximum").val());
+		if(! isNaN(parseInt(pulseMax))) {
+			data["maximum"] = parseInt(pulseMax);
 		}
 		if((! "rest" in data) && (! "maximum" in data)){
 			noty({text: "Kein gueltiger Puls angegeben", type: 'error', timeout: 5000});
@@ -252,7 +256,7 @@
 		}, "json");
 	};
 	
-	var add_weightgoal = function() {
+	var addWeightgoal = function() {
 		var date = $("#weightgoal_date").val();
 		var weight = $("#weightgoal_weight").val();
 		var data = {
@@ -271,35 +275,29 @@
 		return false;
 	};
 	
-	var timespan_change = function() {
-		if ( $("#timespan").val() >32|| $("#timespan").val() == -1) {
+	var timespanChange = function() {
+		var timespan = $("#timespan").val();
+		if ( timespan >32|| timespan == -1) {
 			$("#weight_avg").attr('checked', true);
 		} else {
 			$("#weight_avg").attr('checked', false);
 		}
 		ajaxDataGetter();
 	};
-	var weight_avg_change = function() {
-		if( $("#weight_avg").is(':checked')) {
-			weight_avg = True;
-		} else {
-			weight_avg = False;
-		}
-	}
 
-	var show_weight_dialog = function() {
+	var showWeightDialog = function() {
 		$("#weight_dialog").dialog("open");
 		$("#weight_date").datepicker("hide");
 		$("#weight_input").focus();
 	};
 	
-	var show_pulse_dialog = function() {
+	var showPulseDialog = function() {
 		$("#pulse_dialog").dialog("open");
 		$("#pulse_date").datepicker("hide");
 		$("#pulse_rest").focus();
 	};
 	
-	var show_weightgoal_dialog = function() {
+	var showWeightgoalDialog = function() {
 		$("#weightgoal_dialog").dialog("open");
 		$("#weightgoal_date").datepicker("hide");
 		$("#weightgoal_weight").focus();

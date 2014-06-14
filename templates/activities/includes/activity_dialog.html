@@ -94,18 +94,18 @@
 </div>
 
 <script type="application/javascript">
-	var sport_data = new Array();
-	var calformula_data = new Array();
-	var act_id = null;
-	var act_tmpl_id = null;
+	var sportData = new Array();
+	var calformulaData = new Array();
+	var actID = null;
+	var actTmplID = null;
 	var pace = false;
 	
-	var override_speed_avg = false;
-	var override_speed_avg_movement = false;
-	var override_calories = false;
+	var overrideSpeedAvg = false;
+	var overrideSpeedAvgMovement = false;
+	var overrideCalories = false;
 	
-	var update_speed_avg = function() {
-		if(!override_speed_avg) {
+	var updateSpeedAvg = function() {
+		if(!overrideSpeedAvg) {
 			distance = $("#new_act_distance").val()
 			distance = distance.replace( /,/,"." );
 
@@ -116,7 +116,7 @@
 					
 					speed = distance * 3600 / time;
 					
-					if(sport_data[$("#new_act_sport").val()]["pace"]){
+					if(sportData[$("#new_act_sport").val()]["pace"]){
 						$("#new_act_speed_avg").val(speedToPace(speed));
 					} else {
 						$("#new_act_speed_avg").val(speed.toFixed(2).replace( /\./,"," ));
@@ -126,8 +126,8 @@
 		}
 	}
 
-	var update_speed_avg_movement = function() {
-		if(!override_speed_avg_movement) {
+	var updateSpeedAvgMovement = function() {
+		if(!overrideSpeedAvgMovement) {
 			distance = $("#new_act_distance").val()
 			distance = distance.replace( /,/,"." );
 
@@ -138,7 +138,7 @@
 					
 					speed = distance * 3600 / time;
 					
-					if(sport_data[$("#new_act_sport").val()]["pace"]){
+					if(sportData[$("#new_act_sport").val()]["pace"]){
 						$("#new_act_speed_avg_movement").val(speedToPace(speed));
 					} else {
 						$("#new_act_speed_avg_movement").val(speed.toFixed(2).replace( /\./,"," ));
@@ -150,36 +150,36 @@
 
 	$(document).ready(function() {
 		$('#new_act_time').blur(function() {
-			update_speed_avg();
+			updateSpeedAvg();
 		});
 
 		$('#new_act_distance').blur(function() {
-			update_speed_avg();
-			update_speed_avg_movement();
+			updateSpeedAvg();
+			updateSpeedAvgMovement();
 		});
 
 		$('#new_act_speed_avg').blur(function() {
-			override_speed_avg = true;
+			overrideSpeedAvg = true;
 		});
 
 		$('#new_act_time_movement').blur(function() {
-			update_speed_avg_movement();
+			updateSpeedAvgMovement();
 		});
 
 		$('#new_act_speed_avg_movement').blur(function() {
-			override_speed_avg_movement = true;
+			overrideSpeedAvgMovement = true;
 		});
-		init_activity_form();
+		initActivityForm();
 {% if edit and not public %}
-		show_activity_dialog({{ activity.id }});
+		showActivityDialog({{ activity.id }});
 {% endif %}
 		
 		$('#new_act_calories').blur(function() {
-			override_calories = true;
+			overrideCalories = true;
 		});
 	});
 
-	var init_activity_form = function() {
+	var initActivityForm = function() {
 
 		$("#activity_dialog").dialog({
 			modal: true,
@@ -204,19 +204,19 @@
 		// initialize speed_unit array
 		{% for sport in sports %}
 			{% if sport.speed_as_pace %}
-				sport_data[{{sport.id}}] = {'pace': true, 'label': "min/km" };
+				sportData[{{sport.id}}] = {'pace': true, 'label': "min/km" };
 			{% else %}
-				sport_data[{{sport.id}}] = {'pace': false, 'label': "km/h" };
+				sportData[{{sport.id}}] = {'pace': false, 'label': "km/h" };
 			{% endif %}
 			{% if sport.calorie_formula %}
-				sport_data[{{sport.id}}]['calformula_id'] = {{sport.calorie_formula.id}};
+				sportData[{{sport.id}}]['calformula_id'] = {{sport.calorie_formula.id}};
 			{% else %}
-				sport_data[{{sport.id}}]['calformula_id'] = -1;
+				sportData[{{sport.id}}]['calformula_id'] = -1;
 			{% endif %}
 		{% endfor %}
 		
 		{% for calformula in calformulas %}
-			calformula_data[{{calformula.id}}] = {'weight_dist_factor': {{calformula.weight_dist_factor|stringformat:"f"}}, 'weight_time_factor': {{calformula.weight_time_factor|stringformat:"f"}} };
+			calformulaData[{{calformula.id}}] = {'weight_dist_factor': {{calformula.weight_dist_factor|stringformat:"f"}}, 'weight_time_factor': {{calformula.weight_time_factor|stringformat:"f"}} };
 		{% endfor %}
 		
 		$("#activity_delete_dialog").dialog({
@@ -264,25 +264,25 @@
 		$( "#new_act_time_movement" ).timepicker({hourText: "Stunde"});
 		$( "#tabs" ).tabs();
 
-		$("#new_act_save").click(submit_activity_clicked);
-		$("#new_act_template_save").click(submit_activitytemplate_clicked);
+		$("#new_act_save").click(submitActivityClicked);
+		$("#new_act_template_save").click(submitActivityTemplateClicked);
 		
-		$("#new_act_sport").change(change_sport);
-		$("#new_act_calformula").change(change_calformula);
-		$("#new_act_time").change(change_calformula);
-		$("#new_act_distance").change(change_calformula);
-		$("#new_act_template").change(change_template);
+		$("#new_act_sport").change(changeSport);
+		$("#new_act_calformula").change(changeCalFormula);
+		$("#new_act_time").change(changeCalFormula);
+		$("#new_act_distance").change(changeCalFormula);
+		$("#new_act_template").change(changeTemplate);
 		//initially set correct speed_units 
-		change_sport();
+		changeSport();
 		
 	};
 	
-	var change_sport = function(){
-		var sport_id = $("#new_act_sport").val();
-		if(pace != sport_data[sport_id]["pace"]) {
-			$('.speed_unit').html(sport_data[sport_id]["label"]);
+	var changeSport = function(){
+		var sportId = $("#new_act_sport").val();
+		if(pace != sportData[sportId]["pace"]) {
+			$('.speed_unit').html(sportData[sportId]["label"]);
 			
-			pace = sport_data[sport_id]["pace"];
+			pace = sportData[sportId]["pace"];
 			if(pace) {
 				if( isNum($("#new_act_speed_avg").val().replace( /,/,"." ))) {
 					$("#new_act_speed_avg").val(speedToPace(parseFloat($("#new_act_speed_avg").val().replace( /,/,"." ))));
@@ -306,33 +306,33 @@
 			}
 		}
 		
-		$("#new_act_calformula").val(sport_data[sport_id]['calformula_id']);
-		change_calformula();
+		$("#new_act_calformula").val(sportData[sportId]['calformula_id']);
+		changeCalFormula();
 	};
 	
-	var change_calformula = function () {
-		if ( !override_calories ) {
+	var changeCalFormula = function () {
+		if ( !overrideCalories ) {
 		{% if not weight %}
 			return;
 		{% else  %}
-			var calformula_id = $("#new_act_calformula").val();
-			var sport_id = $("#new_act_sport").val();
+			var calformulaID = $("#new_act_calformula").val();
+			var sportID = $("#new_act_sport").val();
 			var distance = parseFloat($("#new_act_distance").val().replace( /,/,"." ));
 			var time = timeToSeconds($("#new_act_time").val());
 			
-			if(calformula_id != -1) {
-				if(calformula_data[calformula_id]['weight_time_factor']!=0.0) {
+			if(calformulaID != -1) {
+				if(calformulaData[calformulaID]['weight_time_factor']!=0.0) {
 					if( time != 0 ) {
-						wtcal = {{ weight.weight|stringformat:"f" }} * time/3600 * calformula_data[calformula_id]['weight_time_factor'];
+						wtcal = {{ weight.weight|stringformat:"f" }} * time/3600 * calformulaData[calformulaID]['weight_time_factor'];
 					} else {
 						return;
 					}
 				}else{
 					wtcal = 0;
 				}
-				if(calformula_data[calformula_id]['weight_dist_factor']!=0.0) {
+				if(calformulaData[calformulaID]['weight_dist_factor']!=0.0) {
 					if( !isNaN(distance) ) {
-						wdcal = {{ weight.weight|stringformat:"f" }} * distance * calformula_data[calformula_id]['weight_dist_factor'];
+						wdcal = {{ weight.weight|stringformat:"f" }} * distance * calformulaData[calformulaID]['weight_dist_factor'];
 					} else {
 						return;
 					}
@@ -346,37 +346,37 @@
 		}
 	}
 	
-	var show_activity_dialog = function(activity_id) {
+	var showActivityDialog = function(activity_id) {
 		if(typeof(activity_id) != "undefined") {
 			if(activity_id != null){
-				populate_activity_dialog(activity_id, is_template=false);
+				populateActivityDialog(activity_id, is_template=false);
 			}
 		}
 		$("#activity_dialog").dialog("open");
 	}
 	
-	var show_activity_template_dialog = function(activity_id) {
+	var showActivityTemplateDialog = function(activity_id) {
 		$("#new_act_save").hide();
 
 		if(typeof(activity_id) != "undefined") {
 			if(activity_id != null){
-				populate_activity_dialog(activity_id, is_template=true);
+				populateActivityDialog(activity_id, is_template=true);
 			}
 		}
 		$("#activity_dialog").dialog("open");
 	};
 	
-	var change_template = function() {
-		var template_id = $("#new_act_template").val();
-		populate_activity_dialog(template_id, true);
+	var changeTemplate = function() {
+		var templateID = $("#new_act_template").val();
+		populateActivityDialog(templateID, true);
 	};
 	
-	var populate_activity_dialog = function(activity_id, is_template) {
-		var url = "/activities/get_json/?id=" + activity_id + "&template=" + is_template;
-		if(!is_template) {
-			act_id = activity_id;
+	var populateActivityDialog = function(activityID, isTemplate) {
+		var url = "/activities/get_json/?id=" + activityID + "&template=" + isTemplate;
+		if(!isTemplate) {
+			actID = activityID;
 		} else {
-			act_tmpl_id = activity_id;
+			actTmplID = activityID;
 		}
 		
 		function onDataReceived(data) {
@@ -405,8 +405,8 @@
 				$("#new_act_calories").val(fields.calories);
 			}
 
-			$("#new_act_sport").val(fields.sport)
-			$("#new_act_event").val(fields.event)
+			$("#new_act_sport").val(fields.sport);
+			$("#new_act_event").val(fields.event);
 
 			for( var i in fields.equipment) {
 				$('#new_act_equipment option').filter(function(){
@@ -439,7 +439,7 @@
 				$("#new_act_hr_avg").val(fields.hf_avg); 
 			}
 			
-			if(sport_data[fields.sport]["pace"]){
+			if(sportData[fields.sport]["pace"]){
 				if(fields.speed_max != null){
 					$("#new_act_speed_max").val(speedToPace(fields.speed_max)); 
 				}
@@ -468,7 +468,7 @@
 				$("#new_act_time_movement").val(secondsToTime(fields.time_movement));
 			}
 
-			if(!is_template) {
+			if(!isTemplate) {
 				// Populate weather data
 				if(fields.weather_stationname != null) {
 					$("#new_act_weather_stationname").val(fields.weather_stationname);
@@ -492,13 +492,13 @@
 
 			$("#new_act_public").attr('checked', fields.public);
 
-			if(!is_template) {
-				override_calories = true;	// avoid existing calorie values to be overridden
+			if(!isTemplate) {
+				overrideCalories = true;	// avoid existing calorie values to be overridden
 			}
-			change_sport();
-			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after change_sport for not being overwritten
-			if(!is_template) {
-				override_calories = false;
+			changeSport();
+			$("#new_act_calformula").val(fields.calorie_formula);	// Must be set after changeSport for not being overwritten
+			if(!isTemplate) {
+				overrideCalories = false;
 			}
 			
 		}
@@ -514,25 +514,25 @@
 	}
 	
 	
-	var submit_activitytemplate_clicked = function () {
-		submit_activity(true);
+	var submitActivityTemplateClicked = function () {
+		submitActivity(true);
 	}
 	
-	var submit_activity_clicked = function() {
-		submit_activity(false);
+	var submitActivityClicked = function() {
+		submitActivity(false);
 	}
 	
-	var submit_activity = function(is_template) {
-		// FIXME: Review validations in submit_activity
+	var submitActivity = function(isTemplate) {
+		// FIXME: Review validations in submitActivity
 		var new_act_data = new Array();
 
-		if(is_template) {
-			if(act_tmpl_id != null) {
-				new_act_data.update_id = act_tmpl_id;
+		if(isTemplate) {
+			if(actTmplID != null) {
+				new_act_data.update_id = actTmplID;
 			}
 		} else {
-			if(act_id != null){
-				new_act_data.update_id = act_id;
+			if(actID != null){
+				new_act_data.update_id = actID;
 			}
 		}
 		
@@ -549,19 +549,19 @@
 		});	
 		
 		new_act_data.equipment = equipment.join(" ");	//FIXME: This is a dirty hack to send array, better with json encode;
-		new_act_data.cadence_avg = $("#new_act_cadence_avg").val(); 
-		new_act_data.cadence_max = $("#new_act_cadence_max").val(); 
-		new_act_data.calories = $("#new_act_calories").val(); 
-		new_act_data.calformula = $("#new_act_calformula").val(); 
+		new_act_data.cadence_avg = $("#new_act_cadence_avg").val();
+		new_act_data.cadence_max = $("#new_act_cadence_max").val();
+		new_act_data.calories = $("#new_act_calories").val();
+		new_act_data.calformula = $("#new_act_calformula").val();
 		new_act_data.distance = $("#new_act_distance").val();
-		new_act_data.elevation_gain = $("#new_act_elevation_gain").val(); 
-		new_act_data.elevation_loss = $("#new_act_elevation_loss").val(); 
-		new_act_data.elevation_min = $("#new_act_elevation_min").val(); 
-		new_act_data.elevation_max = $("#new_act_elevation_max").val(); 
-		new_act_data.hr_max = $("#new_act_hr_max").val(); 
-		new_act_data.hr_avg = $("#new_act_hr_avg").val(); 
-		new_act_data.speed_max = $("#new_act_speed_max").val(); 
-		new_act_data.speed_avg = $("#new_act_speed_avg").val(); 
+		new_act_data.elevation_gain = $("#new_act_elevation_gain").val();
+		new_act_data.elevation_loss = $("#new_act_elevation_loss").val();
+		new_act_data.elevation_min = $("#new_act_elevation_min").val();
+		new_act_data.elevation_max = $("#new_act_elevation_max").val();
+		new_act_data.hr_max = $("#new_act_hr_max").val();
+		new_act_data.hr_avg = $("#new_act_hr_avg").val();
+		new_act_data.speed_max = $("#new_act_speed_max").val();
+		new_act_data.speed_avg = $("#new_act_speed_avg").val();
 		new_act_data.speed_avg_movement = $("#new_act_speed_avg_movement").val();
 		new_act_data.time = $("#new_act_time").val();
 		new_act_data.elapsed_time = $("#new_act_elapsed_time").val();
@@ -592,7 +592,7 @@
             var act_is_public = false;
 		}
 
-		res = validate_act_data(new_act_data, is_template);
+		res = validateActData(new_act_data, isTemplate);
 		if(!res[0]){
 			var alert_string = "<ul>";
 			for(i in res[1]){
@@ -604,7 +604,7 @@
 //			$("#alert_dialog_content").html(alert_string);
 //			$("#alert_dialog").dialog("open");
 		}  else {
-			parse_act_data(new_act_data, is_template);
+			parseActData(new_act_data, isTemplate);
 
 			$.post("/activities/add/", {
 				name: new_act_data.name,
@@ -639,7 +639,7 @@
 				weather_rain: new_act_data.weather_rain,
 				weather_windspeed: new_act_data.weather_windspeed,
 				weather_winddir: new_act_data.weather_winddir,
-				is_template: is_template
+				is_template: isTemplate
 				}, function(data) {
 					
 					if (data["success"]) {
@@ -662,13 +662,13 @@
 		}
 	}
 	
-	var validate_act_data = function(data, is_template) {
+	var validateActData = function(data, isTemplate) {
 		var errors = new Array();
 		if(data.name == ""){
 			errors.push("Name nicht angegeben");
 		}
 		
-		if(!is_template) {
+		if(!isTemplate) {
 			// datetime and time values are optional in templates
 			if(!isTime(data.datetime)){
 				errors.push("Uhrzeit ung&uuml;ltig");
@@ -746,7 +746,7 @@
 		}
 	}
 	
-	var parse_act_data = function(data,is_template) {
+	var parseActData = function(data, isTemplate) {
 		if(data.time==""){
 			data.time = null;
 		} else {
@@ -786,14 +786,14 @@
 		
 	}
 
-	var show_activity_delete_dialog = function(activity_id) {
+	var showActivityDeleteDialog = function(activity_id) {
 		$("#activity_delete_id_input").val(activity_id);
 		$("#activity_template_delete_id_input").val(null);
 		
 		$("#activity_delete_dialog").dialog("open");
 	};
 	
-	var show_activity_template_delete_dialog = function(activity_id) {
+	var showActivityTemplateDeleteDialog = function(activity_id) {
 		$("#activity_delete_id_input").val(null);
 		$("#activity_template_delete_id_input").val(activity_id);
 		

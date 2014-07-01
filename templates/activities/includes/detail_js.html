@@ -267,6 +267,7 @@
 		}
 		$( "#plot_xaxis").change(plotXaxisChanged);
 		$( "#plot_zoom").click(plotZoomClicked);
+		$( "#plot_reset_zoom").click(plotResetZoomClicked);
 		plotGraphs();
 {% endif %}
 {% if gpx_url %}
@@ -653,18 +654,7 @@
 			});
 
 			graphcontainer.bind("plotunselected", function (event) {
-				//noinspection JSUnusedAssignment,JSUnusedAssignment
-				if (plotLockSelectionCB == false ) {
-					plotLockSelectionCB = true;
-					plotselectionActive = false;
-					
-					{%  if gpx_url %}
-					hideMapSelection();
-					{% endif %}
-					hidePlotsSelection();
-					hideTooltips();
-					plotLockSelectionCB = false;
-				}
+				plotUnselect();
 			});
 		}
 		return data;
@@ -772,8 +762,30 @@
 			hideMapSelection();
 			{% endif %}
 			updatePlots(plotselectionRange["xaxis_range"][0], plotselectionRange["xaxis_range"][1]);
+			$("#plot_reset_zoom").css('visibility', 'visible');
 		} else {
 			updatePlots();
+			$("#plot_reset_zoom").css('visibility', 'hidden');
+		}
+	};
+
+	var plotResetZoomClicked = function() {
+		plotUnselect();
+		updatePlots();
+		$("#plot_reset_zoom").css('visibility', 'hidden');
+	};
+
+	var plotUnselect = function() {
+		if (plotLockSelectionCB == false ) {
+			plotLockSelectionCB = true;
+			plotselectionActive = false;
+
+			{%  if gpx_url %}
+				hideMapSelection();
+			{% endif %}
+			hidePlotsSelection();
+			hideTooltips();
+			plotLockSelectionCB = false;
 		}
 	}
 </script>

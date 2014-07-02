@@ -55,7 +55,7 @@ class ActivityFile:
 		self.request = request
 		self.activity = None
 		self.laps = None
-		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'vertical_oscillation': []}
+		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
 		self.track_by_distance={}
 		self.detail_entries = {}
 		self.position_start = None
@@ -323,6 +323,13 @@ class ActivityFile:
 		@rtype: list
 		"""
 		return self.track_data["hf"]
+
+	def get_temperature(self):
+		"""Returns list of (distance, temperature) tuples with optional given max length
+		@returns (distance, temperature) tuples
+		@rtype: list
+		"""
+		return self.track_data["temperature"]
 
 	def get_pos(self, samples=-1):
 		"""Returns list of (lat, lon) tuples with trackpoint gps coordinates
@@ -994,7 +1001,9 @@ class FITFile(ActivityFile):
 		speed_gps_data=[]
 		speed_foot_data=[]
 		stance_time_data = []
+		temperature_data = []
 		vertical_oscillation_data = []
+
 
 		offset_time = 0 # used to remove track sequences from plot where no movement has occured
 		last_distance = None
@@ -1050,6 +1059,12 @@ class FITFile(ActivityFile):
 					self.track_by_distance[distance]["cad"]=cad
 				cad_data.append((distance,trackpoint_time,cad))
 
+			temperature = message.get_value("temperature")
+			if temperature is not None:
+				if distance is not None:
+					self.track_by_distance[distance]["temperature"] = temperature
+				temperature_data.append((distance, trackpoint_time, temperature))
+
 # 			# Get heart rate in beats per minute
 			hf = message.get_value("heart_rate")
 			if hf is not None:
@@ -1089,4 +1104,5 @@ class FITFile(ActivityFile):
 		self.track_data["speed_gps"]=speed_gps_data
 		self.track_data["speed_foot"]=speed_foot_data
 		self.track_data["stance_time"]=stance_time_data
+		self.track_data["temperature"]=temperature_data
 		self.track_data["vertical_oscillation"]=vertical_oscillation_data

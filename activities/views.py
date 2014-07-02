@@ -653,7 +653,8 @@ def detail(request, activity_id):
 					'speed': tcxtrack.get_speed(act.sport.speed_as_pace),
 					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace),
 					'stance_time': tcxtrack.get_stance_time(),
-					'vertical_oscillation': tcxtrack.get_vertical_oscillation()
+					'vertical_oscillation': tcxtrack.get_vertical_oscillation(),
+					'temperature': tcxtrack.get_temperature()
 					}
 
 			details_data = tcxtrack.get_detail_entries()

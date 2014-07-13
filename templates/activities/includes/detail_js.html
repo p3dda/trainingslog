@@ -417,6 +417,7 @@
 	};
 
 	var updatePlots = function(xmin, xmax) {
+		console.debug("updatePlots called");
 		function cloneObject(obj) {
 			var clone = {};
 			for(var i in obj) if (obj.hasOwnProperty(i)) {
@@ -496,31 +497,26 @@
 				$("#details_"+graphs[i]["name"]).show();
 
 				var plotOptions = cloneObject(plotDefaultOptions);
-				var avg=0;
-				var min=plot_data[graphs[i]["name"]]["data"][0][1];
-				var max=plot_data[graphs[i]["name"]]["data"][0][1];
-				for (var j=0; j<plot_data[graphs[i]["name"]]["data"].length; j++) {
-					avg=avg+plot_data[graphs[i]["name"]]["data"][j][1];
-					if (plot_data[graphs[i]["name"]]["data"][j][1]<min)
-						min=plot_data[graphs[i]["name"]]["data"][j][1];
-					if (plot_data[graphs[i]["name"]]["data"][j][1]>max)
-						max=plot_data[graphs[i]["name"]]["data"][j][1];
+
+				if (typeof xmin !== "undefined" && typeof xmax !== "undefined") {
+					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
+				} else {
+					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
 				}
-				avg=avg/plot_data[graphs[i]["name"]]["data"].length;
+				var min = rangeValues.min;
+				var max = rangeValues.max;
+				var avg = rangeValues.avg;
 
 				if ((graphs[i]["name"]=="speed") && speedAsPace) {
 					plotOptions["yaxis"]=pacePlot;
 					plotOptions["yaxis"]["min"]=Math.floor(min);
 					plotOptions["yaxis"]["max"]=Math.floor(1.5*avg);
+					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.floor(1.5*avg));
 				} else {
 					plotOptions["yaxis"]={};
-				//	plot_options["yaxis"]["min"]=Math.floor(0.5*avg);
 					plotOptions["yaxis"]["min"]=Math.floor(min);
 					plotOptions["yaxis"]["max"]=Math.ceil(1.1*max);
-	//				plot_options["yaxis"]["min"]=quantile(gdata[2], 0.20*1.5);
-	//				plot_options["yaxis"]["max"]=quantile(gdata[2], 0.80*1.5	);
-
-	//				plot_options["yaxis"]["max"]=Math.ceil(1.1*max);
+					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.ceil(1.1*max));
 				}
 
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);

@@ -245,7 +245,10 @@ class ActivityFile:
 		else:
 			self.activity.cadence_max = cadence_max
 		self.activity.calories = calories_sum
-		self.activity.speed_max = str(speed_max)
+		if speed_max:
+			self.activity.speed_max = str(speed_max)
+		else:
+			self.activity.speed_max = None
 		if hf_avg==0 or hf_avg is None:
 			self.activity.hf_avg = None
 		else:

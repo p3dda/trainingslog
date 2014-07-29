@@ -1004,7 +1004,7 @@ class FITFile(ActivityFile):
 		temperature_data = []
 		vertical_oscillation_data = []
 
-
+		offset_distance = 0
 		offset_time = 0 # used to remove track sequences from plot where no movement has occured
 		last_distance = None
 
@@ -1029,6 +1029,11 @@ class FITFile(ActivityFile):
 			distance = message.get_value("distance")
 			if distance is not None:
 				distance *= 1000 	# convert from km -> m
+				# check if distance is less than from last trackpoint (new lap starting with distance 0 when merging fit files)
+				if (distance + offset_distance) < last_distance:
+					offset_distance = last_distance
+				distance += offset_distance
+
 			delta = message.get_value('timestamp')-start_time
 			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
 

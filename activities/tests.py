@@ -107,7 +107,7 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.elevation_gain, 346)
 		self.assertEqual(act.elevation_loss, 347)
 
-		act_track = ActivityFile.TCXFile(act.track)
+		act_track = ActivityFile.ActivityFile(act.track)
 		self.assertEqual(len(act_track.track_data["hf"]), 804)
 		self.assertEqual(len(act_track.track_data["cad"]), 0)
 		self.assertEqual(len(act_track.track_by_distance), 796)
@@ -205,7 +205,7 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.time, 6939)
 		self.assertEqual(act.time_elapsed, 7135)
 
-		act_track = ActivityFile.FITFile(act.track)
+		act_track = ActivityFile.ActivityFile(act.track)
 		self.assertEqual(len(act_track.track_data["hf"]), 6940)
 		self.assertEqual(len(act_track.track_data["cad"]), 6940)
 		self.assertEqual(len(act_track.track_by_distance), 6928)

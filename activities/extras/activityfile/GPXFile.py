@@ -9,7 +9,6 @@ class GPXFile(ActivityFile):
 	filetypes = ["gpx"]
 
 	def __init__(self, track, request=None):
-		print "GPX init"
 		ActivityFile.__init__(self, track, request)
 		self.gpxfile = gpxpy.parse(self.track.trackfile)
 		self.parse_trackpoints()

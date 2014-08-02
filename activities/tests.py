@@ -260,3 +260,29 @@ class ActivityTest(TestCase):
 		self.assertEqual(nogps_act.cadence_max, 111)
 
 		nogps_act.delete()
+
+	def test_gpx(self):
+		"""
+		Tests gpx file import and parsing with gps
+		"""
+		url="/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'test.gpx'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+
+		act=Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		self.assertEqual(act.time_elapsed, 12068)
+		self.assertEqual(act.time, 9983)
+		self.assertEqual(act.distance, Decimal('10.076'))
+		self.assertEqual(act.elevation_min, 1005)
+		self.assertEqual(act.elevation_max, 1519)
+		self.assertEqual(act.elevation_gain, 674)
+		self.assertEqual(act.elevation_loss, 170)
+		self.assertEqual(act.speed_avg, Decimal('3.6'))
+		self.assertEqual(act.speed_max, Decimal('6.1'))
+
+		act.delete()

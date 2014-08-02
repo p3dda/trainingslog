@@ -58,11 +58,14 @@ class ActivityFile(ActivityFileMetaclass):
 		self.track = track
 		self.request = request
 		self.activity = None
+		self.date = None
 		self.laps = None
 		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
 		self.track_by_distance={}
 		self.detail_entries = {}
 		self.position_start = None
+		self.time_start = None
+		self.time_end = None
 
 	def get_activity(self):
 		return self.activity
@@ -268,7 +271,7 @@ class ActivityFile(ActivityFileMetaclass):
 		self.activity.elevation_loss = elev_loss
 		self.activity.time = time_sum
 		self.activity.date = self.laps[0].date
-		self.activity.speed_avg = str(float(self.activity.distance) * 3600 / self.activity.time)
+		self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
 
 		if self.time_start and self.time_end:	# FIXME: This is not set in fit activities
 			logging.debug("First and last trackpoint timestamps in track are %s and %s" % (self.time_start, self.time_end))

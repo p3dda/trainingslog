@@ -258,10 +258,7 @@ def list_activities(request):
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
 				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
-				if fileExtension.lower() == '.tcx':
-					newtrack.filetype = "tcx"
-				elif fileExtension.lower() == '.fit':
-					newtrack.filetype = "fit"
+				newtrack.filetype = fileExtension.lower()[1:]
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
 
 				newtrack.save()
@@ -270,6 +267,7 @@ def list_activities(request):
 				activity = activityfile.get_activity()
 				activity.save()
 			except Exception, msg:
+				raise
 				logging.error("Exception occured in import with message %s" % msg)
 				if is_saved:
 					newtrack.delete()

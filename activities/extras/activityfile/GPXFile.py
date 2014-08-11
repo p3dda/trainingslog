@@ -77,7 +77,9 @@ class GPXFile(ActivityFile):
 
 		start_time = trackpoints[0].time
 		last_point = None
-		for trackpoint in trackpoints:
+
+		#for trackpoint in trackpoints:
+		for tp_id, trackpoint in enumerate(trackpoints):
 			if last_point is None:
 				distance = 0
 			else:
@@ -89,16 +91,36 @@ class GPXFile(ActivityFile):
 					offset_distance = last_distance
 				distance += offset_distance
 
-			delta = trackpoint.time-start_time
-			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+			if trackpoint.time is not None:
+				# calculate time difference from start_time in msec
+				delta = trackpoint.time - start_time
+				trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+				last_known_time = trackpoint_time  # backup time for trackpoints without timestamp
 
-			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
-			if last_distance is not None and distance is not None:
-				delta_dist = distance - last_distance
-				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
-				if delta_time > 0 and (delta_dist / delta_time) < 0.5:
-					offset_time += delta_time
-					trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+				# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
+				if last_distance is not None and distance is not None:
+					delta_dist = distance - last_distance
+					delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
+					if delta_time > 0 and (delta_dist / delta_time) < 0.5:
+						offset_time += delta_time
+						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000  # recalculate difference from start_time
+			else:
+				# Trackpoint has no timestamp. Find next trackpoint with timestamp and assign average
+				# delta timestamps to the trackpoints in between
+				tp_without_time = 0
+				avg_delta = 0
+				for (sub_id, subtrackpoint) in enumerate(trackpoints[tp_id:]):
+					if subtrackpoint.time is not None:
+						# found next trackpoint with timestamp, calculate avg. time delta
+						tp_without_time = sub_id
+						tp_delta = (subtrackpoint.time - last_point.time)
+						avg_delta = tp_delta / tp_without_time
+						break
+				for (sub_id, subtrackpoint) in enumerate(trackpoints[tp_id:tp_id+tp_without_time]):
+					if subtrackpoint.time is None:
+						# assign calculated timestamps
+						subtrackpoint.time = last_point.time + avg_delta * (sub_id + 1)
+
 			last_distance = distance
 			if distance is not None:
 				if not self.track_by_distance.has_key(distance):

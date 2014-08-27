@@ -102,20 +102,26 @@ class FITFile(ActivityFile):
 				lap_altitude = []
 
 				max_speed = message.get("max_speed")
-				if max_speed.units == "m/s":
-					lap.speed_max = (max_speed.value * 3600.0) / 1000
-				elif max_speed.units == "km/h":
-					lap.speed_max = max_speed.value
+				if max_speed.value:
+					if max_speed.units == "m/s":
+						lap.speed_max = (max_speed.value * 3600.0) / 1000
+					elif max_speed.units == "km/h":
+						lap.speed_max = max_speed.value
+					else:
+						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
 				else:
-					raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
+					lap.speed_max = 0
+
 				avg_speed = message.get("avg_speed")
-				if avg_speed is not None:
+				if avg_speed:
 					if avg_speed.units == "m/s":
 						lap.speed_avg = (avg_speed.value * 3600.0) / 1000
 					elif max_speed.units == "km/h":
 						lap.speed_avg = avg_speed.value
 					else:
 						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
+				else:
+					lap.speed_avg = 0
 
 				self.laps.append(lap)
 

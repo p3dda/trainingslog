@@ -253,13 +253,37 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		nogps_act=Activity.objects.get(pk=1)
-		self.assertEqual(nogps_act.time_elapsed, 3285)
-		self.assertEqual(nogps_act.weather_stationname, None)
-		self.assertEqual(nogps_act.cadence_avg, 83)
-		self.assertEqual(nogps_act.cadence_max, 111)
+		act=Activity.objects.get(pk=1)
+		self.assertEqual(act.time_elapsed, 3285)
+		self.assertEqual(act.weather_stationname, None)
+		self.assertEqual(act.cadence_avg, 83)
+		self.assertEqual(act.cadence_max, 111)
 
-		nogps_act.delete()
+		act.delete()
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike_nogps_nospeed.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+
+		act=Activity.objects.get(pk=1)
+		self.assertEqual(act.distance, Decimal('0'))
+		self.assertEqual(act.time, 4365)
+		self.assertEqual(act.time_movement, None)
+		self.assertEqual(act.speed_avg, Decimal('0'))
+		self.assertEqual(act.speed_avg_movement, None)
+		self.assertEqual(act.time_elapsed, 5023)
+		self.assertEqual(act.cadence_avg, 90)
+		self.assertEqual(act.cadence_max, 125)
+
+		laps = Lap.objects.filter(activity = act)
+		self.assertEqual(len(laps), 15)
+		lap = laps[1]
+
+		self.assertEqual(lap.distance, Decimal('0'))
+		self.assertEqual(lap.speed_avg, Decimal('0'))
+		self.assertEqual(lap.speed_max, Decimal('0'))
+		act.delete()
+
 
 	def test_gpx(self):
 		"""

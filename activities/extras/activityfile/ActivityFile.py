@@ -264,7 +264,11 @@ class ActivityFile(ActivityFileMetaclass):
 			self.activity.hf_max = None
 		else:
 			self.activity.hf_max = hf_max
-		self.activity.distance = str(distance_sum)
+		if distance_sum:
+			self.activity.distance = str(distance_sum)
+		else:
+			self.activity.distance = "0.0"
+
 		self.activity.elevation_min = elev_min
 		self.activity.elevation_max = elev_max
 		self.activity.elevation_gain = elev_gain

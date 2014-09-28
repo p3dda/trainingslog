@@ -76,12 +76,16 @@ class FITFile(ActivityFile):
 				lap = Lap()
 				lap.date = message.get_value("start_time").replace(tzinfo=utc)
 				lap.time = message.get_value("total_timer_time")
-				lap.distance = message.get_value("total_distance")/1000
+				lap.distance = message.get_value("total_distance")
+				if lap.distance is None:
+					lap.distance = 0
+				else:
+					lap.distance /= 1000
 				lap.elevation_gain = message.get_value("total_ascent")
 				lap.elevation_loss = message.get_value("total_descent")
-				if lap.elevation_gain == None:
+				if lap.elevation_gain is None:
 					lap.elevation_gain = 0
-				if lap.elevation_loss == None:
+				if lap.elevation_loss is None:
 					lap.elevation_loss = 0
 
 				lap.cadence_avg = message.get_value("avg_cadence")
@@ -113,13 +117,14 @@ class FITFile(ActivityFile):
 					lap.speed_max = 0
 
 				avg_speed = message.get("avg_speed")
-				if avg_speed:
-					if avg_speed.units == "m/s":
-						lap.speed_avg = (avg_speed.value * 3600.0) / 1000
-					elif max_speed.units == "km/h":
-						lap.speed_avg = avg_speed.value
-					else:
-						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
+				if avg_speed.value:
+					if avg_speed:
+						if avg_speed.units == "m/s":
+							lap.speed_avg = (avg_speed.value * 3600.0) / 1000
+						elif max_speed.units == "km/h":
+							lap.speed_avg = avg_speed.value
+						else:
+							raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
 				else:
 					lap.speed_avg = 0
 

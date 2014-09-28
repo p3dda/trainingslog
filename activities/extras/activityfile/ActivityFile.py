@@ -19,26 +19,6 @@ from activities.models import Activity, Event, Sport, Lap
 from libs.fitparse import fitparse
 
 
-found_xml_parser=False
-
-try:
-	if not found_xml_parser:
-		from elementtree.ElementTree import ElementTree
-except ImportError, msg:
-	pass
-else:
-	found_xml_parser=True
-
-try:
-	if not found_xml_parser:
-		from xml.etree.ElementTree import ElementTree
-except ImportError, msg:
-	pass
-else:
-	found_xml_parser=True
-
-if not found_xml_parser:
-	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
 
 GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
 	creator="https://github.com/p3dda/trainingslog"
@@ -47,18 +27,45 @@ GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
 	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
 """
 
+class ActivityFileMeta(type):
+	def __init__(cls, name, bases, dct):
+		if not hasattr(cls, 'registry'):
+			cls.registry = {}
+		if 'filetypes' in dct:
+			if dct['filetypes'] is not None:
+				for filetype in dct['filetypes']:
+					cls.registry[filetype] = cls
+		super(ActivityFileMeta, cls).__init__(name, bases, dct)
+
+	def __call__(cls, *args, **kwargs):
+		track = args[0]
+		filetype = os.path.splitext(track.trackfile.name)[1][1:].lower()
+
+		if filetype in cls.registry:
+			# # select correct subclass for switch vendor
+			sw_cls = cls.registry[filetype]
+		else:
+			raise NotImplementedError('Filetype %s is not supported' % filetype)
+		return super(ActivityFileMeta, sw_cls).__call__(*args, **kwargs)
 
 
-class ActivityFile:
+ActivityFileMetaclass = ActivityFileMeta('ActivityFileMetaclass', (object, ), {})
+
+class ActivityFile(ActivityFileMetaclass):
+	filetypes = None
+
 	def __init__(self, track, request=None):
 		self.track = track
 		self.request = request
 		self.activity = None
+		self.date = None
 		self.laps = None
-		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'vertical_oscillation': []}
+		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
 		self.track_by_distance={}
 		self.detail_entries = {}
 		self.position_start = None
+		self.time_start = None
+		self.time_end = None
 
 	def get_activity(self):
 		return self.activity
@@ -163,7 +170,8 @@ class ActivityFile:
 
 		# generate preview image for track
 		self.create_preview()
-		self.to_gpx()			# create gpx file from track
+		if len(self.get_pos()) > 0:
+			self.to_gpx()			# create gpx file from track
 
 
 	def calc_totals(self):
@@ -244,7 +252,10 @@ class ActivityFile:
 		else:
 			self.activity.cadence_max = cadence_max
 		self.activity.calories = calories_sum
-		self.activity.speed_max = str(speed_max)
+		if speed_max:
+			self.activity.speed_max = str(speed_max)
+		else:
+			self.activity.speed_max = None
 		if hf_avg==0 or hf_avg is None:
 			self.activity.hf_avg = None
 		else:
@@ -253,14 +264,18 @@ class ActivityFile:
 			self.activity.hf_max = None
 		else:
 			self.activity.hf_max = hf_max
-		self.activity.distance = str(distance_sum)
+		if distance_sum:
+			self.activity.distance = str(distance_sum)
+		else:
+			self.activity.distance = "0.0"
+
 		self.activity.elevation_min = elev_min
 		self.activity.elevation_max = elev_max
 		self.activity.elevation_gain = elev_gain
 		self.activity.elevation_loss = elev_loss
 		self.activity.time = time_sum
 		self.activity.date = self.laps[0].date
-		self.activity.speed_avg = str(float(self.activity.distance) * 3600 / self.activity.time)
+		self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
 
 		if self.time_start and self.time_end:	# FIXME: This is not set in fit activities
 			logging.debug("First and last trackpoint timestamps in track are %s and %s" % (self.time_start, self.time_end))
@@ -299,7 +314,7 @@ class ActivityFile:
 					logging.error("Exception occured when creating preview image: %s" % exc)
 			else:
 				logging.debug("Track has no GPS position data, not creating preview image")
-				# TODO: Maybe load fallback image as preview_image
+			# TODO: Maybe load fallback image as preview_image
 
 	def get_alt(self):
 		"""Returns list of (distance, altitude) tuples with optional given max length
@@ -322,6 +337,13 @@ class ActivityFile:
 		@rtype: list
 		"""
 		return self.track_data["hf"]
+
+	def get_temperature(self):
+		"""Returns list of (distance, temperature) tuples with optional given max length
+		@returns (distance, temperature) tuples
+		@rtype: list
+		"""
+		return self.track_data["temperature"]
 
 	def get_pos(self, samples=-1):
 		"""Returns list of (lat, lon) tuples with trackpoint gps coordinates
@@ -368,6 +390,8 @@ class ActivityFile:
 			# if no GPS time recorded, skip the current fix_pos
 			if not self.track_by_distance[fix_pos].has_key("gps"):
 				continue
+			if fix_pos is None:
+				continue
 			min_pos=i-MAX_OFFSET
 
 			if min_pos<0:
@@ -411,6 +435,9 @@ class ActivityFile:
 			fix_pos=dist_points[i]
 			if not self.track_by_distance[fix_pos].has_key("gps"):
 				continue
+			if fix_pos is None:
+				continue
+
 			min_pos=i-MAX_OFFSET_AVG
 			max_pos=i+MAX_OFFSET_AVG
 			if min_pos<0:
@@ -499,578 +526,3 @@ class ActivityFile:
 		return self.detail_entries
 
 
-class TCXFile(ActivityFile):
-	#TCX_NS="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"
-	TCX_NS = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
-	xmlns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
-	xmlactextns = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
-	xml_instance = "{http://www.w3.org/2001/XMLSchema-instance}"
-
-	class MyHandler(sax.handler.ContentHandler):
-		def __init__(self, w):
-			self.time = ""
-			self.lat = ""
-			self.lon = ""
-			self.alt = ""
-			self.content = ""
-			self.w = w
-			self.min_lat = 1000.0
-			self.max_lat = 0
-			self.min_lon = 1000.0
-			self.max_lon = 0
-
-			self.gpsfixes = 0
-
-		def startDocument(self):
-			self.w(GPX_HEADER)
-
-		def endDocument(self):
-			self.w(' <bounds minlat="%s" minlon="%s" maxlat="%s" maxlon="%s"/>\n' % (self.min_lat, self.min_lon, self.max_lat, self.max_lon))
-			self.w('</gpx>\n')
-
-		def startElement(self, name, attrs):
-
-			self.content = ""
-			if name == 'Track':
-				self.w(' <trk>\n  <trkseg>\n')
-
-
-
-
-		def characters(self, content):
-			self.content = self.content + saxutils.escape(content)
-
-	#    def endElementNS(fname, qname, attrs):
-	#        (ns, name) = fname
-
-		def endElement(self, name):
-			if name == 'Track':
-				self.w('  </trkseg>\n </trk>\n')
-			elif name == 'Trackpoint':
-				try:
-					if float(self.lat) < self.min_lat:
-						self.min_lat = float(self.lat)
-					if float(self.lat) > self.max_lat:
-						self.max_lat = float(self.lat)
-					if float(self.lon) < self.min_lon:
-						self.min_lon = float(self.lon)
-					if float(self.lon) > self.max_lon:
-						self.max_lon = float(self.lon)
-				except ValueError:
-					pass
-				else:
-					if self.lon and self.lat:
-						self.w('   <trkpt lat="%s" lon="%s">\n' % (self.lat, self.lon))
-						if self.alt:
-							self.w('    <ele>%s</ele>\n' % self.alt)
-						if self.time:
-							self.w('    <time>%s</time>\n' % self.time)
-						self.w('   </trkpt>\n')
-						sys.stdout.flush()
-						self.gpsfixes += 1
-			elif name == 'LatitudeDegrees':
-				self.lat = self.content
-			elif name == 'LongitudeDegrees':
-				self.lon = self.content
-			elif name == 'AltitudeMeters':
-				self.alt = self.content
-			elif name == 'Time':
-				self.time = self.content
-
-
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
-		track.trackfile.open()
-		self.xmltree = ElementTree(file = track.trackfile)
-		track.trackfile.close()
-		#logging.debug("Trackfile %r closed" % tcxfile.trackfile)
-
-		self.parse_trackpoints()
-
-	def to_gpx(self):
-		logging.debug("convert called with track %s" % self.track.trackfile)
-		try:
-			with open(self.track.trackfile.path+".gpx", 'w') as f:
-				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path+".gpx")
-				w = f.write
-				handler = self.MyHandler(w)
-				sax.parse(self.track.trackfile.path, handler)
-
-			# do not keep empty gpx files (occurs when having .tcx recordings without GPS enabled)
-			if handler.gpsfixes == 0:
-				gpxfile = self.track.trackfile.path+".gpx"
-				os.remove(gpxfile)
-		except Exception, msg:
-			logging.debug("Exception occured in convert: %s" % msg)
-
-	def parse_file(self):
-		self.laps = []
-		self.position_start = None
-		self.date = None
-		self.time_start = None
-		self.time_end = None
-
-		self.track.trackfile.open()
-		xmltree = ElementTree(file = self.track.trackfile)
-		self.track.trackfile.close()
-
-		# take only first activity from file
-		xmlactivity = xmltree.find(self.TCX_NS + "Activities")[0]
-
-		lap_date = None
-
-		for xmllap in xmlactivity.findall(self.TCX_NS + "Lap"):
-			lap_date = dateutil.parser.parse(xmllap.get("StartTime"))
-			if self.date == None:
-				self.date = lap_date
-
-			time = int(float(xmllap.find(self.TCX_NS+"TotalTimeSeconds").text))
-			if xmllap.find(self.TCX_NS+"DistanceMeters") is None:
-				logging.debug("DistanceMeters not present in Lap data")
-				distance=None
-			else:
-				distance = str(float(xmllap.find(self.TCX_NS+"DistanceMeters").text)/1000)
-			if xmllap.find(self.TCX_NS+"MaximumSpeed") is None:
-				logging.debug("MaximumSpeed is None")
-				speed_max = None
-			else:
-				logging.debug("MaximumSpeed xml is %r" % xmllap.find(self.TCX_NS+"MaximumSpeed"))
-				speed_max = str(float(xmllap.find(self.TCX_NS+"MaximumSpeed").text)*3.6)	# Given as meters per second in tcx file
-				logging.debug("speed_max is %s" % speed_max)
-			if xmllap.find(self.TCX_NS+"Calories") is not None:
-				calories = int(xmllap.find(self.TCX_NS+"Calories").text)
-			else:
-				calories = None
-			try:
-				hf_avg = int(xmllap.find(self.TCX_NS+"AverageHeartRateBpm").find(self.TCX_NS+"Value").text)
-				logging.debug("Found hf_avg: %s" % hf_avg)
-			except AttributeError:
-				hf_avg = None
-				logging.debug("Not found hf_avg")
-			try:
-				hf_max = int(xmllap.find(self.TCX_NS+"MaximumHeartRateBpm").find(self.TCX_NS+"Value").text)
-				logging.debug("Found hf_max: %s" % hf_max)
-			except AttributeError:
-				hf_max = None
-				logging.debug("Not found hf_max")
-			try:
-				cadence_avg = int(xmllap.find(self.TCX_NS+"Cadence").text)
-				logging.debug("Found average cadence: %s" % cadence_avg)
-			except AttributeError:
-				cadence_avg = None
-				logging.debug("Not found average cadence")
-
-			if time != 0 and distance is not None:
-				speed_avg = str(float(distance)*3600 / time)
-			else:
-				speed_avg = None
-
-			cadence_max = None
-			elev_min = None
-			elev_max = None
-			elev_gain = None
-			elev_loss = None
-			last_elev = None
-
-			for xmltrack in xmllap.findall(self.TCX_NS + "Track"):
-				for xmltp in xmltrack.findall(self.TCX_NS + "Trackpoint"):
-					if not self.position_start:
-						xmlpos = xmltp.find(self.TCX_NS + "Position")
-						if xmlpos is not None:
-							if xmlpos.find(self.TCX_NS + "LatitudeDegrees") is not None and xmlpos.find( self.TCX_NS + "LongitudeDegrees") is not None:
-								lat = float(xmlpos.find(self.TCX_NS + "LatitudeDegrees").text)
-								lon = float(xmlpos.find(self.TCX_NS + "LongitudeDegrees").text)
-								self.position_start = (lat, lon)
-
-					if not self.time_start and xmltp.find(self.TCX_NS + "Time") is not None:
-						self.time_start = dateutil.parser.parse(xmltp.find(self.TCX_NS + "Time").text)
-
-					if xmltp.find(self.TCX_NS + "AltitudeMeters") is not None:
-						elev = int(round(float(xmltp.find(self.TCX_NS + "AltitudeMeters").text)))
-					else:
-						elev = last_elev
-
-					if elev != last_elev:
-						if elev_max is not None:
-							if elev > elev_max:
-								elev_max = elev
-						else:
-							elev_max = elev
-
-						if elev_min is not None:
-							if elev < elev_min:
-								elev_min = elev
-						else:
-							elev_min = elev
-
-						if last_elev:
-							if elev > last_elev:
-								if elev_gain is None:
-									elev_gain = elev - last_elev
-								else:
-									elev_gain += elev - last_elev
-							else:
-								if elev_loss is None:
-									elev_loss = last_elev - elev
-								else:
-									elev_loss += last_elev - elev
-						last_elev = elev
-
-					if xmltp.find(self.TCX_NS + "Cadence") != None:
-						cadence = int(xmltp.find(self.TCX_NS + "Cadence").text)
-						if cadence > cadence_max:
-							cadence_max = cadence
-
-				# Get timestamp from last trackpoint in this track
-				xmltp = xmltrack.findall(self.TCX_NS + "Trackpoint")[-1]
-				if xmltp.find(self.TCX_NS + "Time") is not None:
-					self.time_end = dateutil.parser.parse(xmltp.find(self.TCX_NS + "Time").text)
-
-			lap = Lap(
-					date = lap_date,
-					time = time,
-					distance = distance,
-					elevation_gain = elev_gain,
-					elevation_loss = elev_loss,
-					elevation_min = elev_min,
-					elevation_max = elev_max,
-					speed_max = speed_max,
-					speed_avg = speed_avg,
-					cadence_avg = cadence_avg,
-					cadence_max = cadence_max,
-					calories = calories,
-					hf_max = hf_max,
-					hf_avg = hf_avg)
-
-			self.laps.append(lap)
-
-	def parse_trackpoints(self):
-		# take only first activity from file
-		xmlactivity = self.xmltree.find(self.xmlns + "Activities")[0]
-
-		alt_data=[]
-		cad_data=[]
-		hf_data=[]
-		pos_data=[]
-		speed_gps_data=[]
-		speed_foot_data=[]
-		#logging.debug("Parsing TCX Track file in first activity")
-		first_lap = xmlactivity.find(self.xmlns + "Lap")
-		start_time = dateutil.parser.parse(first_lap.get("StartTime"))
-		offset_time = 0 # used to remove track sequences from plot where no movement has occured
-		last_lap_distance = 0 # used to add distance to laps starting with distance 0
-		last_distance = None
-		last_lat_lon = None
-
-		for xmllap in xmlactivity.findall(self.xmlns+"Lap"):
-			distance_offset = 0
-			# check if lap starts with distance 0
-			if len(xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")) == 0:
-				continue		# skip empty laps
-			xmltp = xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint")[0]
-			if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
-				distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-				if distance < last_lap_distance:
-					distance_offset = last_lap_distance
-
-			for xmltp in xmllap.findall(self.xmlns+"Track/"+self.xmlns+"Trackpoint"):
-				distance=alt=cad=hf=trackpoint_time=None
-
-				if hasattr(xmltp.find(self.xmlns + "DistanceMeters"),"text"):
-					distance = float(xmltp.find(self.xmlns + "DistanceMeters").text)
-					distance = distance + distance_offset
-				elif xmltp.find(self.xmlns + "Position"):
-						xmltp_pos = xmltp.find(self.xmlns + "Position")
-						lat = float(xmltp_pos.find(self.xmlns + "LatitudeDegrees").text)
-						lon =  float(xmltp_pos.find(self.xmlns + "LongitudeDegrees").text)
-						if last_lat_lon is None:
-							last_lat_lon = (lat, lon)
-							last_distance = 0
-							continue
-						else:
-							distance = last_distance + activities.utils.latlon_distance(last_lat_lon, (lat, lon))
-							last_lat_lon = (lat, lon)
-				else:
-					continue
-				if not hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-					continue
-
-				delta = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)-start_time
-				trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
-
-				# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
-				if last_distance:
-					delta_dist = distance - last_distance
-					delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
-					if delta_time > 0 and (delta_dist / delta_time) < 0.5:
-						offset_time += delta_time
-						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
-				last_distance = distance
-
-				if not self.track_by_distance.has_key(distance):
-					self.track_by_distance[distance]={}
-				self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
-
-
-				# Get altitude
-				if hasattr(xmltp.find(self.xmlns + "AltitudeMeters"),"text"):
-					alt = float(xmltp.find(self.xmlns + "AltitudeMeters").text)
-					self.track_by_distance[distance]["alt"]=alt
-	#				alt_data.append((trackpoint_time,alt))
-					alt_data.append((distance,trackpoint_time,alt))
-				# Get Cadence data (from Bike cadence sensor)
-				if hasattr(xmltp.find(self.xmlns + "Cadence"),"text"):
-					cad = int(xmltp.find(self.xmlns + "Cadence").text)
-					self.track_by_distance[distance]["cad"]=cad
-	#				cad_data.append((trackpoint_time,cad))
-					cad_data.append((distance,trackpoint_time,cad))
-
-				# Locate heart rate in beats per minute
-				hrt=xmltp.find(self.xmlns + "HeartRateBpm")
-				if not hrt is None:
-					if hasattr(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value"),"text"):
-						hf = int(xmltp.find(self.xmlns + "HeartRateBpm/"+ self.xmlns+ "Value").text)
-						self.track_by_distance[distance]["hf"]=hf
-	#					hf_data.append((trackpoint_time,hf))
-						hf_data.append((distance,trackpoint_time,hf))
-
-				# Locate time stamps for speed calculation based on GPS
-				if hasattr(xmltp.find(self.xmlns + "Time"),"text"):
-					track_time = dateutil.parser.parse(xmltp.find(self.xmlns + "Time").text)
-					self.track_by_distance[distance]["gps"]=track_time
-					speed_gps_data.append((distance,track_time))
-				# Get position coordinates
-				pos = xmltp.find(self.xmlns + "Position")
-				if not pos is None:
-					if hasattr(pos.find(self.xmlns + "LatitudeDegrees"), "text") and hasattr(pos.find(self.xmlns + "LongitudeDegrees"), "text"):
-						lat = float(pos.find(self.xmlns + "LatitudeDegrees").text)
-						lon = float(pos.find(self.xmlns + "LongitudeDegrees").text)
-						pos_data.append((lat, lon))
-
-				# Search for Garmin Trackpoint Extensions TPX, carrying RunCadence data from Footpods
-				ext=xmltp.find(self.xmlns + "Extensions")
-				#logging.debug("Found Activity Extensions")
-				if not ext is None:
-					xmltpx=ext.find(self.xmlactextns+"TPX")
-					# currenlty supported Footpod sensor
-					if not xmltpx is None and xmltpx.get("CadenceSensor")=="Footpod":
-						if hasattr(xmltpx.find(self.xmlactextns+"Speed"),"text"):
-							speed=float(xmltpx.find(self.xmlactextns+"Speed").text)
-							self.track_by_distance[distance]["speed_footpod"]=speed
-							speed_foot_data.append((distance,trackpoint_time,speed))
-						if hasattr(xmltpx.find(self.xmlactextns+"RunCadence"),"text"):
-							# Only copy cadence data if no other Cadence data (from bike) is present
-							if cad is None:
-								cad = int(xmltpx.find(self.xmlactextns+"RunCadence").text)
-								self.track_by_distance[distance]["cad"]=cad
-								cad_data.append((distance,trackpoint_time,cad))
-					#TODO: Watts sensors ???
-				last_lap_distance = distance
-
-		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
-		self.track_data["alt"]=alt_data
-		self.track_data["cad"]=cad_data
-		self.track_data["hf"]=hf_data
-		self.track_data["pos"]=pos_data
-		self.track_data["speed_gps"]=speed_gps_data
-		self.track_data["speed_foot"]=speed_foot_data
-
-class FITFile(ActivityFile):
-
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
-		#logging.debug("Trackfile %r closed" % tcxfile.trackfile)
-
-		self.fitfile = fitparse.FitFile(
-			self.track.trackfile,
-			data_processor=fitparse.StandardUnitsDataProcessor(),
-			check_crc=False
-		)
-
-		self.parse_trackpoints()
-
-	def to_gpx(self):
-		gps_fixes = 0
-		gps_no_fixes = 0
-		try:
-			with open(self.track.trackfile.path+".gpx", 'w') as gpx_file:
-				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path+".gpx")
-				gpx_file.write(GPX_HEADER)
-
-				# start gpx track
-				gpx_file.write(' <trk>\n  <trkseg>\n')
-
-				for p in self.get_pos():
-					(lat, lon) = p
-					if lat is None or lon is None:
-						gps_no_fixes += 1
-						continue
-					else:
-						gps_fixes += 1
-					gpx_file.write('   <trkpt lat="%s" lon="%s"> </trkpt>\n' % p)
-
-				# end gpx track
-				gpx_file.write('  </trkseg>\n </trk>')
-				gpx_file.write('</gpx>\n')
-		except Exception, msg:
-			logging.debug("Exception occured in convert: %s" % msg)
-
-	def parse_file(self):
-		self.laps = []
-		self.position_start = None
-		self.date = None
-		self.time_start = None
-		self.time_end = None
-		self.position_start = None
-
-		for message in self.fitfile.get_messages(name="session"):
-			self.position_start = (message.get_value("start_position_lat"), message.get_value("start_position_long"))
-			self.time_start = message.get_value("start_time")
-			self.time_end = message.get_value("timestamp")
-
-		lap_altitude = []
-		for message in self.fitfile.get_messages():
-			if message.name == "record":
-				lap_altitude.append(message.get_value('altitude'))
-			elif message.name == "lap":
-				lap = Lap()
-				lap.date = message.get_value("start_time").replace(tzinfo=utc)
-				lap.time = message.get_value("total_timer_time")
-				lap.distance = message.get_value("total_distance")/1000
-				lap.elevation_gain = message.get_value("total_ascent")
-				lap.elevation_loss = message.get_value("total_descent")
-				if lap.elevation_gain == None:
-					lap.elevation_gain = 0
-				if lap.elevation_loss == None:
-					lap.elevation_loss = 0
-
-				if message.get_value("avg_running_cadence") is not None:
-					lap.cadence_avg = message.get_value("avg_running_cadence") * 2	# TODO: if activity type is not running, take bike cadence
-				if message.get_value("max_running_cadence") is not None:
-					lap.cadence_max = message.get_value("max_running_cadence") * 2
-
-				lap.calories = message.get_value("total_calories")
-				lap.hf_avg = message.get_value("avg_heart_rate")
-				lap.hf_max = message.get_value("max_heart_rate")
-
-				if len(lap_altitude) > 0:
-					lap.elevation_max = max(lap_altitude)
-					lap.elevation_min = min(lap_altitude)
-				lap_altitude = []
-
-				max_speed = message.get("max_speed")
-				if max_speed.units == "m/s":
-					lap.speed_max = (max_speed.value * 3600.0) / 1000
-				elif max_speed.units == "km/h":
-					lap.speed_max = max_speed.value
-				else:
-					raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
-				avg_speed = message.get("avg_speed")
-				if avg_speed is not None:
-					if avg_speed.units == "m/s":
-						lap.speed_avg = (avg_speed.value * 3600.0) / 1000
-					elif max_speed.units == "km/h":
-						lap.speed_avg = avg_speed.value
-					else:
-						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
-
-				self.laps.append(lap)
-
-	def parse_trackpoints(self):
-		alt_data=[]
-		cad_data=[]
-		hf_data=[]
-		pos_data=[]
-		speed_gps_data=[]
-		speed_foot_data=[]
-		stance_time_data = []
-		vertical_oscillation_data = []
-
-		offset_time = 0 # used to remove track sequences from plot where no movement has occured
-		last_distance = None
-
-		for message in self.fitfile.get_messages(name="session"):
-			start_time = message.get_value("start_time")
-			total_strides = message.get_value("total_strides")
-			if total_strides is not None:
-				total_strides *= 2 				# TODO: At least when running with FR620, check with cycling
-			total_distance = message.get_value("total_distance")
-
-			if total_distance is not None and total_distance is not None and total_strides > 0:
-				self.detail_entries["avg_stride_len"] = total_distance / total_strides
-
-			if message.get_value("avg_stance_time") is not None:
-				self.detail_entries["avg_stance_time"] = message.get_value("avg_stance_time")
-			if message.get_value("avg_vertical_oscillation") is not None:
-				self.detail_entries["avg_vertical_oscillation"] = message.get_value("avg_vertical_oscillation")
-			if message.get_value("total_training_effect") is not None:
-				self.detail_entries["total_training_effect"] = message.get_value("total_training_effect")
-
-		for message in self.fitfile.get_messages(name='record'):
-			distance = message.get_value("distance")
-			if distance is not None:
-				distance *= 1000 	# convert from km -> m
-			delta = message.get_value('timestamp')-start_time
-			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
-
- 			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
-			if last_distance:
-				delta_dist = distance - last_distance
-				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
-				if delta_time > 0 and (delta_dist / delta_time) < 0.5:
-					offset_time += delta_time
-					trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
-			last_distance = distance
-
-			if not self.track_by_distance.has_key(distance):
-				self.track_by_distance[distance]={}
-			self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
-
-			# Get altitude
-			alt = message.get_value("altitude")
-			if alt is not None:
-				self.track_by_distance[distance]["alt"]=alt
-				alt_data.append((distance,trackpoint_time,alt))
-
-# 			# Get Cadence data (from Bike cadence sensor)
-			cad = message.get_value("cadence")
-			if cad is not None:
-				self.track_by_distance[distance]["cad"]=cad
-				cad_data.append((distance,trackpoint_time,cad))
-
-# 			# Get heart rate in beats per minute
-			hf = message.get_value("heart_rate")
-			if hf is not None:
-				self.track_by_distance[distance]["hf"]=hf
-				hf_data.append((distance,trackpoint_time,hf))
-#
-# 			# Get time stamps for speed calculation based on GPS
-			track_time = message.get_value("timestamp")
-			self.track_by_distance[distance]["gps"]=track_time
-			speed_gps_data.append((distance,track_time))
-
-# 			# Get position coordinates
-			lat = message.get_value("position_lat")
-			lon = message.get_value("position_long")
-			if lat is not None and lon is not None:
-				pos_data.append((lat, lon))
-
-			stance_time = message.get_value("stance_time")
-			if stance_time is not None:
-				stance_time_data.append((distance, trackpoint_time, stance_time))
-				self.track_by_distance[distance]["stance_time"] = stance_time
-
-			vertical_oscillation = message.get_value("vertical_oscillation")
-			if vertical_oscillation is not None:
-				vertical_oscillation_data.append((distance, trackpoint_time, vertical_oscillation))
-				self.track_by_distance[distance]["vertical_oscillation"] = vertical_oscillation
-
-		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
-		self.track_data["alt"]=alt_data
-		self.track_data["cad"]=cad_data
-		self.track_data["hf"]=hf_data
-		self.track_data["pos"]=pos_data
-		self.track_data["speed_gps"]=speed_gps_data
-		self.track_data["speed_foot"]=speed_foot_data
-		self.track_data["stance_time"]=stance_time_data
-		self.track_data["vertical_oscillation"]=vertical_oscillation_data

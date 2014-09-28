@@ -14,21 +14,23 @@
 	var equ_id = null;
 	var ev_id = null;
 	var sp_id = null;
+	var cf_id = null;
 
 	$(document).ready(function(){
 		
-		$('#colorpickerHolder2').ColorPicker({
+		var cp = $('#colorpickerHolder2');
+		cp.ColorPicker({
 			flat: true,
 			color: '#00ff00',
 			onSubmit: function(hsb, hex, rgb) {
-				$('#colorSelector2 div').css('backgroundColor', '#' + hex);
+				$('#colorSelector2').find('div').css('backgroundColor', '#' + hex);
 			},
 			onChange: function (hsb, hex, rgb) {
-				$('#colorSelector2 div').css('backgroundColor', '#' + hex);
+				$('#colorSelector2').find('div').css('backgroundColor', '#' + hex);
 				$("#sport_color_input").val('#' + hex);
 			}
 		});
-		$('#colorpickerHolder2>div').css('position', 'absolute');
+		cp.find('>div').css('position', 'absolute');
 		var widt = false;
 		$('#colorSelector2').bind('click', function() {
 			$('#colorpickerHolder2').stop().animate({height: widt ? 0 : 173}, 500);
@@ -43,7 +45,7 @@
 			"bInfo": false,
 			"bPaginate": false,
 			"oLanguage": {
-				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+				"sUrl":   "/media/lang/dataTables.de_DE.txt"
 			}
 		});
 		$( ".datatable_equipment").dataTable({
@@ -51,7 +53,7 @@
 				{
 					"mRender": function ( data, type, full ) {
 						if(type=="display"){
-							return secondsToTime(data, with_hours=true, with_days=true);
+							return secondsToTime(data, true, true);
 						} else {
 							return data;
 						}
@@ -92,7 +94,7 @@
 			"bInfo": false,
 			"bPaginate": false,
 			"oLanguage": {
-				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+				"sUrl":   "/media/lang/dataTables.de_DE.txt"
 			}
 		});
 
@@ -101,12 +103,12 @@
 			show: "blind",
 			hide: "explode",
 			minWidth: 500,
-			minHeight: 300,
+			minHeight: 300
 		});
 		$("#event_dialog").dialog({
 			autoOpen: false,
 			show: "blind",
-			hide: "explode",
+			hide: "explode"
 //			minWidth: 500,
 //			minHeight: 300,
 		});
@@ -116,14 +118,14 @@
 			show: "blind",
 			hide: "explode",
 			minWidth: 600,
-			minHeight: 400,
+			minHeight: 400
 		});
 		$( "#calformula_dialog" ).dialog({
 			autoOpen: false,
 			show: "blind",
 			hide: "explode",
 			minWidth: 600,
-			minHeight: 400,
+			minHeight: 400
 		});
 
 		$("#equipment_delete_dialog").dialog({
@@ -145,7 +147,7 @@
 				}
 			}
 
-		})
+		});
 		$("#event_delete_dialog").dialog({
 			modal: true,
 			autoOpen: false,
@@ -165,7 +167,7 @@
 				}
 			}
 
-		})
+		});
 		$("#sport_delete_dialog").dialog({
 			modal: true,
 			autoOpen: false,
@@ -185,7 +187,7 @@
 				}
 			}
 
-		})
+		});
 		$("#calformula_delete_dialog").dialog({
 			modal: true,
 			autoOpen: false,
@@ -205,17 +207,17 @@
 				}
 			}
 
-		})
-		$("#event_add").click(function(){show_event_dialog();});
-		$("#event_send").click(event_send);
-		$("#equipment_add").click(function(){show_equipment_dialog();});
-		$("#equipment_send").click(equipment_send);
-		$("#sport_send").click(sport_send);
-		$("#sport_add").click(function(){show_sport_dialog();});
-		$("#calformula_add").click(function(){show_calformula_dialog();});
-		$("#calformula_send").click(calformula_send);
+		});
+		$("#event_add").click(function(){showEventDialog();});
+		$("#event_send").click(eventSend);
+		$("#equipment_add").click(function(){showEquipmentDialog();});
+		$("#equipment_send").click(equipmentSend);
+		$("#sport_send").click(sportSend);
+		$("#sport_add").click(function(){showSportDialog();});
+		$("#calformula_add").click(function(){showCalformulaDialog();});
+		$("#calformula_send").click(calformulaSend);
 		
-		$("#acttmp_add").click(function(){show_activity_template_dialog(null, true);});
+		$("#acttmp_add").click(function(){showActivityTemplateDialog(null, true);});
 	});
 	
 	var get_data = function(url, onDataReceived) {
@@ -227,9 +229,9 @@
 		dataType:"json",
 		success: onDataReceived
 		});
-	}
+	};
 
-	var show_equipment_dialog = function(equipment_id) {
+	var showEquipmentDialog = function(equipment_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
 			$("#equipment_name_input").val(fields.name);
@@ -243,8 +245,8 @@
 			get_data(url, onDataReceived);
 		}
 		$("#equipment_dialog").dialog("open");
-	}
-	var show_event_dialog = function(event_id) {
+	};
+	var showEventDialog = function(event_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
 			$("#event_name_input").val(fields.name);
@@ -255,8 +257,8 @@
 			get_data(url, onDataReceived);
 		}
 		$("#event_dialog").dialog("open");
-	}
-	var show_sport_dialog = function(sport_id) {
+	};
+	var showSportDialog = function(sport_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
 			$("#sport_name_input").val(fields.name);
@@ -268,7 +270,7 @@
 			$("#sport_color_input").val(fields.color);
 			$("#sport_speed_as_pace_input").attr('checked', fields.speed_as_pace);
 			$('#colorpickerHolder2').ColorPickerSetColor(fields.color);
-			$('#colorSelector2 div').css('backgroundColor', fields.color);
+			$('#colorSelector2').find('div').css('backgroundColor', fields.color);
 		}
 		if(typeof(sport_id) != "undefined") {
 			sp_id = sport_id;
@@ -279,9 +281,9 @@
 		}
 		
 		$("#sport_dialog").dialog("open");
-	}	
+	};
 	
-	var show_calformula_dialog = function(calformula_id){
+	var showCalformulaDialog = function(calformula_id){
 		function onDataReceived(data) {
 			var fields = data[0].fields;
 			$("#calformula_name_input").val(fields.name);
@@ -297,17 +299,18 @@
 		}
 		
 		$("#calformula_dialog").dialog("open");
-	}
+	};
 	
-	var equipment_send = function() {
+	var equipmentSend = function() {
 		var name = $("#equipment_name_input").val();
 		var description = $("#equipment_description_input").val();
 		var distance = $("#equipment_distance_input").val().replace( /,/,"." );
+		var archived;
 
 		if ($("#equipment_archived_input:checked").val() != undefined){
-			var archived = 1;
+			archived = 1;
 		} else {
-			var archived = 0;
+			archived = 0;
 		}
 
 		var data = {
@@ -328,16 +331,16 @@
 			}, "json");
 	};
 
-	var calformula_send = function() {
+	var calformulaSend = function() {
 		var name = $("#calformula_name_input").val();
-		var weight_dist_factor = $("#calformula_wd_input").val().replace( /,/,"." );
-		var weight_time_factor = $("#calformula_wt_input").val().replace( /,/,"." );
+		var weightDistFactor = $("#calformula_wd_input").val().replace( /,/,"." );
+		var weightTimeFactor = $("#calformula_wt_input").val().replace( /,/,"." );
 		
 		var data = {
 				name: name,
-				weight_dist_factor: weight_dist_factor,
-				weight_time_factor: weight_time_factor,
-			}
+				weight_dist_factor: weightDistFactor,
+				weight_time_factor: weightTimeFactor
+			};
 		if (cf_id != null) {
 			data.update_id = cf_id;
 		}
@@ -349,12 +352,12 @@
 			}, "json");
 	};
 		
-	var event_send = function() {
+	var eventSend = function() {
 		var name = $("#event_name_input").val();
 
 		var data = {
-				name: name,
-			}
+				name: name
+			};
 		if (ev_id != null) {
 			data.update_id = ev_id;
 		}
@@ -366,16 +369,17 @@
 			}, "json");
 	}
 ;
-	var sport_send = function() {
+	var sportSend = function() {
 		// retrieve the text entered
 		var name = $("#sport_name_input").val();
 		var calformula = $("#sport_calformula_input").val();
 		var color = $("#sport_color_input").val();
-		
+		var speed_as_pace;
+
 		if ($("#sport_speed_as_pace_input:checked").val() != undefined){
-			var speed_as_pace = 1;
+			speed_as_pace = 1;
 		} else {
-			var speed_as_pace = 0;
+			speed_as_pace = 0;
 		}
 
 		if(name != "") {
@@ -384,7 +388,7 @@
 				name: name,
 				calformula: calformula,
 				color: color,
-				speed_as_pace: speed_as_pace,
+				speed_as_pace: speed_as_pace
 			};
 			if (sp_id != null){
 				data.update_id = sp_id;
@@ -400,19 +404,19 @@
 		}
 	};
 
-	var show_calformula_delete_dialog = function(calformula_id) {
+	var showCalformulaDeleteDialog = function(calformula_id) {
 		$("#calformula_delete_id_input").val(calformula_id);
 		$("#calformula_delete_dialog").dialog("open");
 	};
-	var show_equipment_delete_dialog = function(equipment_id) {
+	var showEquipmentDeleteDialog = function(equipment_id) {
 		$("#equipment_delete_id_input").val(equipment_id);
 		$("#equipment_delete_dialog").dialog("open");
 	};
-	var show_event_delete_dialog = function(event_id) {
+	var showEventDeleteDialog = function(event_id) {
 		$("#event_delete_id_input").val(event_id);
 		$("#event_delete_dialog").dialog("open");
 	};
-	var show_sport_delete_dialog = function(sport_id) {
+	var showSportDeleteDialog = function(sport_id) {
 		$("#sport_delete_id_input").val(sport_id);
 		$("#sport_delete_dialog").dialog("open");
 	};
@@ -441,8 +445,8 @@
 			<tr>
 				<td>
 					{{equ.name}}&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_equipment_dialog({{equ.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_equipment_delete_dialog({{equ.id}})"/>
+					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
+					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
 				</td>
 				<td>{{equ.distance}}</td>
 				<td>{{equ.time}}</td>
@@ -467,8 +471,8 @@
 			<tr>
 				<td>
 					{{equ.name}}&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_equipment_dialog({{equ.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_equipment_delete_dialog({{equ.id}})"/>
+					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
+					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
 				</td>
 				<td>{{equ.distance}}</td>
 				<td>{{equ.time}}</td>
@@ -493,8 +497,8 @@
 				<tr>
 					<td>
 						{{event.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_event_dialog({{event.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_event_delete_dialog({{event.id}})"/>
+						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEventDialog({{event.id}})"/>
+						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEventDeleteDialog({{event.id}})"/>
 					</td>
 				</tr>
 			{%endfor %}
@@ -520,8 +524,8 @@
 				<tr>
 					<td>
 						{{acttmp.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_template_dialog({{acttmp.id}}, onlytemplate = true)"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_template_delete_dialog({{acttmp.id}})"/>
+						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityTemplateDialog({{acttmp.id}}, onlytemplate = true)"/>
+						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityTemplateDelete_dialog({{acttmp.id}})"/>
 					</td>
 				</tr>
 			{%endfor %}
@@ -549,8 +553,8 @@
 				<tr>
 					<td>
 						{{sport.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_sport_dialog({{sport.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_sport_delete_dialog({{sport.id}})"/>
+						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showSportDialog({{sport.id}})"/>
+						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showSportDeleteDialog({{sport.id}})"/>
 					</td>
 					<td>
 						{% if sport.calorie_formula %}
@@ -589,8 +593,8 @@
 				<tr>
 					<td>
 						{{calformula.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_calformula_dialog({{calformula.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_calformula_delete_dialog({{calformula.id}})"/>
+						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showCalformulaDialog({{calformula.id}})"/>
+						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showCalformulaDeleteDialog({{calformula.id}})"/>
 					</td>
 					<td>
 						kcal = 
@@ -613,10 +617,10 @@
 <div id="sport_dialog" title="Neue Sportart">
 	<table>
 		<tr>
-			<td>Name: </td><td><input type="text" id="sport_name_input"/></td>
+			<td><label for="sport_name_input">Name: </label></td><td><input type="text" id="sport_name_input"/></td>
 		</tr>
 		<tr>
-			<td>Kalorienformel</td>
+			<td><label for="sport_calformula_input">Kalorienformel</label></td>
 			<td>
 				<select id="sport_calformula_input">
 					<option value = -1> - </option>
@@ -639,7 +643,7 @@
 			</td>	
 		</tr>
 		<tr>
-			<td>Geschwindigkeit als Pace</td>
+			<td><label for="sport_speed_as_pace_input">Geschwindigkeit als Pace</label></td>
 			<td><input type="checkbox" id="sport_speed_as_pace_input"/></td>
 		</tr>
 	</table>
@@ -648,21 +652,21 @@
 </div>
 
 <div id="equipment_dialog" title="Neues Equipment">
-	Name: <input type="text" id="equipment_name_input"/><br/>
-	Beschreibung: <textarea rows=3 cols=30 id="equipment_description_input"></textarea><br/>
-	Distanz: <input type="text" id="equipment_distance_input"/><br/>
-	Archiviert: <input type="checkbox" id="equipment_archived_input"/><br/>
+	<label for="equipment_name_input">Name: </label><input type="text" id="equipment_name_input"/><br/>
+	<label for="equipment_description_input">Beschreibung: </label><textarea rows=3 cols=30 id="equipment_description_input"></textarea><br/>
+	<label for="equipment_distance_input">Distanz-Offset: </label><input type="text" id="equipment_distance_input"/><br/>
+	<label for="equipment_archived_input">Archiviert: </label><input type="checkbox" id="equipment_archived_input"/><br/>
 	<input type="submit" id="equipment_send" value="Speichern"/>
 </div>
 
 <div id="event_dialog" title="Neues Event">
-	Name: <input type="text" id="event_name_input"/><br/>
+	<label for="event_name_input">Name: </label><input type="text" id="event_name_input"/><br/>
 	<input type="submit" id="event_send" value="Speichern"/>
 </div>
 
 <div id="calformula_dialog" title="Neue Kalorienformel">
-	Name: <input type="text" id="calformula_name_input"/><br/>
-	kcal = Distanz x Gewicht x <input type="text" id="calformula_wd_input"/> + Zeit x Gewicht x <input type="text" id="calformula_wt_input"/><br/>
+	<label for="calformula_name_input">Name: </label><input type="text" id="calformula_name_input"/><br/>
+	<label for="calformula_wd_input">kcal = Distanz x Gewicht x </label><input type="text" id="calformula_wd_input"/> <label for="calformula_wt_input"> + Zeit x Gewicht x </label><input type="text" id="calformula_wt_input"/><br/>
 	<input type="submit" id="calformula_send" value="Speichern"/>
 </div>
 

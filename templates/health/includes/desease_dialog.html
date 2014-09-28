@@ -9,15 +9,15 @@
 </div>
 
 <script>
-	var update_desease_id = null;
+	var updateDeseaseID = null;
 	$(document).ready(function() {
-		init_desease_dialog();
+		initDeseaseDialog();
 			
 	});
 
-	var populate_desease_dialog = function(desease_id) {
+	var populateDeseaseDialog = function(desease_id) {
 		var url = "/health/desease/get/?id=" + desease_id;
-		update_desease_id = desease_id;  
+		updateDeseaseID = desease_id;
 		function onDataReceived(data) {
 			var fields = data[0].fields;
 			regexp = /(\d{4})-(\d{2})-(\d{2})/g;
@@ -52,32 +52,34 @@
 
 	};
 	
-	var init_desease_dialog = function() {
+	var initDeseaseDialog = function() {
 		$(function() {
 			$("#desease_dialog").dialog({
 				autoOpen : false,
 				show : "blind",
 				hide : "explode",
 				minWidth : 500,
-				minHeight : 300,
+				minHeight : 300
 			});
 		});
-		$("#desease_startdate").datepicker({
+		var deseaseStartDate = $("#desease_startdate");
+		var deseaseEndDate = $("#desease_enddate");
+		deseaseStartDate.datepicker({
 			dateFormat : 'dd.mm.yy'
 		});
-		$("#desease_enddate").datepicker({
+		deseaseEndDate.datepicker({
 			dateFormat : 'dd.mm.yy'
 		});
 
 		now = new Date();
 
-		$("#desease_startdate").datepicker("setDate", now);
-		$("#desease_enddate").datepicker("setDate", now);
-		$("#desease_send").click(submit_desease);
-		$("#desease_add").click(show_desease_dialog);		
+		deseaseStartDate.datepicker("setDate", now);
+		deseaseEndDate.datepicker("setDate", now);
+		$("#desease_send").click(submitDesease);
+		$("#desease_add").click(showDeseaseDialog);
 	};
 
-	var submit_desease = function() {
+	var submitDesease = function() {
 		// retrieve the text entered
 		var startdate = $("#desease_startdate").val();
 		var enddate = $("#desease_enddate").val();
@@ -91,8 +93,8 @@
 			comment: comment
 		};
 
-		if (update_desease_id != null) {
-			data.update_id = update_desease_id;			
+		if (updateDeseaseID != null) {
+			data.update_id = updateDeseaseID;
 		}
 
 		$.post("/health/desease/add/", data, function(data) {
@@ -108,7 +110,7 @@
 		}, "json");
 		return false;
 	};
-	var show_desease_dialog = function() {
+	var showDeseaseDialog = function() {
 		$("#desease_dialog").dialog("open");
 		$("#desease_startdate").datepicker("hide");
 		$("#desease_enddate").datepicker("hide");

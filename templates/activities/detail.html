@@ -31,8 +31,11 @@
 		{% if not public %}
 			<br/>
 			<br/>
-			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog({{ activity.id }})"/>&nbsp;&nbsp;
-			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog({{ activity.id }})">&nbsp;&nbsp;
+			<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog({{ activity.id }})"/>&nbsp;&nbsp;
+			<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog({{ activity.id }})">&nbsp;&nbsp;
+			{% if tcx %}
+				<a href="{{ tcx.url }}"><img src="/media/img/download-icon.png" alt="Download"></a>&nbsp;&nbsp;
+			{% endif %}
 			{% if fb_app_id %}
 				<img src="/media/img/facebook-icon.png" alt="Share on facebook" onclick="postToFeed()"/>
 			{% endif %}
@@ -124,7 +127,7 @@
 		{% endif %}
 		{% if tcx %}
 		<div id="spinning_icon" class="details_plot ">
-			<img src="/media/img/spinning-icon.gif"/>
+			<img src="/media/img/spinning-icon.gif" alt="Bitte warten..."/>
 		</div>
 
 		<div id="details_speed" class="details_plot hidden">
@@ -151,12 +154,18 @@
 			<h3><a href="#">Vertikale Bewegung</a></h3>
 			<div class="details_plot_container" title="Vertikale Bewegung" id="details_vertical_oscillation_container"></div>
 		</div>
+		<div id="details_temperature" class="details_plot hidden">
+			<h3><a href="#">Temperatur</a></h3>
+			<div class="details_plot_container" title="Temperatur" id="details_temperature_container"></div>
+		</div>
 		<div id="plotbase_form" class="hidden">
 			<select id="plot_xaxis">
 				<option value = 0>Distanz</option>
 				<option value = 1>Zeit</option>
 			</select>
 			<input type="submit" id="plot_zoom" value="Zoom" />
+			<input type="submit" id="plot_reset_zoom" value="Reset Zoom" style="visibility: hidden"/>
+
 		</div>
 		{% endif %}
 		<br style="clear:both"/>

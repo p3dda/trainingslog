@@ -79,8 +79,8 @@
 					window.open(calEvent.url);
 				} else if(calEvent.hasOwnProperty('className')) {
 					if ($.inArray('fc_desease', calEvent.className) != -1) {
-						populate_desease_dialog(calEvent.desease_id);
-						show_desease_dialog();					
+						populateDeseaseDialog(calEvent.desease_id);
+						showDeseaseDialog();
 					}
 				}
 

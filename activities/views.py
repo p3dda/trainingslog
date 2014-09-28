@@ -257,21 +257,17 @@ def list_activities(request):
 			logging.debug("Creating activity from file upload")
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
+				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
+				newtrack.filetype = fileExtension.lower()[1:]
+				activityfile = ActivityFile.ActivityFile(newtrack, request)
+
 				newtrack.save()
 				is_saved=True
-				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
-				if fileExtension.lower() == '.tcx':
-					newtrack.filetype = "tcx"
-					activityfile = ActivityFile.TCXFile(newtrack, request)
-				elif fileExtension.lower() == '.fit':
-					newtrack.filetype = "fit"
-					activityfile = ActivityFile.FITFile(newtrack, request)
-				else:
-					raise Exception("File type %s cannot be imported" % fileExtension)
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()
 			except Exception, msg:
+				raise
 				logging.error("Exception occured in import with message %s" % msg)
 				if is_saved:
 					newtrack.delete()
@@ -309,13 +305,7 @@ def list_activities(request):
 				is_saved=True
 				logging.debug("Filename: %s" % filename)
 	
-#				activity = importtrack_from_tcx(request, newtrack)
-				if newtrack.filetype=="tcx":
-					activityfile = ActivityFile.TCXFile(newtrack, request)
-				elif newtrack.filetype=="fit":
-					activityfile = ActivityFile.FITFile(newtrack, request)
-				else:
-					raise RuntimeError("Unsupported file type: %s" % newtrack.filetype)
+				activityfile = ActivityFile.ActivityFile(newtrack, request)
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()
@@ -639,24 +629,20 @@ def detail(request, activity_id):
 			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public})
 	if param == 'plots':
 		if act.track:
-			if act.track.filetype == 'tcx' or act.track.filetype is None:
-				tcxtrack = ActivityFile.TCXFile(act.track)
-			elif act.track.filetype == 'fit':
-				tcxtrack = ActivityFile.FITFile(act.track)
-			else:
-				raise RuntimeError('Invalid file trackfile type: %s' % act.track.filetype)
+			track = ActivityFile.ActivityFile(act.track)
 
-			data = {'altitude': tcxtrack.get_alt(),
-					'cadence': tcxtrack.get_cad(),
-					'hf': tcxtrack.get_hf(),
-					'pos': tcxtrack.get_pos(),
-					'speed': tcxtrack.get_speed(act.sport.speed_as_pace),
-					'speed_foot': tcxtrack.get_speed_foot(act.sport.speed_as_pace),
-					'stance_time': tcxtrack.get_stance_time(),
-					'vertical_oscillation': tcxtrack.get_vertical_oscillation()
+			data = {'altitude': track.get_alt(),
+					'cadence': track.get_cad(),
+					'hf': track.get_hf(),
+					'pos': track.get_pos(),
+					'speed': track.get_speed(act.sport.speed_as_pace),
+					'speed_foot': track.get_speed_foot(act.sport.speed_as_pace),
+					'stance_time': track.get_stance_time(),
+					'vertical_oscillation': track.get_vertical_oscillation(),
+					'temperature': track.get_temperature()
 					}
 
-			details_data = tcxtrack.get_detail_entries()
+			details_data = track.get_detail_entries()
 
 			return HttpResponse(json.dumps({"plot_data": data, "details_data": details_data}, sort_keys=True, indent=4),content_type="text/plain")
 	
@@ -894,6 +880,6 @@ class ActivityListJson(BaseDatatableView):
 			if self.request.is_mobile == True:
 				json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
 			else:
-				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="show_activity_dialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="show_activity_delete_dialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
+				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
 			
 		return json_data

@@ -117,10 +117,16 @@ class ActivityFile(ActivityFileMetaclass):
 					logging.debug("Weather temperature is %r" % observation["tempm"])
 					self.activity.weather_hum = observation["hum"]
 					logging.debug("Weather hum is %r" % observation["hum"])
+					if float(self.activity.weather_hum) < 0:
+						self.activity.weather_hum = None
+						logging.debug("Activity hum is %r" % self.activity.weather_hum)
 					self.activity.weather_winddir = observation["wdire"]
 					logging.debug("Weather winddir is %r" % observation["wdire"])
 					self.activity.weather_windspeed = observation["wspdm"]
 					logging.debug("Weather windspeed is %r" % observation["wspdm"])
+					if float(self.activity.weather_windspeed) < 0:
+						self.activity.weather_windspeed = None
+					logging.debug("Activity windspeed is %r" % self.activity.weather_windspeed)
 					if float(observation["precip_ratem"])>=0:
 						self.activity.weather_rain = observation["precip_ratem"]
 						logging.debug("Weather rain is %r" % observation["precip_ratem"])

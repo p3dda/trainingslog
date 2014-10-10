@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/p3dda/trainingslog.svg?branch=master)](https://travis-ci.org/p3dda/trainingslog)
 trainingslog
 ============
 

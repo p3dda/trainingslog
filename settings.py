@@ -161,8 +161,3 @@ LOGGING = {
         },
     },
 }
-
-#logging.basicConfig(level=logging.DEBUG,
-#     format='%(levelname)s %(module)s %(process)d %(thread)d %(message)s',
-#     filename='django.log',
-#     filemode='a+')

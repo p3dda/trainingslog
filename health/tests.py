@@ -8,15 +8,20 @@ Replace this with more appropriate tests for your application.
 """
 import datetime
 import json
+import logging
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 from health.models import Weight, Goal
 from django.contrib.auth.models import User
 from health.utils import parsefloat
 
-
 class HealthTest(TestCase):
 	fixtures = ['health_views_testdata.json', 'health_views_testhealthdata.json']
+
+	def __init__(self, *args, **kwargs):
+		logging.disable(logging.ERROR)
+		TestCase.__init__(self, *args, **kwargs)
 
 	def setUp(self):
 		self.c = Client()
@@ -85,7 +90,6 @@ class HealthTest(TestCase):
 
 		resp = self.c.get(url)
 		self.assertEqual(resp.status_code, 200)
-		content = resp.content
 		self.assertIn("td_goal_distance", resp.content)
 
 	def test_add_weight_view(self):

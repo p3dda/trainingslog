@@ -1,6 +1,7 @@
 from django.conf import settings
 from libs.mobileesp import mdetect
 
+
 class MobileTemplatesMiddleware(object):
 	"""Determines which set of templates to use for a mobile site"""
 

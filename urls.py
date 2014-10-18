@@ -14,12 +14,12 @@ admin.autodiscover()
 
 urlpatterns = patterns('activities.views',
 	url(r'^$', 'list_activities'),
-    url(r'^activities/$', 'list_activities'),
-    url(r'^activities/get/$', ActivityListJson.as_view(), name='activity_list_json'),
-    url(r'^activities/get_json/$', 'get_activity'),
-    url(r'^activities/(?P<activity_id>\d+)/$', 'detail'),
-    url(r'^activities/add/$', 'add_activity'),
-    url(r'^activities/delete/$', 'delete_activity'),
+	url(r'^activities/$', 'list_activities'),
+	url(r'^activities/get/$', ActivityListJson.as_view(), name='activity_list_json'),
+	url(r'^activities/get_json/$', 'get_activity'),
+	url(r'^activities/(?P<activity_id>\d+)/$', 'detail'),
+	url(r'^activities/add/$', 'add_activity'),
+	url(r'^activities/delete/$', 'delete_activity'),
 	url(r'^calformula/add/$', 'add_calformula'),
 	url(r'^calformula/get/$', 'get_calformula'),
 	url(r'^calformula/delete/$', 'delete_calformula'),
@@ -55,15 +55,14 @@ urlpatterns += patterns('health.views',
 urlpatterns += patterns('',
 url(r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain"))
 )
-urlpatterns += patterns('', 
-    url(r'^admin/', include(admin.site.urls)),
+
+urlpatterns += patterns('',
+	url(r'^admin/', include(admin.site.urls)),
 	url(r'^accounts/login/$', 'django.contrib.auth.views.login'),
 	url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': "/activities/"}),
-	url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT }),
-	url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT }),
+	url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+	url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
 )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-

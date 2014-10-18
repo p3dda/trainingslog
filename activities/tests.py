@@ -7,19 +7,21 @@ Replace this with more appropriate tests for your application.
 import json
 import os
 from decimal import Decimal
-from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
+from activities.models import Activity, CalorieFormula, Lap
 import activities.utils
 from activities.extras.activityfile import ActivityFile
 import django.test.client
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from django.conf import settings as django_settings
 
+
 class ActivityTest(TestCase):
 	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json']
+
 	def setUp(self):
 		self.client = django.test.client.Client()
+
 	def tearDown(self):
 		for act in Activity.objects.all():
 			act.delete()
@@ -60,13 +62,11 @@ class ActivityTest(TestCase):
 		time = activities.utils.seconds_to_time(3602, force_hour=True)
 		self.assertEqual(time, "1:00:02")
 
-
 	def test_tcx_nogps_upload(self):
 		"""
 		Tests tcx file upload and parsing without gps
 		"""
-		#url = reverse("activity.views.list_activities")
-		url="/activities/"
+		url = "/activities/"
 
 		self.client.login(username='test1', password='test1')
 
@@ -77,7 +77,7 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		nogps_act=Activity.objects.get(pk=1)
+		nogps_act = Activity.objects.get(pk=1)
 		self.assertEqual(nogps_act.time_elapsed, 7549)
 		self.assertEqual(nogps_act.elevation_min, None)
 		self.assertEqual(nogps_act.elevation_max, None)
@@ -91,14 +91,14 @@ class ActivityTest(TestCase):
 		"""
 		Tests tcx file import and parsing with gps
 		"""
-		url="/activities/"
+		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
 		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'run.tcx'), 'r')
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertEqual(act.time_elapsed, 4246)
 		self.assertEqual(act.time, 4079)
 		self.assertEqual(act.distance, Decimal('11.759'))
@@ -125,12 +125,12 @@ class ActivityTest(TestCase):
 		ddata = jsondata["details_data"]
 
 		self.assertIsInstance(pdata, dict)
-		self.assertTrue(pdata.has_key('altitude'))
+		self.assertTrue('altitude' in pdata)
 		self.assertEqual(len(pdata['altitude']), 804)
-		self.assertTrue(pdata.has_key('cadence'))
+		self.assertTrue('cadence' in pdata)
 		self.assertEqual(pdata['cadence'], [])
-		self.assertTrue(pdata.has_key('speed'))
-		self.assertTrue(pdata.has_key('speed_foot'))
+		self.assertTrue('speed' in pdata)
+		self.assertTrue('speed_foot' in pdata)
 
 		self.assertIsInstance(ddata, dict)
 		self.assertEqual(ddata, {})
@@ -141,14 +141,14 @@ class ActivityTest(TestCase):
 		"""
 		Tests tcx file import and parsing with gps
 		"""
-		url="/activities/"
+		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
 		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike.tcx'), 'r')
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
 
 		self.assertEqual(act.time_elapsed, 7723)
@@ -171,7 +171,7 @@ class ActivityTest(TestCase):
 		"""
 		Tests tcx file import and parsing with gps
 		"""
-		url="/activities/"
+		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
 		with open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike.tcx'), 'r') as tcxfile:
@@ -180,17 +180,16 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'content': tcx_content, 'filename': 'test.tcx'})
 		self.assertEqual(response.status_code, 200)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
 		self.assertEqual(act.time_elapsed, 7723)
 		self.assertEqual(act.time, 4857)
-
 
 	def test_fit_run(self):
 		"""
 		Tests fit file import and parsing with gps and cadence
 		"""
-		url="/activities/"
+		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
 		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', '16MileLongRun.FIT'), 'r')
@@ -199,7 +198,7 @@ class ActivityTest(TestCase):
 		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
 
-		laps = Lap.objects.filter(activity = act)
+		laps = Lap.objects.filter(activity=act)
 		self.assertEqual(len(laps), 24)
 		self.assertEqual(act.distance, Decimal('26.049'))
 		self.assertEqual(act.time, 6939)
@@ -210,8 +209,8 @@ class ActivityTest(TestCase):
 		self.assertEqual(len(act_track.track_data["cad"]), 6940)
 		self.assertEqual(len(act_track.track_by_distance), 6928)
 
-		self.assertEqual(act.elevation_min, 9)	# FIXME: Garmin Connect reports 25; seems as if they filter spikes
-		self.assertEqual(act.elevation_max, 68)	# FIXME: Garmin Connect reports 69; altitude is a float, do we floor?
+		self.assertEqual(act.elevation_min, 9)   # FIXME: Garmin Connect reports 25; seems as if they filter spikes
+		self.assertEqual(act.elevation_max, 68)  # FIXME: Garmin Connect reports 69; altitude is a float, do we floor?
 		self.assertEqual(act.cadence_avg, 174)
 		self.assertEqual(act.cadence_max, 214)
 
@@ -225,14 +224,14 @@ class ActivityTest(TestCase):
 		jsondata = json.loads(response.content)
 
 		self.assertIsInstance(jsondata, dict)
-		pdata=jsondata["plot_data"]
+		pdata = jsondata["plot_data"]
 		ddata = jsondata["details_data"]
-		self.assertTrue(pdata.has_key('altitude'))
+		self.assertTrue('altitude' in pdata)
 		self.assertEqual(len(pdata['altitude']), 6940)
-		self.assertTrue(pdata.has_key('cadence'))
+		self.assertTrue('cadence' in pdata)
 		self.assertNotEqual(pdata['cadence'], [])
-		self.assertTrue(pdata.has_key('speed'))
-		self.assertTrue(pdata.has_key('speed_foot'))
+		self.assertTrue('speed' in pdata)
+		self.assertTrue('speed_foot' in pdata)
 
 		self.assertIsInstance(ddata, dict)
 		self.assertEqual(ddata["avg_stance_time"], 240.6)
@@ -241,8 +240,7 @@ class ActivityTest(TestCase):
 		"""
 		Tests tcx file upload and parsing without gps
 		"""
-		#url = reverse("activity.views.list_activities")
-		url="/activities/"
+		url = "/activities/"
 
 		self.client.login(username='test1', password='test1')
 
@@ -253,7 +251,7 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertEqual(act.time_elapsed, 3285)
 		self.assertEqual(act.weather_stationname, None)
 		self.assertEqual(act.cadence_avg, 83)
@@ -265,7 +263,7 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertEqual(act.distance, Decimal('0'))
 		self.assertEqual(act.time, 4365)
 		self.assertEqual(act.time_movement, None)
@@ -275,7 +273,7 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.cadence_avg, 90)
 		self.assertEqual(act.cadence_max, 125)
 
-		laps = Lap.objects.filter(activity = act)
+		laps = Lap.objects.filter(activity=act)
 		self.assertEqual(len(laps), 15)
 		lap = laps[1]
 
@@ -284,19 +282,18 @@ class ActivityTest(TestCase):
 		self.assertEqual(lap.speed_max, Decimal('0'))
 		act.delete()
 
-
 	def test_gpx(self):
 		"""
 		Tests gpx file import and parsing with gps
 		"""
-		url="/activities/"
+		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
 		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'test.gpx'), 'r')
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act=Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
 
 		self.assertEqual(act.time_elapsed, 12068)

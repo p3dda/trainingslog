@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Weight(models.Model):
 	date = models.DateField()
 	user = models.ForeignKey(User, null=True, blank=True)
@@ -9,9 +10,10 @@ class Weight(models.Model):
 	body_water = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
 	bones_weight = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
 	muscles_weight = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
-	
+
 	def __unicode__(self):
 		return str(self.weight)
+
 
 class Goal(models.Model):
 	date = models.DateField()
@@ -19,11 +21,13 @@ class Goal(models.Model):
 	due_date = models.DateField()
 	target_weight = models.DecimalField(max_digits=4, decimal_places=1)
 
+
 class Pulse(models.Model):
 	date = models.DateField()
 	user = models.ForeignKey(User, null=True, blank=True)
 	rest = models.IntegerField(null=True, blank=True)
 	maximum = models.IntegerField(null=True, blank=True)
+
 
 class Desease(models.Model):
 	start_date = models.DateField()

@@ -3,6 +3,7 @@ import os
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class CalorieFormula(models.Model):
 	#
 	# kcal = weight_dist_factor * weight * distance /(kg * km) + weight_time_factor * weight * time /(kg * h)
@@ -11,11 +12,13 @@ class CalorieFormula(models.Model):
 	weight_time_factor = models.FloatField(default=0.0)
 	public = models.BooleanField(default=False)
 	user = models.ForeignKey(User, null=True, blank=True)
+
 	def __unicode__(self):
 		return self.name
 
 	class Meta:
 		ordering = ["name"]
+
 
 class Equipment(models.Model):
 	name = models.CharField(max_length=200)
@@ -24,11 +27,13 @@ class Equipment(models.Model):
 	archived = models.BooleanField(default=False)
 
 	user = models.ForeignKey(User, null=True, blank=True)
+
 	def __unicode__(self):
 		return self.name
 
 	class Meta:
 		ordering = ["name"]
+
 
 class Event(models.Model):
 	name = models.CharField(max_length=200)
@@ -40,41 +45,45 @@ class Event(models.Model):
 	class Meta:
 		ordering = ["name"]
 
+
 class Sport(models.Model):
 	name = models.CharField(max_length=200)
 	color = models.CharField(max_length=10)
 	user = models.ForeignKey(User, null=True, blank=True)
 	speed_as_pace = models.BooleanField(default=False)
 	calorie_formula = models.ForeignKey(CalorieFormula, null=True, blank=True)
+
 	def __unicode__(self):
 		return self.name
 
 	class Meta:
 		ordering = ["name"]
-	
+
+
 class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
 	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
-	filetype = models.CharField(max_length=10, null=True)	#FIXME: Need database update procedure; set default "tcx"
+	filetype = models.CharField(max_length=10, null=True)  # FIXME: Need database update procedure; set default "tcx"
 
 	def delete(self, *args, **kwargs):
 		files = []
 		if self.trackfile:
 			files.append(self.trackfile.path)
 			files.append(self.trackfile.path + ".gpx")
-				
+
 		if self.preview_img:
 			files.append(self.preview_img.path)
-		
+
 		for f in files:
 			if os.path.exists(f):
 				try:
 					os.remove(f)
 				except OSError:
 					pass
-		
+
 		models.Model.delete(self, *args, **kwargs)
-	
+
+
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)
 	comment = models.TextField(blank=True)
@@ -100,51 +109,54 @@ class ActivityBaseClass(models.Model):
 	speed_avg_movement = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
 	time_elapsed = models.IntegerField(blank=True, null=True)
 	time_movement = models.IntegerField(blank=True, null=True)
-	
+
 	weather_stationname = models.CharField(max_length=200, blank=True, null=True)
 	weather_temp = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
 	weather_rain = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
 	weather_hum = models.IntegerField(blank=True, null=True)
 	weather_windspeed = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
 	weather_winddir = models.CharField(max_length=20, blank=True, null=True)
-	
+
 	def __unicode__(self):
 		return self.name
-	
+
 	class Meta:
 		def __init__(self):
 			pass
 
-		abstract=True
+		abstract = True
+
 
 class Activity(ActivityBaseClass):
 	date = models.DateTimeField('date')
 	event = models.ForeignKey(Event)
 	time = models.IntegerField()
-	
+
 	class Meta:
 		def __init__(self):
 			pass
 
 		verbose_name_plural = "Activities"
-		
+
 	def delete(self, *args, **kwargs):
 		if self.track:
 			self.track.delete()
-		
+
 		ActivityBaseClass.delete(self, *args, **kwargs)
+
 
 class ActivityTemplate(ActivityBaseClass):
 	date = models.DateTimeField('date', blank=True, null=True)
 	event = models.ForeignKey(Event, blank=True, null=True)
 	time = models.IntegerField(blank=True, null=True)
-	
+
 	class Meta:
 		def __init__(self):
 			pass
 
 		verbose_name_plural = "ActivityTemplates"
-	
+
+
 class Lap(models.Model):
 	activity = models.ForeignKey(Activity)
 	date = models.DateTimeField('date')
@@ -161,4 +173,3 @@ class Lap(models.Model):
 	elevation_max = models.IntegerField(blank=True, null=True)
 	hf_max = models.IntegerField('hf_max', blank=True, null=True)
 	hf_avg = models.IntegerField('hf_avg', blank=True, null=True)
-

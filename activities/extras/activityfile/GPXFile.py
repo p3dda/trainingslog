@@ -5,6 +5,7 @@ from libs.gpxpy import gpxpy
 from activities.models import Lap
 from ActivityFile import ActivityFile
 
+
 class GPXFile(ActivityFile):
 	filetypes = ["gpx"]
 
@@ -14,7 +15,7 @@ class GPXFile(ActivityFile):
 		self.parse_trackpoints()
 
 	def to_gpx(self):
-		shutil.copy(self.track.trackfile.path, self.track.trackfile.path+".gpx")
+		shutil.copy(self.track.trackfile.path, self.track.trackfile.path + ".gpx")
 
 	def parse_file(self):
 		self.laps = []
@@ -59,12 +60,12 @@ class GPXFile(ActivityFile):
 		self.position_start = (start_point.latitude, start_point.longitude)
 
 	def parse_trackpoints(self):
-		alt_data=[]
-		pos_data=[]
-		speed_gps_data=[]
+		alt_data = []
+		pos_data = []
+		speed_gps_data = []
 
 		offset_distance = 0
-		offset_time = 0 # used to remove track sequences from plot where no movement has occured
+		offset_time = 0  # used to remove track sequences from plot where no movement has occured
 		last_distance = None
 
 		trackpoints = []
@@ -78,7 +79,7 @@ class GPXFile(ActivityFile):
 		start_time = trackpoints[0].time
 		last_point = None
 
-		#for trackpoint in trackpoints:
+		# for trackpoint in trackpoints:
 		for tp_id, trackpoint in enumerate(trackpoints):
 			if last_point is None:
 				distance = 0
@@ -94,7 +95,7 @@ class GPXFile(ActivityFile):
 			if trackpoint.time is not None:
 				# calculate time difference from start_time in msec
 				delta = trackpoint.time - start_time
-				trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+				trackpoint_time = ((delta.seconds + 86400 * delta.days) - offset_time) * 1000
 				last_known_time = trackpoint_time  # backup time for trackpoints without timestamp
 
 				# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
@@ -103,7 +104,7 @@ class GPXFile(ActivityFile):
 					delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
 					if delta_time > 0 and (delta_dist / delta_time) < 0.5:
 						offset_time += delta_time
-						trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000  # recalculate difference from start_time
+						trackpoint_time = ((delta.seconds + 86400 * delta.days) - offset_time) * 1000  # recalculate difference from start_time
 			else:
 				# Trackpoint has no timestamp. Find next trackpoint with timestamp and assign average
 				# delta timestamps to the trackpoints in between
@@ -116,31 +117,31 @@ class GPXFile(ActivityFile):
 						tp_delta = (subtrackpoint.time - last_point.time)
 						avg_delta = tp_delta / tp_without_time
 						break
-				for (sub_id, subtrackpoint) in enumerate(trackpoints[tp_id:tp_id+tp_without_time]):
+				for (sub_id, subtrackpoint) in enumerate(trackpoints[tp_id:tp_id + tp_without_time]):
 					if subtrackpoint.time is None:
 						# assign calculated timestamps
 						subtrackpoint.time = last_point.time + avg_delta * (sub_id + 1)
 
 			last_distance = distance
 			if distance is not None:
-				if not self.track_by_distance.has_key(distance):
-					self.track_by_distance[distance]={}
-				self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
+				if distance not in self.track_by_distance:
+					self.track_by_distance[distance] = {}
+				self.track_by_distance[distance]["trackpoint_time"] = trackpoint_time
 
 			# Get altitude
 			alt = trackpoint.elevation
 			if alt is not None:
 				if distance is not None:
-					self.track_by_distance[distance]["alt"]=alt
-				alt_data.append((distance,trackpoint_time,alt))
+					self.track_by_distance[distance]["alt"] = alt
+				alt_data.append((distance, trackpoint_time, alt))
 
-			# 			# Get time stamps for speed calculation based on GPS
+			# Get time stamps for speed calculation based on GPS
 			track_time = trackpoint.time
 			if distance is not None:
-				self.track_by_distance[distance]["gps"]=track_time
-			speed_gps_data.append((distance,track_time))
+				self.track_by_distance[distance]["gps"] = track_time
+			speed_gps_data.append((distance, track_time))
 
-			# 			# Get position coordinates
+			# Get position coordinates
 			lat = trackpoint.latitude
 			lon = trackpoint.longitude
 			if lat is not None and lon is not None:
@@ -148,8 +149,7 @@ class GPXFile(ActivityFile):
 
 			last_point = trackpoint
 
-		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
-		self.track_data["alt"]=alt_data
-		self.track_data["pos"]=pos_data
-		self.track_data["speed_gps"]=speed_gps_data
-
+		# logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
+		self.track_data["alt"] = alt_data
+		self.track_data["pos"] = pos_data
+		self.track_data["speed_gps"] = speed_gps_data

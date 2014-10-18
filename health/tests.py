@@ -16,6 +16,7 @@ from health.models import Weight, Goal
 from django.contrib.auth.models import User
 from health.utils import parsefloat
 
+
 class HealthTest(TestCase):
 	fixtures = ['health_views_testdata.json', 'health_views_testhealthdata.json']
 
@@ -81,10 +82,10 @@ class HealthTest(TestCase):
 		self.assertNotIn("td_goal_distance", resp.content)
 
 		g = Goal.objects.create(
-			date = datetime.datetime.today(),
-			user = User.objects.get(pk=2),
-			due_date = datetime.timedelta(days=1) + datetime.datetime.today(),
-			target_weight = 70.0
+			date=datetime.datetime.today(),
+			user=User.objects.get(pk=2),
+			due_date=datetime.timedelta(days=1) + datetime.datetime.today(),
+			target_weight=70.0
 		)
 		g.save()
 
@@ -182,14 +183,12 @@ class HealthTest(TestCase):
 		data = json.loads(resp.content)
 		self.assertIsInstance(data, dict)
 
-
 	def test_health_utils(self):
-		s="1.2"
+		s = "1.2"
 		self.assertEqual(1.2, parsefloat(s))
 
-		s="1,234.567.890"
+		s = "1,234.567.890"
 		self.assertEqual(1.234567890, parsefloat(s))
 
-		s="NoFloat"
+		s = "NoFloat"
 		self.assertRaises(ValueError, parsefloat, s)
-		

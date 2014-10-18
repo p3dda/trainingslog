@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 
 
 # Create your views here.
@@ -31,16 +31,17 @@ from django.db.models import Sum
 from django.core.files.base import File
 from django.conf import settings as django_settings
 
+
 @login_required
 def add_calformula(request):
 	if request.method == 'POST':
-		if request.POST.has_key('update_id'):
+		if 'update_id' in request.POST:
 			calformula = CalorieFormula.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id object does not belong to current user, create new activity
 			if calformula.user != request.user:
-				calformula = CalorieFormula(user = request.user)
+				calformula = CalorieFormula(user=request.user)
 		else:
-			calformula = CalorieFormula(user = request.user)
+			calformula = CalorieFormula(user=request.user)
 
 		calformula.name = request.POST.get('name')
 		calformula.weight_dist_factor = request.POST.get('weight_dist_factor')
@@ -49,6 +50,7 @@ def add_calformula(request):
 		return HttpResponse(simplejson.dumps((True, )))
 	else:
 		return HttpResponseBadRequest
+
 
 @login_required
 def delete_calformula(request):
@@ -60,6 +62,7 @@ def delete_calformula(request):
 		else:
 			return HttpResponse(simplejson.dumps((False, "Permission denied")))
 
+
 @login_required
 def get_calformula(request):
 
@@ -69,25 +72,26 @@ def get_calformula(request):
 	else:
 		return HttpResponseForbidden()
 
+
 @login_required
 def add_sport(request):
 	if request.method == 'POST':
-		if request.POST.has_key('update_id'):
+		if 'update_id' in request.POST:
 			sport = Sport.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
 			if sport.user != request.user:
-				sport = Sport(user = request.user)
+				sport = Sport(user=request.user)
 		else:
-			sport = Sport(user = request.user)
+			sport = Sport(user=request.user)
 
 		sport.name = request.POST.get('name')
-		
+
 		calorie_formula_id = int(request.POST.get('calformula'))
 		if calorie_formula_id != -1:
 			sport.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
 		else:
 			sport.calorie_formula = None
-		
+
 		sport.color = request.POST.get('color')
 		if request.POST.get('speed_as_pace') == '0':
 			sport.speed_as_pace = False
@@ -98,15 +102,17 @@ def add_sport(request):
 	else:
 		return HttpResponseBadRequest
 
+
 @login_required
 def get_sport(request):
 	sport_id = request.GET.get('id')
-	
+
 	sport = Sport.objects.get(pk=int(sport_id))
 	if sport.user == request.user:
 		return HttpResponse(serializers.serialize('json', [sport]), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
+
 
 @login_required
 def delete_sport(request):
@@ -118,16 +124,17 @@ def delete_sport(request):
 		else:
 			return HttpResponse(simplejson.dumps((False, "Permission denied")))
 
+
 @login_required
 def add_event(request):
 	if request.method == 'POST':
-		if request.POST.has_key('update_id'):
+		if 'update_id' in request.POST:
 			event = Event.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
 			if event.user != request.user:
-				event = Event(user = request.user)
+				event = Event(user=request.user)
 		else:
-			event = Event(user = request.user)
+			event = Event(user=request.user)
 
 		event.name = request.POST.get('name')
 		event.save()
@@ -135,15 +142,17 @@ def add_event(request):
 	else:
 		return HttpResponseBadRequest
 
+
 @login_required
 def get_event(request):
 	event_id = request.GET.get('id')
-	
+
 	event = Event.objects.get(pk=int(event_id))
 	if event.user == request.user:
 		return HttpResponse(serializers.serialize('json', [event]), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
+
 
 def delete_event(request):
 	if request.method == 'POST':
@@ -154,23 +163,24 @@ def delete_event(request):
 		else:
 			return HttpResponse(simplejson.dumps((False, "Permission denied")))
 
+
 @login_required
 def add_equipment(request):
 	if request.method == 'POST':
-		if request.POST.has_key('update_id'):
+		if 'update_id' in request.POST:
 			equipment = Equipment.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
 			if equipment.user != request.user:
-				equipment = Equipment(user = request.user)
+				equipment = Equipment(user=request.user)
 		else:
-			equipment = Equipment(user = request.user)
-		
+			equipment = Equipment(user=request.user)
+
 		equipment.name = request.POST.get('name')
 		equipment.description = request.POST.get('description')
-		
+
 		if request.POST.get('distance') != "":
 			equipment.distance = request.POST.get('distance')
-			
+
 		if request.POST.get('archived') == '0':
 			equipment.archived = False
 		else:
@@ -181,15 +191,17 @@ def add_equipment(request):
 	else:
 		return HttpResponseBadRequest
 
+
 @login_required
 def get_equipment(request):
 	equipment_id = request.GET.get('id')
-	
+
 	equipment = Equipment.objects.get(pk=int(equipment_id))
 	if equipment.user == request.user:
 		return HttpResponse(serializers.serialize('json', [equipment]), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
+
 
 def delete_equipment(request):
 	if request.method == 'POST':
@@ -200,14 +212,17 @@ def delete_equipment(request):
 		else:
 			return HttpResponse(simplejson.dumps((False, "Permission denied")))
 
+
 @login_required
 def list_event(request):
 	return render_to_response('activities/event_list.html', {})
+
 
 @login_required
 def get_events(request):
 	event_list = Event.objects.filter(user=request.user)
 	return HttpResponse(serializers.serialize('json', event_list), mimetype='application/json')
+
 
 @login_required
 def create_equipment(request):
@@ -215,7 +230,7 @@ def create_equipment(request):
 	if request.method == 'POST':
 		form = EquipmentForm(request.POST)
 		if form.is_valid():
-			equ = form.save(commit = False)
+			equ = form.save(commit=False)
 			equ.user = request.user
 			equ.save()
 			return HttpResponseRedirect('/equipments/')
@@ -227,27 +242,27 @@ def list_equipment(request):
 	equ_list = Equipment.objects.filter(user=request.user)
 	return render_to_response('activities/equipment_list.html', {'equipment_list': equ_list, 'username': request.user})
 
+
 @login_required
 def list_activities(request):
 	if request.method == 'POST':
-		is_saved=False
-		newtrack=None
-		if len(request.FILES)>0:
+		is_saved = False
+		newtrack = None
+		if len(request.FILES) > 0:
 			# This is a direct manual file upload
 			logging.debug("Creating activity from file upload")
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
-				fileName, fileExtension = os.path.splitext(newtrack.trackfile.path)
-				newtrack.filetype = fileExtension.lower()[1:]
+				filename, fileextension = os.path.splitext(newtrack.trackfile.path)
+				newtrack.filetype = fileextension.lower()[1:]
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
 
 				newtrack.save()
-				is_saved=True
+				is_saved = True
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()
-			except Exception, msg:
-				raise
+			except Exception as msg:
 				logging.error("Exception occured in import with message %s" % msg)
 				if is_saved:
 					newtrack.delete()
@@ -256,7 +271,7 @@ def list_activities(request):
 				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(msg)}))
 			else:
 				return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
-		elif request.POST.has_key('content'):
+		elif 'content' in request.POST:
 			# This is a Garmin Communicator plugin upload
 			logging.debug("Creating activity from text upload")
 			try:
@@ -266,15 +281,15 @@ def list_activities(request):
 
 				if content.splitlines()[0].startswith("<?xml"):
 					filename = "%s.tcx" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
-					newtrack.filetype="tcx"
+					newtrack.filetype = "tcx"
 					tmpfilename = tmpfile.name
 
 					tmpfile.write(content)
 
-					#create new trackfile
+					# create new trackfile
 				elif ".fit" in content.splitlines()[0].lower():
 					filename = "%s.fit" % datetime.datetime.now().strftime("%d.%m.%y %H-%M-%S")
-					newtrack.filetype="fit"
+					newtrack.filetype = "fit"
 					tmpfilename = tmpfile.name
 
 					for line in content.splitlines()[1:]:
@@ -282,9 +297,9 @@ def list_activities(request):
 				tmpfile.close()
 
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
-				is_saved=True
+				is_saved = True
 				logging.debug("Filename: %s" % filename)
-	
+
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
@@ -293,46 +308,47 @@ def list_activities(request):
 				os.remove(tmpfilename)
 				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
 			except Exception, exc:
-				logging.error("Exception raised in importtrack: %s" %str(exc))
+				logging.error("Exception raised in importtrack: %s" % str(exc))
 				if is_saved:
 					newtrack.delete()
 				for line in traceback.format_exc().splitlines():
 					logging.error(line.strip())
 				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(exc)}))
-			
+
 		else:
 			logging.error("Missing upload data")
 	else:
 		# render list of activities
-		
+
 		# collect data required for activity form
 		events = Event.objects.filter(user=request.user)
 		equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
 		sports = Sport.objects.filter(user=request.user)
 		calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 		activitytemplates = ActivityTemplate.objects.filter(user=request.user)
-		
-		#get list of activities
-#		activities = Activity.objects.select_related('sport').filter(user=request.user)
-		
+
+		# get list of activities
+		# activities = Activity.objects.select_related('sport').filter(user=request.user)
+
 		try:
 			garmin_keys = django_settings.GARMIN_KEYS
 		except AttributeError:
 			garmin_keys = False
-			
+
 		weight = Weight.objects.filter(user=request.user).order_by('-date')
-		if len(weight)>0:
+		if len(weight) > 0:
 			weight = weight[0]
 		else:
 			weight = None
 
 		return render_to_response('activities/activity_list.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates, 'garmin_keys': garmin_keys})
 
+
 @login_required
 def get_activity(request):
 	act_id = request.GET.get('id')
 	template = request.GET.get('template')
-	
+
 	if template == 'true':
 		activity = ActivityTemplate.objects.get(pk=int(act_id))
 	else:
@@ -346,74 +362,62 @@ def get_activity(request):
 			# build absolute URL with domain part for preview image
 			# https seems not to be supported by facebook
 			result['preview_img'] = activity.track.preview_img.url
-		
+
 		return HttpResponse(json.dumps(result), mimetype='application/json')
 	else:
 		return HttpResponseForbidden()
 
-#@login_required
-#def new_activity(request):
-#	if request.method == 'POST':
-#		form = ActivityForm(request.POST)
-#		if form.is_valid():
-#			act = form.save(commit = False)
-#			act.user = request.user
-#			act.save()
-#			return HttpResponseRedirect('/activities/')
-#	else:
-#		form = ActivityForm()
-#
-#	return render_to_response('activities/activity_new.html', {'form': form, 'username': request.user})
 
 @login_required
 def delete_activity(request):
 	if request.method == 'POST':
 		act_id = int_or_none(request.POST.get('id'))
 		tmpl_id = int_or_none(request.POST.get('tmpl_id'))
-		
+
 		if act_id:
 			act = Activity.objects.get(id=act_id)
 		elif tmpl_id:
 			act = ActivityTemplate.objects.get(id=tmpl_id)
 		else:
 			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Missing ID"}))
-			
+
 		if act.user == request.user:
 			act.delete()
 			return HttpResponse(simplejson.dumps({'success': True}))
 		else:
 			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Permission denied"}))
-		
+
+
 @login_required
 def add_activity(request):
 	if request.method == 'POST':
 		logging.debug("In add_activity post request with parameters %s" % repr(request.POST.items()))
 		is_template = request.POST.get('is_template')
 		if is_template == 'true':
-			if request.POST.has_key('update_id'):
+			if 'update_id' in request.POST:
 				act = ActivityTemplate.objects.get(pk=int(request.POST.get('update_id')))
 				# If selected_by_id activityTemplate does not belong to current user, create new activityTemplate
 				if act.user != request.user:
-					act = ActivityTemplate( user=request.user )
+					act = ActivityTemplate(user=request.user)
 			else:
-				act = ActivityTemplate(user = request.user)
+				act = ActivityTemplate(user=request.user)
 		else:
-			if request.POST.has_key('update_id'):
+			if 'update_id' in request.POST:
 				act = Activity.objects.get(pk=int(request.POST.get('update_id')))
 				# If selected_by_id activity does not belong to current user, create new activity
 				if act.user != request.user:
-					act = Activity(user = request.user)
+					act = Activity(user=request.user)
 			else:
-				act = Activity(user = request.user)
-		
-		try:	
+				act = Activity(user=request.user)
+
+		try:
 			act.name = request.POST.get('name')
 			act.comment = request.POST.get('comment')
 			act.cadence_avg = int_or_none(request.POST.get('cadence_avg'))
 			act.cadence_max = int_or_none(request.POST.get('cadence_max'))
 			act.calories = int_or_none(request.POST.get('calories'))
 			act.distance = str_float_or_none(request.POST.get('distance'))
-	
+
 			act.elevation_gain = int_or_none(request.POST.get('elevation_gain'))
 			act.elevation_loss = int_or_none(request.POST.get('elevation_loss'))
 			act.elevation_min = int_or_none(request.POST.get('elevation_min'))
@@ -423,12 +427,12 @@ def add_activity(request):
 			act.time = int_or_none(request.POST.get('time'))
 			act.time_elapsed = int_or_none(request.POST.get('time_elapsed'))
 			act.time_movement = int_or_none(request.POST.get('time_movement'))
-				
+
 			event = Event.objects.get(pk=int(request.POST.get('event')))
 			sport = Sport.objects.get(pk=int(request.POST.get('sport')))
 			act.event = event
 			act.sport = sport
-			
+
 			if sport.speed_as_pace:
 				if request.POST.get('speed_max') != 'null':
 					act.speed_max = str(pace_to_speed(request.POST.get('speed_max')))
@@ -443,7 +447,7 @@ def add_activity(request):
 					act.speed_avg = str_float_or_none(request.POST.get('speed_avg'))
 				if request.POST.get('speed_avg_movement') != 'null':
 					act.speed_avg_movement = str_float_or_none(request.POST.get('speed_avg_movement'))
-	
+
 			equipment_list = request.POST.get('equipment').split(" ")
 
 			datestring = request.POST.get('date') + " " + request.POST.get('datetime')
@@ -459,23 +463,21 @@ def add_activity(request):
 						if request.POST.get('is_template'):
 							date = None
 						else:
-							return HttpResponse(simplejson.dumps(
-								dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+							return HttpResponse(simplejson.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
 
-	
 			act.date = date
-			
+
 			if request.POST.get('public') == '0':
 				act.public = False
 			else:
 				act.public = True
-	
+
 			calorie_formula_id = int(request.POST.get('calformula'))
 			if calorie_formula_id != -1:
 				act.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
 			else:
 				act.calorie_formula = None
-				
+
 			act.weather_stationname = request.POST.get('weather_stationname')
 			act.weather_temp = str_float_or_none(request.POST.get('weather_temp'))
 			act.weather_rain = str_float_or_none(request.POST.get('weather_rain'))
@@ -484,30 +486,30 @@ def add_activity(request):
 			act.weather_winddir = request.POST.get('weather_winddir')
 			if act.weather_winddir == "":
 				act.weather_winddir = None
-			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (
-				act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
-		
+			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
+
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")
 			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
-			
+
 		act.save()
 
 		for eq in equipment_list:
 			if eq != '':
 				act.equipment.add(Equipment.objects.get(pk=int(eq)))
-		
+
 		act.save()
 		return HttpResponse(simplejson.dumps({'success': True}))
 	else:
 		return HttpResponseBadRequest
-	
+
+
 def detail(request, activity_id):
 	param = request.GET.get('p', False)
 	act = get_object_or_404(Activity, id=activity_id)
-	
+
 	if request.user.is_authenticated():
-		if act.user==request.user:
+		if act.user == request.user:
 			public = False
 		else:
 			if act.public:
@@ -526,19 +528,18 @@ def detail(request, activity_id):
 	except AttributeError:
 		fb_app_id = False
 
-	
 	if not param:
 		# no parameter given, reply with activity detail template
-		
+
 		if act.track:
 			trackfile = act.track.trackfile
-			
+
 			if os.path.isfile(trackfile.path + ".gpx"):
 				gpx_url = trackfile.url + ".gpx"
 			else:
 				gpx_url = None
-				
-			#check if preview image is missing
+
+			# check if preview image is missing
 			if not act.track.preview_img:
 				logging.debug("No preview image found")
 				actfile = ActivityFile.ActivityFile(act.track, request)
@@ -550,13 +551,12 @@ def detail(request, activity_id):
 				preview_img = request.build_absolute_uri(act.track.preview_img.url).replace("https://", "http://")
 			else:
 				preview_img = None
-				
+
 		else:
 			trackfile = None
 			gpx_url = None
 			preview_img = None
 
-		
 		if act.sport.speed_as_pace:
 			if act.speed_max:
 				act.speed_max = speed_to_pace(act.speed_max)
@@ -567,14 +567,14 @@ def detail(request, activity_id):
 			speed_unit = "min/km"
 		else:
 			speed_unit = "km/h"
-		
+
 		act.time = seconds_to_time(act.time, force_hour=True)
 		if act.time_movement:
 			act.time_movement = seconds_to_time(act.time_movement)
 		if act.time_elapsed:
 			act.time_elapsed = seconds_to_time(act.time_elapsed)
-		
-		laps = Lap.objects.filter(activity = act).order_by('id')
+
+		laps = Lap.objects.filter(activity=act).order_by('id')
 		for lap in laps:
 			lap.time = seconds_to_time(lap.time)
 			if act.sport.speed_as_pace:
@@ -583,23 +583,23 @@ def detail(request, activity_id):
 				if lap.speed_avg:
 					lap.speed_avg = speed_to_pace(lap.speed_avg)
 		if not public:
-	
-			if request.GET.get('edit', '0')=='1':
-				edit=1
+
+			if request.GET.get('edit', '0') == '1':
+				edit = 1
 			else:
-				edit=0
-			
+				edit = 0
+
 			events = Event.objects.filter(user=request.user)
 			equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
 			sports = Sport.objects.filter(user=request.user)
-			calformulas =  CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
+			calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 			activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 			weight = Weight.objects.filter(user=request.user).order_by('-date')
-			if len(weight)>0:
+			if len(weight) > 0:
 				weight = weight[0]
 			else:
 				weight = None
-			
+
 			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
 		else:
 			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public})
@@ -615,31 +615,32 @@ def detail(request, activity_id):
 					'speed_foot': track.get_speed_foot(act.sport.speed_as_pace),
 					'stance_time': track.get_stance_time(),
 					'vertical_oscillation': track.get_vertical_oscillation(),
-					'temperature': track.get_temperature()
-					}
+					'temperature': track.get_temperature()}
 
 			details_data = track.get_detail_entries()
 
-			return HttpResponse(json.dumps({"plot_data": data, "details_data": details_data}, sort_keys=True, indent=4),content_type="text/plain")
-	
+			return HttpResponse(json.dumps({"plot_data": data, "details_data": details_data}, sort_keys=True, indent=4), content_type="text/plain")
+
 	# last resort
 	return Http404()
+
 
 @login_required
 def calendar(request):
 	events = Event.objects.filter(user=request.user)
 	equipments = Equipment.objects.filter(user=request.user).filter(archived=False)
 	sports = Sport.objects.filter(user=request.user)
-	calformulas =  CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
+	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 	weight = Weight.objects.filter(user=request.user).order_by('-date')
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
-	
-	if len(weight)>0:
+
+	if len(weight) > 0:
 		weight = weight[0]
 	else:
 		weight = None
 
 	return render_to_response('activities/calendar.html', {'username': request.user, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'weight': weight, 'activitytemplates': activitytemplates})
+
 
 @login_required
 def reports(request):
@@ -647,10 +648,11 @@ def reports(request):
 	sports = Sport.objects.filter(user=request.user)
 	return render_to_response('activities/reports.html', {'username': request.user, 'events': events, 'sports': sports})
 
+
 @login_required
 def get_report_data(request):
 	data = {}
-	
+
 	startdate_timestamp = request.GET.get('startdate', '')
 	enddate_timestamp = request.GET.get('enddate', '')
 	mode = request.GET.get('mode', '')
@@ -663,8 +665,8 @@ def get_report_data(request):
 		event_pks = []
 		sport_pks = []
 	try:
-		start_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(startdate_timestamp)/1000), timezone.get_default_timezone())
-		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp)/1000), timezone.get_default_timezone()).replace(hour=23, minute=59, second=59)
+		start_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(startdate_timestamp) / 1000), timezone.get_default_timezone())
+		end_date = timezone.make_aware(timezone.datetime.utcfromtimestamp(int(enddate_timestamp) / 1000), timezone.get_default_timezone()).replace(hour=23, minute=59, second=59)
 		# make shure we include the current day
 		logging.debug("Time range is from %s (%s) to %s (%s)" % (start_date, startdate_timestamp, end_date, enddate_timestamp))
 	except ValueError:
@@ -681,20 +683,19 @@ def get_report_data(request):
 	if mode == "sports":
 		sports = Sport.objects.filter(user=request.user)
 		for sport in sports:
-			#total_time = 0
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter)
-			activities = activities.filter(date__gte = start_date, date__lte = end_date)
-	
+			activities = activities.filter(date__gte=start_date, date__lte=end_date)
+
 			data[sport.name] = activities_summary(activities)
 			data[sport.name]['color'] = sport.color
-			
+
 	elif mode == "weeks":
 		sports = Sport.objects.filter(user=request.user)
 		data = {'time': [],
 				'distance': [],
 				'calories': [],
 				'count': []}
-		
+
 		for sport in sports:
 			sport_data = {'label': sport.name, 'color': sport.color, 'data': []}
 
@@ -702,22 +703,22 @@ def get_report_data(request):
 			sport_time = copy.deepcopy(sport_data)
 			sport_calories = copy.deepcopy(sport_data)
 			sport_count = copy.deepcopy(sport_data)
-			
+
 			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter).order_by('date')
-			if len(activities)>0:
-				activities = activities.filter(date__gte = start_date, date__lte = end_date)
-				
+			if len(activities) > 0:
+				activities = activities.filter(date__gte=start_date, date__lte=end_date)
+
 				# days ago to last monday
-				delta = datetime.timedelta(days = start_date.timetuple().tm_wday % 7)
+				delta = datetime.timedelta(days=start_date.timetuple().tm_wday % 7)
 				week_start = timezone.make_aware(datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta, timezone.get_default_timezone())
 
 				while week_start <= end_date:
-					week_activities = activities.filter(date__gte=week_start, date__lt=(week_start+datetime.timedelta(days=7)))
+					week_activities = activities.filter(date__gte=week_start, date__lt=(week_start + datetime.timedelta(days=7)))
 					summary = activities_summary(week_activities)
-					sport_time['data'].append([time.mktime(week_start.timetuple())*1000, summary['total_time'] / 60])
-					sport_distance['data'].append([time.mktime(week_start.timetuple())*1000, summary['total_distance']])
-					sport_calories['data'].append([time.mktime(week_start.timetuple())*1000, summary['total_calories']])
-					sport_count['data'].append([time.mktime(week_start.timetuple())*1000, len(week_activities)])
+					sport_time['data'].append([time.mktime(week_start.timetuple()) * 1000, summary['total_time'] / 60])
+					sport_distance['data'].append([time.mktime(week_start.timetuple()) * 1000, summary['total_distance']])
+					sport_calories['data'].append([time.mktime(week_start.timetuple()) * 1000, summary['total_calories']])
+					sport_count['data'].append([time.mktime(week_start.timetuple()) * 1000, len(week_activities)])
 
 					week_start = week_start + datetime.timedelta(days=7)
 
@@ -725,15 +726,16 @@ def get_report_data(request):
 				data['distance'].append(sport_distance)
 				data['time'].append(sport_time)
 				data['count'].append(sport_count)
-			
+
 	return HttpResponse(simplejson.dumps(data))
+
 
 @login_required
 def calendar_get_events(request):
 	events = []
 	summary = {}
 
-	start_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('start'))),timezone.get_default_timezone())
+	start_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('start'))), timezone.get_default_timezone())
 	end_datetime = timezone.make_aware(datetime.datetime.fromtimestamp(float(request.GET.get('end'))), timezone.get_default_timezone())
 	start_date = datetime.date.fromtimestamp(float(request.GET.get('start')))
 	end_date = datetime.date.fromtimestamp(float(request.GET.get('end')))
@@ -745,29 +747,29 @@ def calendar_get_events(request):
 	desease_list = Desease.objects.filter(user=request.user).filter(end_date__gt=start_date).filter(start_date__lt=end_date)
 	weight_list = Weight.objects.filter(user=request.user).filter(date__gt=start_date).filter(date__lt=end_date)
 	weightgoal_list = Goal.objects.filter(user=request.user).filter(due_date__gt=start_date).filter(due_date__lt=end_date)
-	
+
 	for activity in activity_list:
 		if activity.distance:
-			events.append({'title': "%s\n%.2fkm\n%s" % (activity.name, activity.distance, str(datetime.timedelta(seconds=activity.time))), 
-						'allDay': False, 'start': activity.date.isoformat(), 
+			events.append({'title': "%s\n%.2fkm\n%s" % (activity.name, activity.distance, str(datetime.timedelta(seconds=activity.time))),
+						'allDay': False, 'start': activity.date.isoformat(),
 						'end': (activity.date + datetime.timedelta(days=0, seconds=activity.time)).isoformat(), 'url': "/activities/%s" % activity.id, 'color': activity.sport.color, 'className': 'fc_activity'})
 		else:
-			events.append({'title': "%s\n%s" % (activity.name, str(datetime.timedelta(seconds=activity.time))), 
-						'allDay': False, 'start': activity.date.isoformat(), 
+			events.append({'title': "%s\n%s" % (activity.name, str(datetime.timedelta(seconds=activity.time))),
+						'allDay': False, 'start': activity.date.isoformat(),
 						'end': (activity.date + datetime.timedelta(days=0, seconds=activity.time)).isoformat(), 'url': "/activities/%s" % activity.id, 'color': activity.sport.color, 'className': 'fc_activity'})
 
 	for weight in weight_list:
 		events.append({'title': "%.1f kg" % weight.weight, 'allDay': True, 'start': weight.date.isoformat(), 'className': 'fc_weight'})
-	
+
 	for weight in weightgoal_list:
 		events.append({'title': "Ziel: %.1f kg" % weight.target_weight, 'allDay': True, 'start': weight.due_date.isoformat(), 'className': 'fc_weightgoal'})
-		
+
 	for desease in desease_list:
 		events.append({'title': desease.name, 'allDay': True, 'start': desease.start_date.isoformat(), 'end': desease.end_date.isoformat(), 'desease_id': desease.pk, 'color': '#ff0000', 'className': 'fc_desease'})
 
 	for activity in activity_list:
 		week = activity.date.isocalendar()[1]
-		if not week in summary:
+		if week not in summary:
 			summary[week] = {'distance': 0, 'calories': 0, 'time': 0}
 		if activity.distance:
 			summary[week]['distance'] += activity.distance
@@ -778,11 +780,12 @@ def calendar_get_events(request):
 
 	for week in summary:
 		events.append({'title': "Distanz:\n%s km\n\nZeit\n%s\n\nKalorien\n%s kcal" %
-								(summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']),
-					   'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat(),
-					    'className': 'fc-event-weeksummary'})
+			(summary[week]['distance'], str(datetime.timedelta(seconds=summary[week]['time'])), summary[week]['calories']),
+			'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat(),
+			'className': 'fc-event-weeksummary'})
 
 	return HttpResponse(simplejson.dumps(events))
+
 
 @login_required
 def settings(request):
@@ -792,7 +795,7 @@ def settings(request):
 	sports = Sport.objects.filter(user=request.user)
 	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
-	
+
 	for equipment in itertools.chain(equipments, equipments_archived):
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
@@ -820,6 +823,7 @@ def settings(request):
 
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
 
+
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting
 	# order is important and should be same as order of columns
@@ -841,9 +845,9 @@ class ActivityListJson(BaseDatatableView):
 		# use request parameters to filter queryset
 
 		# simple example:
-		sSearch = self.request.GET.get('sSearch', None)
-		if sSearch:
-			qs = qs.filter(name__icontains=sSearch)
+		ssearch = self.request.GET.get('sSearch', None)
+		if ssearch:
+			qs = qs.filter(name__icontains=ssearch)
 
 		return qs
 
@@ -852,9 +856,9 @@ class ActivityListJson(BaseDatatableView):
 		# queryset is already paginated here
 		json_data = []
 		for item in qs:
-			if self.request.is_mobile == True:
+			if self.request.is_mobile:
 				json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
 			else:
 				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
-			
+
 		return json_data

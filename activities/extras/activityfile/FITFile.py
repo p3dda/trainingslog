@@ -13,12 +13,13 @@ GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
 	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
 """
 
+
 class FITFile(ActivityFile):
 	filetypes = ["fit"]
 
 	def __init__(self, track, request=None):
 		ActivityFile.__init__(self, track, request)
-		#logging.debug("Trackfile %r closed" % tcxfile.trackfile)
+		# logging.debug("Trackfile %r closed" % tcxfile.trackfile)
 
 		self.fitfile = fitparse.FitFile(
 			self.track.trackfile,
@@ -32,8 +33,8 @@ class FITFile(ActivityFile):
 		gps_fixes = 0
 		gps_no_fixes = 0
 		try:
-			with open(self.track.trackfile.path+".gpx", 'w') as gpx_file:
-				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path+".gpx")
+			with open(self.track.trackfile.path + ".gpx", 'w') as gpx_file:
+				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path + ".gpx")
 				gpx_file.write(GPX_HEADER)
 
 				# start gpx track
@@ -131,18 +132,18 @@ class FITFile(ActivityFile):
 				self.laps.append(lap)
 
 	def parse_trackpoints(self):
-		alt_data=[]
-		cad_data=[]
-		hf_data=[]
-		pos_data=[]
-		speed_gps_data=[]
-		speed_foot_data=[]
+		alt_data = []
+		cad_data = []
+		hf_data = []
+		pos_data = []
+		speed_gps_data = []
+		speed_foot_data = []
 		stance_time_data = []
 		temperature_data = []
 		vertical_oscillation_data = []
 
 		offset_distance = 0
-		offset_time = 0 # used to remove track sequences from plot where no movement has occured
+		offset_time = 0  # used to remove track sequences from plot where no movement has occured
 		last_distance = None
 
 		for message in self.fitfile.get_messages(name="session"):
@@ -171,8 +172,8 @@ class FITFile(ActivityFile):
 					offset_distance = last_distance
 				distance += offset_distance
 
-			delta = message.get_value('timestamp')-start_time
-			trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+			delta = message.get_value('timestamp') - start_time
+			trackpoint_time = ((delta.seconds + 86400 * delta.days) - offset_time) * 1000
 
 			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
 			if last_distance is not None and distance is not None:
@@ -180,26 +181,26 @@ class FITFile(ActivityFile):
 				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
 				if delta_time > 0 and (delta_dist / delta_time) < 0.5:
 					offset_time += delta_time
-					trackpoint_time = ((delta.seconds + 86400 * delta.days)-offset_time) * 1000
+					trackpoint_time = ((delta.seconds + 86400 * delta.days) - offset_time) * 1000
 			last_distance = distance
 			if distance is not None:
-				if not self.track_by_distance.has_key(distance):
-					self.track_by_distance[distance]={}
-				self.track_by_distance[distance]["trackpoint_time"]=trackpoint_time
+				if distance not in self.track_by_distance:
+					self.track_by_distance[distance] = {}
+				self.track_by_distance[distance]["trackpoint_time"] = trackpoint_time
 
 			# Get altitude
 			alt = message.get_value("altitude")
 			if alt is not None:
 				if distance is not None:
-					self.track_by_distance[distance]["alt"]=alt
-				alt_data.append((distance,trackpoint_time,alt))
+					self.track_by_distance[distance]["alt"] = alt
+				alt_data.append((distance, trackpoint_time, alt))
 
 			# 			# Get Cadence data (from Bike cadence sensor)
 			cad = message.get_value("cadence")
 			if cad is not None:
 				if distance is not None:
-					self.track_by_distance[distance]["cad"]=cad
-				cad_data.append((distance,trackpoint_time,cad))
+					self.track_by_distance[distance]["cad"] = cad
+				cad_data.append((distance, trackpoint_time, cad))
 
 			temperature = message.get_value("temperature")
 			if temperature is not None:
@@ -211,14 +212,14 @@ class FITFile(ActivityFile):
 			hf = message.get_value("heart_rate")
 			if hf is not None:
 				if distance is not None:
-					self.track_by_distance[distance]["hf"]=hf
-				hf_data.append((distance,trackpoint_time,hf))
+					self.track_by_distance[distance]["hf"] = hf
+				hf_data.append((distance, trackpoint_time, hf))
 			#
 			# 			# Get time stamps for speed calculation based on GPS
 			track_time = message.get_value("timestamp")
 			if distance is not None:
-				self.track_by_distance[distance]["gps"]=track_time
-			speed_gps_data.append((distance,track_time))
+				self.track_by_distance[distance]["gps"] = track_time
+			speed_gps_data.append((distance, track_time))
 
 			# 			# Get position coordinates
 			lat = message.get_value("position_lat")
@@ -238,13 +239,13 @@ class FITFile(ActivityFile):
 				if distance is not None:
 					self.track_by_distance[distance]["vertical_oscillation"] = vertical_oscillation
 
-		#logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
-		self.track_data["alt"]=alt_data
-		self.track_data["cad"]=cad_data
-		self.track_data["hf"]=hf_data
-		self.track_data["pos"]=pos_data
-		self.track_data["speed_gps"]=speed_gps_data
-		self.track_data["speed_foot"]=speed_foot_data
-		self.track_data["stance_time"]=stance_time_data
-		self.track_data["temperature"]=temperature_data
-		self.track_data["vertical_oscillation"]=vertical_oscillation_data
+		# logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
+		self.track_data["alt"] = alt_data
+		self.track_data["cad"] = cad_data
+		self.track_data["hf"] = hf_data
+		self.track_data["pos"] = pos_data
+		self.track_data["speed_gps"] = speed_gps_data
+		self.track_data["speed_foot"] = speed_foot_data
+		self.track_data["stance_time"] = stance_time_data
+		self.track_data["temperature"] = temperature_data
+		self.track_data["vertical_oscillation"] = vertical_oscillation_data

@@ -19,13 +19,13 @@ from activities.models import Activity, Event, Sport, Lap
 from libs.fitparse import fitparse
 
 
-
 GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
 	creator="https://github.com/p3dda/trainingslog"
 	version="1.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
 """
+
 
 class ActivityFileMeta(type):
 	def __init__(cls, name, bases, dct):
@@ -51,6 +51,7 @@ class ActivityFileMeta(type):
 
 ActivityFileMetaclass = ActivityFileMeta('ActivityFileMetaclass', (object, ), {})
 
+
 class ActivityFile(ActivityFileMetaclass):
 	filetypes = None
 
@@ -60,8 +61,8 @@ class ActivityFile(ActivityFileMetaclass):
 		self.activity = None
 		self.date = None
 		self.laps = None
-		self.track_data={'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
-		self.track_by_distance={}
+		self.track_data = {'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
+		self.track_by_distance = {}
 		self.detail_entries = {}
 		self.position_start = None
 		self.time_start = None
@@ -74,7 +75,7 @@ class ActivityFile(ActivityFileMetaclass):
 		return self.laps
 
 	def to_gpx(self):
-		#TODO: Port .fit implementation and use for all file types
+		# TODO: Port .fit implementation and use for all file types
 		raise NotImplementedError
 
 	def set_weather(self):
@@ -86,7 +87,7 @@ class ActivityFile(ActivityFileMetaclass):
 		try:
 			(lat, lon) = self.position_start
 
-			logging.debug("Getting weather data for position %r %r" % (lat,lon))
+			logging.debug("Getting weather data for position %r %r" % (lat, lon))
 			weather_url = "http://api.wunderground.com/api/%s/geolookup/q/%s,%s.json" % (wunderground_key, lat, lon)
 			f = urllib2.urlopen(weather_url)
 			json_string = f.read()
@@ -100,8 +101,8 @@ class ActivityFile(ActivityFileMetaclass):
 				logging.debug("Found nearby airport station %r" % weather_station)
 				weather_url = "http://api.wunderground.com/api/%s/history_%s/q/%s.json" % (wunderground_key, self.activity.date.strftime("%Y%m%d"), weather_station["icao"])
 			else:
-				logging.error("Did not found any nearby weather stations for  %r %r" % (lat,lon))
-				raise(Exception, "Did not find any nearby weather stations for  %r %r" % (lat,lon))
+				logging.error("Did not found any nearby weather stations for  %r %r" % (lat, lon))
+				raise(Exception, "Did not find any nearby weather stations for  %r %r" % (lat, lon))
 
 			logging.debug("Fetching wheather information from url %s" % weather_url)
 			self.activity.weather_stationname = weather_station["city"]
@@ -111,7 +112,7 @@ class ActivityFile(ActivityFileMetaclass):
 			weather_observations = json.loads(json_string)["history"]["observations"]
 
 			for observation in weather_observations:
-				obs_date = datetime.datetime(year = int(observation["utcdate"]["year"]), month = int(observation["utcdate"]["mon"]), day = int(observation["utcdate"]["mday"]), hour = int(observation["utcdate"]["hour"]), minute = int(observation["utcdate"]["min"])).replace(tzinfo=utc)
+				obs_date = datetime.datetime(year=int(observation["utcdate"]["year"]), month=int(observation["utcdate"]["mon"]), day=int(observation["utcdate"]["mday"]), hour=int(observation["utcdate"]["hour"]), minute=int(observation["utcdate"]["min"])).replace(tzinfo=utc)
 				if obs_date >= self.activity.date:
 					self.activity.weather_temp = observation["tempm"]
 					logging.debug("Weather temperature is %r" % observation["tempm"])
@@ -127,7 +128,7 @@ class ActivityFile(ActivityFileMetaclass):
 					if float(self.activity.weather_windspeed) < 0:
 						self.activity.weather_windspeed = None
 					logging.debug("Activity windspeed is %r" % self.activity.weather_windspeed)
-					if float(observation["precip_ratem"])>=0:
+					if float(observation["precip_ratem"]) >= 0:
 						self.activity.weather_rain = observation["precip_ratem"]
 						logging.debug("Weather rain is %r" % observation["precip_ratem"])
 					else:
@@ -139,17 +140,15 @@ class ActivityFile(ActivityFileMetaclass):
 				logging.error(line)
 			return None
 
-
-
 	def import_activity(self):
 		# create new activity from file
 		# Event/sport is only dummy for now, make selection after import
-		events = Event.objects.filter(user=self.request.user) #FIXME: there must always be a event and sport definied
+		events = Event.objects.filter(user=self.request.user)  # FIXME: there must always be a event and sport definied
 		sports = Sport.objects.filter(user=self.request.user)
 
-		if events is None or len(events)==0:
+		if events is None or len(events) == 0:
 			raise RuntimeError("There must be a event type defined. Please define one first.")
-		if sports is None or len(sports)==0:
+		if sports is None or len(sports) == 0:
 			raise RuntimeError("There must be a sport type defined. Please define one first.")
 
 		event = events[0]
@@ -178,7 +177,6 @@ class ActivityFile(ActivityFileMetaclass):
 		self.create_preview()
 		if len(self.get_pos()) > 0:
 			self.to_gpx()			# create gpx file from track
-
 
 	def calc_totals(self):
 		"""
@@ -249,11 +247,11 @@ class ActivityFile(ActivityFileMetaclass):
 				else:
 					hf_avg = hf_avg + lap.time * lap.hf_avg
 
-		if cadence_avg==0 or cadence_avg is None:
+		if cadence_avg == 0 or cadence_avg is None:
 			self.activity.cadence_avg = None
 		else:
 			self.activity.cadence_avg = int(cadence_avg / time_sum)
-		if cadence_max==0:
+		if cadence_max == 0:
 			self.activity.cadence_max = None
 		else:
 			self.activity.cadence_max = cadence_max
@@ -262,11 +260,11 @@ class ActivityFile(ActivityFileMetaclass):
 			self.activity.speed_max = str(speed_max)
 		else:
 			self.activity.speed_max = None
-		if hf_avg==0 or hf_avg is None:
+		if hf_avg == 0 or hf_avg is None:
 			self.activity.hf_avg = None
 		else:
 			self.activity.hf_avg = int(hf_avg / time_sum)
-		if hf_max==0:
+		if hf_max == 0:
 			self.activity.hf_max = None
 		else:
 			self.activity.hf_max = hf_max
@@ -283,7 +281,7 @@ class ActivityFile(ActivityFileMetaclass):
 		self.activity.date = self.laps[0].date
 		self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
 
-		if self.time_start and self.time_end:	# FIXME: This is not set in fit activities
+		if self.time_start and self.time_end:  # FIXME: This is not set in fit activities
 			logging.debug("First and last trackpoint timestamps in track are %s and %s" % (self.time_start, self.time_end))
 			self.activity.time_elapsed = (self.time_end - self.time_start).days * 86400 + (self.time_end - self.time_start).seconds
 
@@ -305,14 +303,14 @@ class ActivityFile(ActivityFileMetaclass):
 						gmap_coords.append("%s,%s" % (round(lat, 4), round(lon, 4)))
 				gmap_path = "|".join(gmap_coords)
 
-				url = "http://maps.google.com/maps/api/staticmap?size=480x480&path=color:0xff0000ff|"+gmap_path+"&sensor=true"
+				url = "http://maps.google.com/maps/api/staticmap?size=480x480&path=color:0xff0000ff|" + gmap_path + "&sensor=true"
 				logging.debug("Fetching file from %s" % url)
 				logging.debug("Length of url is %s chars" % len(url))
 				try:
 					img_temp = NamedTemporaryFile(delete=True)
 					img_temp.write(urllib2.urlopen(url).read())
 					img_temp.flush()
-					name=os.path.splitext(os.path.split(self.track.trackfile.name)[1])[0]
+					name = os.path.splitext(os.path.split(self.track.trackfile.name)[1])[0]
 					logging.debug("Saving as %s.jpg" % name)
 
 					self.track.preview_img.save("%s.jpg" % name, File(img_temp), save=True)
@@ -336,7 +334,6 @@ class ActivityFile(ActivityFileMetaclass):
 		"""
 		return self.track_data["cad"]
 
-
 	def get_hf(self):
 		"""Returns list of (distance, heartrate) tuples with optional given max length
 		@returns (distance, heartrate) tuples
@@ -358,7 +355,7 @@ class ActivityFile(ActivityFileMetaclass):
 		@returns (lat, lon) tuples
 		@rtype: list
 		"""
-		if self.track_data.has_key("pos"):
+		if "pos" in self.track_data:
 			if samples > 0:
 				if len(self.track_data["pos"]) > samples:
 					sample_size = len(self.track_data["pos"]) / samples
@@ -375,111 +372,110 @@ class ActivityFile(ActivityFileMetaclass):
 		@rtype: list
 		"""
 
-		MAX_OFFSET=10
-		MAX_OFFSET_AVG=20
-		MAX_DIST=100.0
-		MAX_DIST_AVG=100.0
-		speed_data=[]
+		max_offset = 10
+		max_offset_avg = 20
+		max_dist = 100.0
+		max_dist_avg = 100.0
+		speed_data = []
 
 		# Get all distances recorded, which are keys
-		dist_points=self.track_by_distance.keys()
+		dist_points = self.track_by_distance.keys()
 		# Sort them
 		dist_points.sort()
 
-		speed_avg=0.0
-		count_avg=0
+		speed_avg = 0.0
+		count_avg = 0
 
 		# Go through all distances in the sorted list
-		for i in range(0,len(dist_points)):
+		for i in range(0, len(dist_points)):
 			# get the current (fixed) position, for which we calculate the speed from GPS time information
-			fix_pos=dist_points[i]
+			fix_pos = dist_points[i]
 			# if no GPS time recorded, skip the current fix_pos
-			if not self.track_by_distance[fix_pos].has_key("gps"):
+			if "gps" not in self.track_by_distance[fix_pos]:
 				continue
 			if fix_pos is None:
 				continue
-			min_pos=i-MAX_OFFSET
+			min_pos = i - max_offset
 
-			if min_pos<0:
-				min_pos=0
+			if min_pos < 0:
+				min_pos = 0
 
-			speed=count=0
+			speed = count = 0
 			# Go through previous points and calculate speed using all the previous positions
-			for pos in range(i,min_pos,-1):
-				if i==fix_pos:
+			for pos in range(i, min_pos, -1):
+				if i == fix_pos:
 					continue
-				new_pos=dist_points[pos]
-				if not self.track_by_distance[new_pos].has_key("gps"):
+				new_pos = dist_points[pos]
+				if "gps" not in self.track_by_distance[new_pos]:
 					continue
-				dist_diff=fix_pos-new_pos
-				if dist_diff>MAX_DIST:
+				dist_diff = fix_pos - new_pos
+				if dist_diff > max_dist:
 					break
-				#logging.debug("Current fix_pos num %i is %f and new_pos num %i is %f" % (i,fix_pos,pos,new_pos))
-				assert dist_diff>=0
-				time_diff=self.track_by_distance[fix_pos]["gps"]-self.track_by_distance[new_pos]["gps"]
-				time_diff_s=time_diff.seconds + time_diff.days*24*3600 #FIXME: month and year changes are not calculated here
+				# logging.debug("Current fix_pos num %i is %f and new_pos num %i is %f" % (i,fix_pos,pos,new_pos))
+				assert dist_diff >= 0
+				time_diff = self.track_by_distance[fix_pos]["gps"] - self.track_by_distance[new_pos]["gps"]
+				time_diff_s = time_diff.seconds + time_diff.days * 24 * 3600  # FIXME: month and year changes are not calculated here
 				if time_diff_s > 0 and dist_diff > 0:
 					speed += dist_diff / time_diff_s
-					count+=1
+					count += 1
 			# if we have at least one position, store it as gps_speed
-			if count>0:
-				speed=speed/count
-				self.track_by_distance[fix_pos]["gps_speed"]=speed
-				count_avg+=1
+			if count > 0:
+				speed = speed / count
+				self.track_by_distance[fix_pos]["gps_speed"] = speed
+				count_avg += 1
 				speed_avg += speed
-		if count_avg>0:
-			speed_avg=speed_avg/count_avg
+		if count_avg > 0:
+			speed_avg = speed_avg / count_avg
 		else:
-			speed_avg=speed_avg
+			speed_avg = speed_avg
 
-		max_speedchange_avg=speed_avg/3.6 # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
+		max_speedchange_avg = speed_avg / 3.6  # This value is currently determined for running events. Might not be a fixed value but dependent from speed_avg
 
-		#logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
+		# logging.debug("Speed average is %f m/s for %i data points using %f as max_speedchange_avg" % (speed_avg,count_avg,max_speedchange_avg))
 
 		# now average over all speed using speed info in forward and backward direction
-		for i in range(0,len(dist_points)):
-			fix_pos=dist_points[i]
-			if not self.track_by_distance[fix_pos].has_key("gps"):
+		for i in range(0, len(dist_points)):
+			fix_pos = dist_points[i]
+			if "gps" not in self.track_by_distance[fix_pos]:
 				continue
 			if fix_pos is None:
 				continue
 
-			min_pos=i-MAX_OFFSET_AVG
-			max_pos=i+MAX_OFFSET_AVG
-			if min_pos<0:
-				min_pos=0
-			if max_pos>=len(dist_points):
-				max_pos=len(dist_points)-1
-			speed=count=0
-			if self.track_by_distance[fix_pos].has_key("gps_speed"):
-				cur_speed=self.track_by_distance[fix_pos]["gps_speed"]
+			min_pos = i - max_offset_avg
+			max_pos = i + max_offset_avg
+			if min_pos < 0:
+				min_pos = 0
+			if max_pos >= len(dist_points):
+				max_pos = len(dist_points) - 1
+			speed = count = 0
+			if "gps_speed" in self.track_by_distance[fix_pos]:
+				cur_speed = self.track_by_distance[fix_pos]["gps_speed"]
 			else:
-				cur_speed=None
-			for pos in range(min_pos,max_pos):
-				new_pos=dist_points[pos]
-				if not self.track_by_distance[new_pos].has_key("gps_speed"):
+				cur_speed = None
+			for pos in range(min_pos, max_pos):
+				new_pos = dist_points[pos]
+				if "gps_speed" not in self.track_by_distance[new_pos]:
 					continue
 				# If we reached the maximum difference in distance, skip these points
-				if new_pos-fix_pos>MAX_DIST_AVG:
+				if new_pos - fix_pos > max_dist_avg:
 					break
-				if abs(new_pos-fix_pos)>MAX_DIST_AVG:
+				if abs(new_pos - fix_pos) > max_dist_avg:
 					continue
 				if cur_speed is not None:
-					if abs(cur_speed-self.track_by_distance[new_pos]["gps_speed"])>max_speedchange_avg:
+					if abs(cur_speed - self.track_by_distance[new_pos]["gps_speed"]) > max_speedchange_avg:
 						continue
 
-				speed=speed+self.track_by_distance[new_pos]["gps_speed"]
+				speed = speed + self.track_by_distance[new_pos]["gps_speed"]
 				count += 1
-			if count>0:
+			if count > 0:
 				speed /= count
 				if pace:
-					speed = 1000.0/60.00/speed # convert to min/km
+					speed = 1000.0 / 60.00 / speed  # convert to min/km
 				else:
-					speed *= 3.6# convert to km/h
+					speed *= 3.6  # convert to km/h
 
-				speed_data.append((fix_pos,self.track_by_distance[fix_pos]["trackpoint_time"],speed))
+				speed_data.append((fix_pos, self.track_by_distance[fix_pos]["trackpoint_time"], speed))
 		return speed_data
-
 
 	def get_speed_foot(self, pace=False):
 		"""
@@ -489,17 +485,17 @@ class ActivityFile(ActivityFileMetaclass):
 		@return: list
 		"""
 		speed_data = []
-		for (distance,trackpoint_time,speed) in self.track_data["speed_foot"]:
+		for (distance, trackpoint_time, speed) in self.track_data["speed_foot"]:
 			if pace:
-				if speed==0:
-					speed=0
+				if speed == 0:
+					speed = 0
 				else:
-					speed = 60 / (speed*3.6)
+					speed = 60 / (speed * 3.6)
 			else:
 				speed *= 3.6
-				if pace and speed> 20:
+				if pace and speed > 20:
 					continue
-			speed_data.append((distance,trackpoint_time,speed))
+			speed_data.append((distance, trackpoint_time, speed))
 		return speed_data
 
 	def get_speed_gps(self, pace=False):
@@ -530,5 +526,3 @@ class ActivityFile(ActivityFileMetaclass):
 		@returns dict
 		"""
 		return self.detail_entries
-
-

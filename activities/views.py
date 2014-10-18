@@ -34,8 +34,6 @@ from django.conf import settings as django_settings
 @login_required
 def add_calformula(request):
 	if request.method == 'POST':
-		print "In POST request"
-		
 		if request.POST.has_key('update_id'):
 			calformula = CalorieFormula.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id object does not belong to current user, create new activity
@@ -55,9 +53,6 @@ def add_calformula(request):
 @login_required
 def delete_calformula(request):
 	if request.method == 'POST':
-		print "In POST request"
-		print request.POST.items()
-		
 		calformula = CalorieFormula.objects.get(pk=int(request.POST.get('id')))
 		if calformula.user == request.user:
 			calformula.delete()
@@ -77,8 +72,6 @@ def get_calformula(request):
 @login_required
 def add_sport(request):
 	if request.method == 'POST':
-		print "In POST request"
-		
 		if request.POST.has_key('update_id'):
 			sport = Sport.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
@@ -118,9 +111,6 @@ def get_sport(request):
 @login_required
 def delete_sport(request):
 	if request.method == 'POST':
-		print "In POST request"
-		print request.POST.items()
-		
 		sport = Sport.objects.get(id=int(request.POST.get('id')))
 		if sport.user == request.user:
 			sport.delete()
@@ -131,8 +121,6 @@ def delete_sport(request):
 @login_required
 def add_event(request):
 	if request.method == 'POST':
-		print "In POST request"
-
 		if request.POST.has_key('update_id'):
 			event = Event.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
@@ -159,9 +147,6 @@ def get_event(request):
 
 def delete_event(request):
 	if request.method == 'POST':
-		print "In POST request"
-		print request.POST.items()
-		
 		event = Event.objects.get(id=int(request.POST.get('id')))
 		if event.user == request.user:
 			event.delete()
@@ -172,8 +157,6 @@ def delete_event(request):
 @login_required
 def add_equipment(request):
 	if request.method == 'POST':
-		print "In POST request"
-
 		if request.POST.has_key('update_id'):
 			equipment = Equipment.objects.get(pk=int(request.POST.get('update_id')))
 			# If selected_by_id activity does not belong to current user, create new activity
@@ -210,9 +193,6 @@ def get_equipment(request):
 
 def delete_equipment(request):
 	if request.method == 'POST':
-		print "In POST request"
-		print request.POST.items()
-		
 		equipment = Equipment.objects.get(id=int(request.POST.get('id')))
 		if equipment.user == request.user:
 			equipment.delete()
@@ -388,8 +368,6 @@ def get_activity(request):
 @login_required
 def delete_activity(request):
 	if request.method == 'POST':
-		print "In POST request"
-		print request.POST.items()
 		act_id = int_or_none(request.POST.get('id'))
 		tmpl_id = int_or_none(request.POST.get('tmpl_id'))
 		
@@ -518,7 +496,6 @@ def add_activity(request):
 		for eq in equipment_list:
 			if eq != '':
 				act.equipment.add(Equipment.objects.get(pk=int(eq)))
-				print Equipment.objects.get(pk=int(eq))
 		
 		act.save()
 		return HttpResponse(simplejson.dumps({'success': True}))
@@ -581,7 +558,6 @@ def detail(request, activity_id):
 
 		
 		if act.sport.speed_as_pace:
-			print "Speed_as_pace"
 			if act.speed_max:
 				act.speed_max = speed_to_pace(act.speed_max)
 			if act.speed_avg:
@@ -818,7 +794,6 @@ def settings(request):
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 	
 	for equipment in itertools.chain(equipments, equipments_archived):
-		print equipment
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
 		activity_time = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('time'))

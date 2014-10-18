@@ -4,6 +4,7 @@ import os
 import logging
 import sys
 import dateutil
+import dateutil.parser
 
 import activities.utils
 from activities.models import Activity, Event, Sport, Lap

@@ -5,9 +5,7 @@ class WeightAdmin(admin.ModelAdmin):
 	list_display=('weight', 'date', 'user')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	
@@ -28,9 +26,7 @@ class GoalAdmin(admin.ModelAdmin):
 	list_display=('target_weight', 'date', 'due_date', 'user')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	
@@ -51,9 +47,7 @@ class PulseAdmin(admin.ModelAdmin):
 	list_display=('rest', 'maximum', 'date', 'user')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	

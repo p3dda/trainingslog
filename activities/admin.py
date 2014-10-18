@@ -8,9 +8,7 @@ class ActivityAdmin(admin.ModelAdmin):
 	list_display=('name', 'user')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	
@@ -31,9 +29,7 @@ class EquipmentAdmin(admin.ModelAdmin):
 	list_display=('name', 'user')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	
@@ -54,9 +50,7 @@ class SportAdmin(admin.ModelAdmin):
 	list_display=('name', 'color', 'user', 'speed_as_pace')
 	
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 	
@@ -77,9 +71,7 @@ class EventAdmin(admin.ModelAdmin):
 	list_display=('name', 'user')
 
 	def save_model(self, request, obj, form, change):
-		print "Saving object"
 		if not change:
-			print "Not change, set user %s" % request.user
 			obj.user = request.user
 		obj.save()
 

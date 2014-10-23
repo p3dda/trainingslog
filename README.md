@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/p3dda/trainingslog.svg?branch=master)](https://travis-ci.org/p3dda/trainingslog)
+[![Coverage Status](https://coveralls.io/repos/p3dda/trainingslog/badge.png)](https://coveralls.io/r/p3dda/trainingslog)
 trainingslog
 ============
 

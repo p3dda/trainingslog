@@ -165,6 +165,12 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.speed_avg, Decimal('18.9'))
 		self.assertEqual(act.speed_max, Decimal('48.1'))
 
+		summary = activities.utils.activities_summary(Activity.objects.all())
+		self.assertEqual(summary['total_time'], act.time)
+		self.assertEqual(summary['total_distance'], float(act.distance))
+		self.assertEqual(summary['total_calories'], act.calories)
+		self.assertEqual(summary['total_elev_gain'], act.elevation_gain)
+		self.assertEqual(summary['total_time_str'], activities.utils.seconds_to_time(act.time))
 		act.delete()
 
 	def test_tcx_communicator_plugin(self):
@@ -307,3 +313,29 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.speed_max, Decimal('6.1'))
 
 		act.delete()
+
+	def test_utils(self):
+		"""
+		Test helper methods from activities.utils module
+		"""
+		origin = (50.72000, 7.08000)  # Bonn
+		destination = (50.03300, 8.56700)  # Frankfurt
+		self.assertEqual(int(activities.utils.latlon_distance(origin, destination)), 130206)
+
+		self.assertEqual(activities.utils.int_or_none(5), 5)
+		self.assertEqual(activities.utils.int_or_none(2.4), 2)
+		self.assertEqual(activities.utils.int_or_none("foo"), None)
+
+		self.assertEqual(activities.utils.float_or_none(5), 5.0)
+		self.assertEqual(activities.utils.float_or_none(2.4), 2.4)
+		self.assertEqual(activities.utils.float_or_none("foo"), None)
+
+		self.assertEqual(activities.utils.str_float_or_none(5), "5.0")
+		self.assertEqual(activities.utils.str_float_or_none(2.4), "2.4")
+		self.assertEqual(activities.utils.str_float_or_none("foo"), None)
+
+		self.assertEqual(activities.utils.time_to_seconds("1:30:25"), 5425)
+		self.assertEqual(activities.utils.time_to_seconds("1:30"), 90)
+
+		self.assertEqual(activities.utils.seconds_to_time(1825), "30:25")
+		self.assertEqual(activities.utils.seconds_to_time(1825, force_hour=True), "0:30:25")

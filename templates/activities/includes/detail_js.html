@@ -1,6 +1,6 @@
 <!-- bring in the OpenLayers javascript library
  (here we bring it from the remote site, but you could
- easily serve up this javascript yourself) 
+ easily serve up this javascript yourself)
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script> -->
 <script src="/media/js/openlayers/OpenLayers.js"></script>
 <!-- bring in the OpenStreetMap OpenLayers layers.
@@ -69,7 +69,7 @@
 		"avg_vertical_oscillation": {"label": "Ø vert. Bewegung", "unit": "mm", "rounding": 0},
 		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 1}
 	};
-	
+
 {%  if gpx_url %}
 	function showMapSelection() {
 		if(layerMarkers) {
@@ -95,7 +95,7 @@
 		if(layerSelection) {
 			// Remove previous selection features
 			layerSelection.removeAllFeatures();
-		
+
 			var selectionPoints = plotDataRaw["pos"].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]);
 			var points = [];
 			for(var i in selectionPoints){
@@ -105,8 +105,8 @@
 			}}
 
 			var line = new OpenLayers.Geometry.LineString(points);
-			var style = { 
-				strokeColor: '#0000ff', 
+			var style = {
+				strokeColor: '#0000ff',
 				strokeOpacity: 0.5,
 				strokeWidth: 10
 			};
@@ -115,7 +115,7 @@
 		}
 	}
 {% endif %}
-	
+
 	function showPlotsSelection() {
 		for( var graph in graphs )if (graphs.hasOwnProperty(graph)) {
 			var plot = plots[graphs[graph]["name"]];
@@ -126,7 +126,7 @@
 			}
 		}
 	}
-	
+
 	function hidePlotsSelection() {
 		//deselect range in other graphs
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
@@ -134,7 +134,7 @@
 			plot.clearSelection();
 		}
 	}
-	
+
 
 {%  if gpx_url %}
 	function hideMapSelection() {
@@ -157,7 +157,7 @@
 			for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
 				$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable").tooltip("close");
 			}
-		
+
 			{%  if gpx_url %}
 			// Hide map tooltip
 			$("#details_map_tooltip").tooltip("disable").tooltip("close");
@@ -165,7 +165,7 @@
 			tooltipsVisible = false;
 		}
 	}
-	
+
 	function showTooltips () {
 		// Update tooltip text
 		var rangeValues;
@@ -220,8 +220,8 @@
 		var mapTooltip = $("#details_map_tooltip");
 		mapTooltip.tooltip("option", "content", text);
 		{% endif %}
-		
-		
+
+
 		// show tooltip
 		if(!tooltipsVisible){
 			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {
@@ -260,7 +260,7 @@
 				plotLockSelectionCB = false;
 			}
 		});
-	
+
 {% if tcx %}
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) if(graphs.hasOwnProperty(i)){
@@ -282,7 +282,7 @@
 	var plotLockSelectionCB = false;
 	var plotGraphs = function() {
 		var url = "/activities/{{ activity.id }}/?p=plots";
-	
+
 		function onDataReceived(data) {
 			plotDataRaw = data["plot_data"];
 			var detailsData = data["details_data"];
@@ -360,7 +360,7 @@
 		if(avgCount > 0) {
 			avg = avg / avgCount;
 		}
-		
+
 		var res = {};
 		res.min = min;
 		res.max = max;
@@ -477,7 +477,7 @@
 				if(plotBase == "time"){
 					graphdata=transpose([gdata[1], gdata[2]]);
 					plot_data[graphs[i]["name"]]["data"]=graphdata;
-					
+
 					plotDefaultOptions["xaxis"] = {
 						min: xmin,
 						max: xmax,
@@ -511,12 +511,12 @@
 					plotOptions["yaxis"]=pacePlot;
 					plotOptions["yaxis"]["min"]=Math.floor(min);
 					plotOptions["yaxis"]["max"]=Math.floor(1.5*avg);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.floor(1.5*avg));
+					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + Math.floor(min) + "/" + Math.floor(1.5*avg));
 				} else {
 					plotOptions["yaxis"]={};
 					plotOptions["yaxis"]["min"]=Math.floor(min);
 					plotOptions["yaxis"]["max"]=Math.ceil(1.1*max);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.ceil(1.1*max));
+					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + Math.floor(min) + "/" + Math.ceil(1.1*max));
 				}
 
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
@@ -532,7 +532,7 @@
 				delete graphs[i];
 			}
 		}}
-		
+
 		var updateCursorTimeout = null;
 		var latestPosition = null;
 		var cursorMarker = null;
@@ -614,7 +614,7 @@
 				}}
 			}
 		}
-		
+
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)) {
 			// Add tooltip
 			var graphcontainer = $("#details_"+graphs[graph]["name"]+"_container");
@@ -639,13 +639,13 @@
 					plotselectionActive = true;
 					plotselectionRange["xaxis_range"] = [ranges.xaxis.from, ranges.xaxis.to];
 					plotselectionRange["edge_samples"] = rangeEdgeSamples(ranges.xaxis.from, ranges.xaxis.to);
-					
+
 					{%  if gpx_url %}
 					showMapSelection();
 					{% endif %}
 					showPlotsSelection();
 					showTooltips();
-					
+
 					plotLockSelectionCB = false;
 				}
 			});
@@ -656,7 +656,7 @@
 		}
 		return data;
 	};
-	
+
 
 	{%  if gpx_url %}
 	var map; //complex object of type OpenLayers.Map
@@ -680,7 +680,7 @@
 			projection: new OpenLayers.Projection("EPSG:900913"),
 			displayProjection: new OpenLayers.Projection("EPSG:4326")
 		} );
-		
+
 		populateMap(detailsMap);
 
 		$("#details_map_tooltip").tooltip({
@@ -688,7 +688,7 @@
 			tooltipClass: "details_plot_tooltip"
 		});
 	};
-	
+
 	var populateMap = function(map) {
 		// Define the map layer
 		// Here we use a predefined layer that will be kept up to date with URL changes
@@ -751,7 +751,7 @@
 		{% endif %}
 		updatePlots();
 	};
-	
+
 	var plotZoomClicked = function() {
 		if(plotselectionActive){
 			hideTooltips();
@@ -797,7 +797,7 @@
 					status : false // check the login status upon init?
 				});
 			};
-		
+
 			var postToFeed = function() {
 				if( actIsPublic ){
 					var desc = [];
@@ -831,20 +831,20 @@
 						description: desc.join(" - ")
 					};
 
-			
+
 					function callback(response) {
 						document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
 					}
-				
+
 					FB.ui(obj, callback);
 				} else {
 					noty({text: "Aktivit&auml;t ist nicht &ouml;ffentlich", type: 'error', timeout: 5000});
 				}
 			};
-		
+
 		// Load the SDK's source Asynchronously
-		// Note that the debug version is being actively developed and might 
-		// contain some type checks that are overly strict. 
+		// Note that the debug version is being actively developed and might
+		// contain some type checks that are overly strict.
 		// Please report such bugs using the bugs tool.
 		(function(d, debug){
 			var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];

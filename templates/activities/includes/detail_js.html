@@ -461,6 +461,10 @@
 				return res;
 			}
 		};
+		var cadrunPlot = {
+			transform: function(v) { return 2.0 * v; },
+			inverseTransform: function(v) { return v/2.0; }
+		};
 
 		for (var i in graphs) {
 			if(graphs.hasOwnProperty(i)){
@@ -503,21 +507,60 @@
 				} else {
 					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
 				}
+				plotOptions["yaxis"]={};
 				var min = rangeValues.min;
 				var max = rangeValues.max;
 				var avg = rangeValues.avg;
 
-				if ((graphs[i]["name"]=="speed") && speedAsPace) {
-					plotOptions["yaxis"]=pacePlot;
-					plotOptions["yaxis"]["min"]=Math.floor(min);
-					plotOptions["yaxis"]["max"]=Math.floor(1.5*avg);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + Math.floor(min) + "/" + Math.floor(1.5*avg));
-				} else {
-					plotOptions["yaxis"]={};
-					plotOptions["yaxis"]["min"]=Math.floor(min);
-					plotOptions["yaxis"]["max"]=Math.ceil(1.1*max);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + Math.floor(min) + "/" + Math.ceil(1.1*max));
+				ymin = Math.floor(min);
+				switch (graphs[i]["name"]) {
+					case "speed":
+						if (speedAsPace) {
+							console.debug("Pace plot with speed as pace set");
+							plotOptions["yaxis"] = pacePlot;
+							ymax = Math.floor(1.5*avg);
+							break;
+						}
+					case "cad":
+						if (speedAsPace) {
+							console.debug("Cadence plot for run detected");
+							plotOptions["yaxis"] = cadrunPlot;
+							break;
+						}
+					case "stance_time":
+						ymin = 120;
+						ymax = 350;
+						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+						plot_data[graphs[i]["name"]]["constraints"] = [
+							{ threshold: 208, color: "rgb(152, 117, 178)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 240, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 272, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 305, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 305, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } },
+						];
+						break;
+					case "vertical_oscillation":
+						ymin = 50;
+						ymax = 150;
+						plot_data[graphs[i]["name"]]["points"]={"show": true, "radius": 1};
+						plot_data[graphs[i]["name"]]["lines"]={"show": false};
+						plot_data[graphs[i]["name"]]["constraints"] = [
+							{ threshold: 67, color: "rgb(152, 117, 178)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 84, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 101, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 118, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
+							{ threshold: 118, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } },
+						];
+						break;
+					default:
+						ymax = Math.ceil(1.1*max);
+						break;
 				}
+
+				console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + ymin + "/" + ymax);
+				plotOptions["yaxis"]["min"]=ymin;
+				plotOptions["yaxis"]["max"]=ymax;
 
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");

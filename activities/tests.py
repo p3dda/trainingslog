@@ -348,9 +348,9 @@ class ActivityViewsTest(TestCase):
 	def setUp(self):
 		self.client = django.test.client.Client()
 
-	def tearDown(self):
-		for act in Activity.objects.all():
-			act.delete()
+	# def tearDown(self):
+	# 	for act in Activity.objects.all():
+	# 		act.delete()
 
 	def test_view_get_report_data(self):
 		url = reverse('activities.views.get_report_data')
@@ -426,11 +426,72 @@ class ActivityViewsTest(TestCase):
 		resp = self.client.get(url, {"start": 1325376000, "end": 1388534400, "sports": '[1, 2, 3]'})
 		response = json.loads(resp.content)
 		self.assertEqual(len(response), 6)
-		for i in response:
-			print repr(i)
 		self.assertEqual(response[0]["allDay"], False)
 		self.assertEqual(response[0]["start"], '2013-10-31T15:58:00+00:00')
 		self.assertEqual(response[0]["className"], 'fc_activity')
 
 		self.assertEqual(response[3]["allDay"], True)
 		self.assertEqual(response[3]["className"], 'fc-event-weeksummary')
+
+	def test_get_sport(self):
+		self.client.login(username='test1', password='test1')
+		url = reverse('activities.views.get_sport')
+		resp = self.client.get(url, {"id": 1})
+		self.assertEqual(resp.status_code, 200)
+		response = json.loads(resp.content)
+		self.assertEqual(len(response), 1)
+		self.assertEqual(response[0]['model'], 'activities.sport')
+		self.assertEqual(response[0]['fields']['name'], 'Schwimmen')
+
+		resp = self.client.get(url, {"id": 4})
+		self.assertEqual(resp.status_code, 403)
+
+
+class ActivityViewsDeleteTest(TestCase):
+	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json', 'activities_tests_actdata']
+
+	def setUp(self):
+		self.client = django.test.client.Client()
+
+	def test_delete_activity(self):
+		url = reverse('activities.views.delete_activity')
+		self.client.login(username='test1', password='test1')
+
+		# Delete activity
+		resp = self.client.post(url, {'id': 1})
+		response = json.loads(resp.content)
+		self.assertDictEqual(response, {'success': True})
+
+		# Try to delete activity again
+		resp = self.client.post(url, {'id': 1})
+		response = json.loads(resp.content)
+		self.assertDictEqual(response, {'success': False, 'msg': 'DoesNotExist'})
+
+		# Try to delete foreign activity
+		resp = self.client.post(url, {'id': 4})
+		response = json.loads(resp.content)
+		self.assertDictEqual(response, {'success': False, 'msg': "Permission denied"})
+
+		# Try to delete without ID
+		resp = self.client.post(url, {})
+		response = json.loads(resp.content)
+		self.assertDictEqual(response, {'success': False, 'msg': 'Missing ID'})
+
+	def test_delete_sport(self):
+		url = reverse('activities.views.delete_sport')
+		self.client.login(username='test1', password='test1')
+
+		# Delete sport
+		resp = self.client.post(url, {'id': 1})
+		response = json.loads(resp.content)
+		self.assertEqual(response, [True])
+
+		# Try to delete sport again
+		resp = self.client.post(url, {'id': 1})
+		response = json.loads(resp.content)
+		self.assertEqual(response, [False, 'DoesNotExist'])
+
+		# Try to delete foreign sport
+		resp = self.client.post(url, {'id': 4})
+		response = json.loads(resp.content)
+		self.assertEqual(response, [False, "Permission denied"])

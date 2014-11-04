@@ -117,7 +117,10 @@ def get_sport(request):
 @login_required
 def delete_sport(request):
 	if request.method == 'POST':
-		sport = Sport.objects.get(id=int(request.POST.get('id')))
+		try:
+			sport = Sport.objects.get(id=int(request.POST.get('id')))
+		except Sport.DoesNotExist:
+			return HttpResponse(simplejson.dumps((False, 'DoesNotExist')))
 		if sport.user == request.user:
 			sport.delete()
 			return HttpResponse(simplejson.dumps((True, )))
@@ -375,9 +378,15 @@ def delete_activity(request):
 		tmpl_id = int_or_none(request.POST.get('tmpl_id'))
 
 		if act_id:
-			act = Activity.objects.get(id=act_id)
+			try:
+				act = Activity.objects.get(id=act_id)
+			except Activity.DoesNotExist:
+				return HttpResponse(simplejson.dumps({'success': False, 'msg': 'DoesNotExist'}))
 		elif tmpl_id:
-			act = ActivityTemplate.objects.get(id=tmpl_id)
+			try:
+				act = ActivityTemplate.objects.get(id=tmpl_id)
+			except ActivityTemplate.DoesNotExist:
+				return HttpResponse(simplejson.dumps({'success': False, 'msg': 'DoesNotExist'}))
 		else:
 			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Missing ID"}))
 

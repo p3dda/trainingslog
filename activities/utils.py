@@ -79,14 +79,14 @@ def avg(sample):
 def int_or_none(val):
 	try:
 		return int(val)
-	except ValueError:
+	except (ValueError, TypeError):
 		return None
 
 
 def float_or_none(val):
 	try:
 		return float(val)
-	except ValueError:
+	except (ValueError, TypeError):
 		return None
 
 

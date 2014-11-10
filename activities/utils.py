@@ -99,7 +99,7 @@ def str_float_or_none(val):
 
 
 def time_to_seconds(t_string):
-	"""Converts time string or minutes float to seconds
+	"""Converts time string to seconds
 	"""
 	fields = t_string.split(':')
 	if len(fields) == 3:

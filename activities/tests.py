@@ -426,8 +426,6 @@ class ActivityViewsTest(TestCase):
 		resp = self.client.get(url, {"start": 1325376000, "end": 1388534400, "sports": '[1, 2, 3]'})
 		response = json.loads(resp.content)
 		self.assertEqual(len(response), 6)
-		for i in response:
-			print repr(i)
 		self.assertEqual(response[0]["allDay"], False)
 		self.assertEqual(response[0]["start"], '2013-10-31T15:58:00+00:00')
 		self.assertEqual(response[0]["className"], 'fc_activity')

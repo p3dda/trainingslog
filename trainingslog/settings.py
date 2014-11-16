@@ -3,9 +3,7 @@ import logging
 import os.path
 import sys
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
-
-import sys
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 sys.path.append(os.path.join(PROJECT_ROOT, 'libs'))
 
 DEBUG = True

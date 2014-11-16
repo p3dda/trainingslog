@@ -14,6 +14,10 @@ framework.
 
 """
 import os
+import sys
+
+PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(PROJECT_ROOT)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "trainingslog.settings")
 

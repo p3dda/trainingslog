@@ -1,4 +1,6 @@
 *.pyc
+.idea
+atlassian-ide-plugin.xml
 .project
 .pydevproject
 trainingslog.db

@@ -1,6 +1,6 @@
 <!-- bring in the OpenLayers javascript library
  (here we bring it from the remote site, but you could
- easily serve up this javascript yourself) 
+ easily serve up this javascript yourself)
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script> -->
 <script src="/media/js/openlayers/OpenLayers.js"></script>
 <!-- bring in the OpenStreetMap OpenLayers layers.
@@ -55,8 +55,8 @@
 		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "color": "#0070A3", "rounding": 1, "unit": speedUnit, "unit_short": speedUnit},
 		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "color": "#00FF00", "rounding": 0, "unit": "m", "unit_short": "m"},
 		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "color": "#FFBF00", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."},
-		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "#FFBF00", "rounding": 0, "unit": "Millisekunden","unit_short": "ms"},
-		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "#FFBF00", "rounding": 0, "unit": "mm","unit_short": "mm"},
+		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "Millisekunden","unit_short": "ms"},
+		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "mm","unit_short": "mm"},
 		{ "name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "°C","unit_short": "°C"}
 	];
 {% else %}
@@ -69,7 +69,7 @@
 		"avg_vertical_oscillation": {"label": "Ø vert. Bewegung", "unit": "mm", "rounding": 0},
 		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 1}
 	};
-	
+
 {%  if gpx_url %}
 	function showMapSelection() {
 		if(layerMarkers) {
@@ -95,7 +95,7 @@
 		if(layerSelection) {
 			// Remove previous selection features
 			layerSelection.removeAllFeatures();
-		
+
 			var selectionPoints = plotDataRaw["pos"].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]);
 			var points = [];
 			for(var i in selectionPoints){
@@ -105,8 +105,8 @@
 			}}
 
 			var line = new OpenLayers.Geometry.LineString(points);
-			var style = { 
-				strokeColor: '#0000ff', 
+			var style = {
+				strokeColor: '#0000ff',
 				strokeOpacity: 0.5,
 				strokeWidth: 10
 			};
@@ -115,7 +115,7 @@
 		}
 	}
 {% endif %}
-	
+
 	function showPlotsSelection() {
 		for( var graph in graphs )if (graphs.hasOwnProperty(graph)) {
 			var plot = plots[graphs[graph]["name"]];
@@ -126,7 +126,7 @@
 			}
 		}
 	}
-	
+
 	function hidePlotsSelection() {
 		//deselect range in other graphs
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
@@ -134,7 +134,7 @@
 			plot.clearSelection();
 		}
 	}
-	
+
 
 {%  if gpx_url %}
 	function hideMapSelection() {
@@ -157,7 +157,7 @@
 			for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
 				$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable").tooltip("close");
 			}
-		
+
 			{%  if gpx_url %}
 			// Hide map tooltip
 			$("#details_map_tooltip").tooltip("disable").tooltip("close");
@@ -165,7 +165,7 @@
 			tooltipsVisible = false;
 		}
 	}
-	
+
 	function showTooltips () {
 		// Update tooltip text
 		var rangeValues;
@@ -220,8 +220,8 @@
 		var mapTooltip = $("#details_map_tooltip");
 		mapTooltip.tooltip("option", "content", text);
 		{% endif %}
-		
-		
+
+
 		// show tooltip
 		if(!tooltipsVisible){
 			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {
@@ -260,7 +260,7 @@
 				plotLockSelectionCB = false;
 			}
 		});
-	
+
 {% if tcx %}
 		$( "#details_map" ).accordion({collapsible: true});
 		for (var i in graphs) if(graphs.hasOwnProperty(i)){
@@ -282,7 +282,7 @@
 	var plotLockSelectionCB = false;
 	var plotGraphs = function() {
 		var url = "/activities/{{ activity.id }}/?p=plots";
-	
+
 		function onDataReceived(data) {
 			plotDataRaw = data["plot_data"];
 			var detailsData = data["details_data"];
@@ -360,7 +360,7 @@
 		if(avgCount > 0) {
 			avg = avg / avgCount;
 		}
-		
+
 		var res = {};
 		res.min = min;
 		res.max = max;
@@ -448,8 +448,6 @@
 			selection: { mode: "x" }
 		};
 		var pacePlot = {
-		//	transform: function(v) { return -v; },
-		//	inverseTransform: function (v) { return -v; },
 			transform: function(v) { return -Math.log(v); },
 			inverseTransform: function (v) { return Math.exp(-v); },
 			ticks: function (axis) {
@@ -463,12 +461,13 @@
 		};
 
 		for (var i in graphs) {
-			if(graphs.hasOwnProperty(i)){
+			if (graphs.hasOwnProperty(i)) {
 			plot_data[graphs[i]["name"]] = {};
 			plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
 			plot_data[graphs[i]["name"]]["points"]={"show": false};
 			plot_data[graphs[i]["name"]]["color"]=graphs[i]["color"];
+
 
 			var graphdata;
 
@@ -477,7 +476,7 @@
 				if(plotBase == "time"){
 					graphdata=transpose([gdata[1], gdata[2]]);
 					plot_data[graphs[i]["name"]]["data"]=graphdata;
-					
+
 					plotDefaultOptions["xaxis"] = {
 						min: xmin,
 						max: xmax,
@@ -499,25 +498,78 @@
 				var plotOptions = cloneObject(plotDefaultOptions);
 
 				if (typeof xmin !== "undefined" && typeof xmax !== "undefined") {
-					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
+					var rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
 				} else {
-					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
+					var rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
 				}
+				plotOptions["yaxis"]={};
 				var min = rangeValues.min;
 				var max = rangeValues.max;
 				var avg = rangeValues.avg;
 
-				if ((graphs[i]["name"]=="speed") && speedAsPace) {
-					plotOptions["yaxis"]=pacePlot;
-					plotOptions["yaxis"]["min"]=Math.floor(min);
-					plotOptions["yaxis"]["max"]=Math.floor(1.5*avg);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.floor(1.5*avg));
-				} else {
-					plotOptions["yaxis"]={};
-					plotOptions["yaxis"]["min"]=Math.floor(min);
-					plotOptions["yaxis"]["max"]=Math.ceil(1.1*max);
-					console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max" + Math.floor(min) + " / " + Math.ceil(1.1*max));
+				ymin = Math.floor(min);
+				switch (graphs[i]["name"]) {
+					case "speed":
+						if (speedAsPace) {
+							console.debug("Pace plot with speed as pace set");
+							plotOptions["yaxis"] = pacePlot;
+							ymax = Math.floor(1.5 * avg);
+							break;
+						}
+						break;
+					case "cad":
+						if (speedAsPace) {
+							console.debug("Cadence plot for run detected");
+							var ymin = 60;
+							var ymax = 120;
+							plot_data[graphs[i]["name"]]["color"] = "rgb(152, 117, 178)";
+
+							plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+							plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+							plot_data[graphs[i]["name"]]["threshold"] = [
+								{below: 151 / 2, color: "rgb(223, 39, 39)"},
+								{below: 163 / 2, color: "rgb(235, 132, 87)"},
+								{below: 174 / 2, color: "rgb(149, 204, 119)"},
+								{below: 185 / 2, color: "rgb(134, 207, 214)"},
+								{above: 186 / 2, color: "rgb(152, 117, 178)"}
+							];
+							break;
+						}
+						break;
+					case "stance_time":
+						var ymin = 120;
+						var ymax = 350;
+						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+						plot_data[graphs[i]["name"]]["threshold"] = [
+							{below: 208, color: "rgb(152, 117, 178)"},
+							{below: 240, color: "rgb(134, 207, 214)"},
+							{below: 272, color: "rgb(149, 204, 119)"},
+							{below: 305, color: "rgb(235, 132, 87)"},
+							{above: 305, color: "rgb(223, 39, 39)"},
+						];
+						break;
+					case "vertical_oscillation":
+						var ymin = 50;
+						var ymax = 150;
+						plot_data[graphs[i]["name"]]["legend"] = {"show": false};
+						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+						plot_data[graphs[i]["name"]]["threshold"] = [
+							{below: 67, color: "rgb(152, 117, 178)"},
+							{below: 84, color: "rgb(134, 207, 214)"},
+							{below: 101, color: "rgb(149, 204, 119)"},
+							{below: 118, color: "rgb(235, 132, 87)"},
+							{above: 118, color: "rgb(223, 39, 39)"},
+						];
+						break;
+					default:
+						ymax = Math.ceil(1.1 * max);
+						break;
 				}
+				console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + ymin + "/" + ymax);
+				plotOptions["yaxis"]["min"] = ymin;
+				plotOptions["yaxis"]["max"] = ymax;
 
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
@@ -532,10 +584,49 @@
 				delete graphs[i];
 			}
 		}}
-		
+
 		var updateCursorTimeout = null;
 		var latestPosition = null;
 		var cursorMarker = null;
+
+		function updateCursorPlot(graph, xpos) {
+			// go through all datasets and find the nearest point
+			var graph_name = graphs[graph]["name"];
+			plot = plots[graph_name];
+			legend = legends[graph_name];
+
+			dataset = plot.getData();
+			var series, newvalue;
+			for (i = 0; i < dataset.length; ++i) {
+				series = dataset[i];
+				// skip parsing of empty datasets created by threshold graphs
+				if (series.data.length==0) continue;
+				console.debug("updateCursorPlot: Parsing dataset series " + i);
+				// find the nearest points, x-wise
+				for (j = 0; j < series.data.length; ++j) {
+					if (series.data[j]) {
+						if (series.data[j][0] > xpos) {
+							break;
+						}
+					}
+				}
+				// now interpolate
+				var y, posA = series.data[j - 1], posB = series.data[j];
+				if (posA == null)
+					y = posB[1];
+				else if (posB == null)
+					y = posA[1];
+				else
+					y = posA[1] + (posB[1] - posA[1]) * (xpos - posA[0]) / (posB[0] - posA[0]);
+				if (graphs[graph]["unit"] == "Minuten/km") {
+					newvalue = secondsToTime(y * 60, false, false);
+				} else {
+					newvalue = y.toFixed(graphs[graph]["rounding"]);
+				}
+				console.debug("updateCursorPlot: setting new value " + newvalue + " on legend for graph named " + graph_name);
+				legend.eq(i).text(graphs[graph]["label"] + " " + newvalue + " " + graphs[graph]["unit"]);
+			}
+		}
 
 		function updateCursor() {
 			updateCursorTimeout = null;
@@ -543,7 +634,7 @@
 			var graph, plot, legend;
 
 			var i, j, dataset;
-			if(pos){
+			if (pos) {
 				{%  if gpx_url %}
 				var sample = rangeEdgeSamples(pos.x, pos.x)[0];
 				if( sample !== undefined ) {
@@ -558,40 +649,17 @@
 					layerCursor.addMarker(cursorMarker);
 				}
 				{% endif %} //gpx_url
-				for (graph in graphs) if(graphs.hasOwnProperty(graph)){
-					var newvalue;
+				for (graph in graphs) {
+					if(graphs.hasOwnProperty(graph)) {
+						var graph_name = graphs[graph]["name"];
+						plot = plots[graph_name];
+						// legend = legends[graph_name];
 
-					plot = plots[graphs[graph]["name"]];
-					legend = legends[graphs[graph]["name"]];
-
-					plot.setCrosshair(pos);
-					var axes = plot.getAxes();
-					if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
-						continue;
-
-					i, j, dataset = plot.getData();
-					for( i = 0; i < dataset.length; ++i) {
-						var series = dataset[i];
-
-						// find the nearest points, x-wise
-						for( j = 0; j < series.data.length; ++j)
-							if(series.data[j][0] > pos.x)
-								break;
-
-						// now interpolate
-						var y, posA = series.data[j - 1], posB = series.data[j];
-						if(posA == null)
-							y = posB[1];
-						else if(posB == null)
-							y = posA[1];
-						else
-							y = posA[1] + (posB[1] - posA[1]) * (pos.x - posA[0]) / (posB[0] - posA[0]);
-						if (graphs[graph]["unit"]=="Minuten/km") {
-							newvalue = secondsToTime(y*60, false, false);
-						} else {
-							newvalue = y.toFixed(graphs[graph]["rounding"]);
-						}
-						legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
+						plot.setCrosshair(pos);
+						var axes = plot.getAxes();
+						if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
+							continue;
+						updateCursorPlot(graph, pos.x);
 					}
 				}
 			} else {
@@ -602,19 +670,20 @@
 				{% endif %}
 				for (graph in graphs) {
 					if(graphs.hasOwnProperty(graph)){
-					plot = plots[graphs[graph]["name"]];
-					legend = legends[graphs[graph]["name"]];
+						plot = plots[graphs[graph]["name"]];
+						legend = legends[graphs[graph]["name"]];
 
-					plot.clearCrosshair();
+						plot.clearCrosshair();
 
-					i, j, dataset = plot.getData();
-					for( i = 0; i < dataset.length; ++i) {
-						legend.eq(i).text(graphs[graph]["label"]+" "+graphs[graph]["unit"]);
+						i, j, dataset = plot.getData();
+						for( i = 0; i < dataset.length; ++i) {
+							legend.eq(i).text(graphs[graph]["label"]+" "+graphs[graph]["unit"]);
+						}
 					}
-				}}
+				}
 			}
 		}
-		
+
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)) {
 			// Add tooltip
 			var graphcontainer = $("#details_"+graphs[graph]["name"]+"_container");
@@ -639,13 +708,13 @@
 					plotselectionActive = true;
 					plotselectionRange["xaxis_range"] = [ranges.xaxis.from, ranges.xaxis.to];
 					plotselectionRange["edge_samples"] = rangeEdgeSamples(ranges.xaxis.from, ranges.xaxis.to);
-					
+
 					{%  if gpx_url %}
 					showMapSelection();
 					{% endif %}
 					showPlotsSelection();
 					showTooltips();
-					
+
 					plotLockSelectionCB = false;
 				}
 			});
@@ -656,7 +725,7 @@
 		}
 		return data;
 	};
-	
+
 
 	{%  if gpx_url %}
 	var map; //complex object of type OpenLayers.Map
@@ -680,7 +749,7 @@
 			projection: new OpenLayers.Projection("EPSG:900913"),
 			displayProjection: new OpenLayers.Projection("EPSG:4326")
 		} );
-		
+
 		populateMap(detailsMap);
 
 		$("#details_map_tooltip").tooltip({
@@ -688,7 +757,7 @@
 			tooltipClass: "details_plot_tooltip"
 		});
 	};
-	
+
 	var populateMap = function(map) {
 		// Define the map layer
 		// Here we use a predefined layer that will be kept up to date with URL changes
@@ -751,7 +820,7 @@
 		{% endif %}
 		updatePlots();
 	};
-	
+
 	var plotZoomClicked = function() {
 		if(plotselectionActive){
 			hideTooltips();
@@ -797,7 +866,7 @@
 					status : false // check the login status upon init?
 				});
 			};
-		
+
 			var postToFeed = function() {
 				if( actIsPublic ){
 					var desc = [];
@@ -831,20 +900,20 @@
 						description: desc.join(" - ")
 					};
 
-			
+
 					function callback(response) {
 						document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];
 					}
-				
+
 					FB.ui(obj, callback);
 				} else {
 					noty({text: "Aktivit&auml;t ist nicht &ouml;ffentlich", type: 'error', timeout: 5000});
 				}
 			};
-		
+
 		// Load the SDK's source Asynchronously
-		// Note that the debug version is being actively developed and might 
-		// contain some type checks that are overly strict. 
+		// Note that the debug version is being actively developed and might
+		// contain some type checks that are overly strict.
 		// Please report such bugs using the bugs tool.
 		(function(d, debug){
 			var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];

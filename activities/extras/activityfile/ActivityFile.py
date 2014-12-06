@@ -508,8 +508,8 @@ class ActivityFile(ActivityFileMetaclass):
 		return self.get_speed(pace)
 
 	def get_stance_time(self):
-		"""Returns list of (distance, stance_time) tuples
-		@returns (distance, stance_time) tuples
+		"""Returns list of (distance, trackpoint_time, stance_time) tuples
+		@returns (distance, trackpoint_time, stance_time) tuples
 		@rtype: list
 		"""
 		return self.track_data["stance_time"]

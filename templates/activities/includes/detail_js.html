@@ -467,12 +467,13 @@
 		};
 
 		for (var i in graphs) {
-			if(graphs.hasOwnProperty(i)){
+			if (graphs.hasOwnProperty(i)) {
 			plot_data[graphs[i]["name"]] = {};
 			plot_data[graphs[i]["name"]]["label"]=graphs[i]["label"]+" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "+graphs[i]["unit"];
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
 			plot_data[graphs[i]["name"]]["points"]={"show": false};
 			plot_data[graphs[i]["name"]]["color"]=graphs[i]["color"];
+
 
 			var graphdata;
 
@@ -503,9 +504,9 @@
 				var plotOptions = cloneObject(plotDefaultOptions);
 
 				if (typeof xmin !== "undefined" && typeof xmax !== "undefined") {
-					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
+					var rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
 				} else {
-					rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
+					var rangeValues = rangeData(plotDataRaw[graphs[i]["dataname"]]);
 				}
 				plotOptions["yaxis"]={};
 				var min = rangeValues.min;
@@ -521,15 +522,20 @@
 							ymax = Math.floor(1.5*avg);
 							break;
 						}
+						break;
 					case "cad":
 						if (speedAsPace) {
 							console.debug("Cadence plot for run detected");
 							plotOptions["yaxis"] = cadrunPlot;
 							break;
 						}
+						break;
 					case "stance_time":
-						ymin = 120;
-						ymax = 350;
+						var ymin = 120;
+						var ymax = 350;
+							plotOptions["labelFormatter"] = function(label, series) {
+								console.debug("labelFormatter called for stance_time");
+							};
 						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
 						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
 						plot_data[graphs[i]["name"]]["constraints"] = [
@@ -537,12 +543,12 @@
 							{ threshold: 240, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
 							{ threshold: 272, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
 							{ threshold: 305, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 305, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } },
+							{ threshold: 305, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } }
 						];
 						break;
 					case "vertical_oscillation":
-						ymin = 50;
-						ymax = 150;
+						var ymin = 50;
+						var ymax = 150;
 						plot_data[graphs[i]["name"]]["points"]={"show": true, "radius": 1};
 						plot_data[graphs[i]["name"]]["lines"]={"show": false};
 						plot_data[graphs[i]["name"]]["constraints"] = [
@@ -550,7 +556,7 @@
 							{ threshold: 84, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
 							{ threshold: 101, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
 							{ threshold: 118, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 118, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } },
+							{ threshold: 118, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } }
 						];
 						break;
 					default:
@@ -580,13 +586,50 @@
 		var latestPosition = null;
 		var cursorMarker = null;
 
+		function updateCursorSinglePlot(graph, xpos) {
+			// go through all datasets and find the nearest point
+			var graph_name = graphs[graph]["name"];
+			plot = plots[graph_name];
+			legend = legends[graph_name];
+
+			dataset = plot.getData();
+			var series, newvalue;
+			for (i = 0; i < dataset.length; ++i) {
+				series = dataset[i];
+				console.debug("updateCursorSinglePlot: Parsing dataset series " + i);
+				// find the nearest points, x-wise
+				for (j = 0; j < series.data.length; ++j) {
+					if (series.data[j]) {
+						if (series.data[j][0] > xpos) {
+							break;
+						}
+					}
+				}
+				// now interpolate
+				var y, posA = series.data[j - 1], posB = series.data[j];
+				if (posA == null)
+					y = posB[1];
+				else if (posB == null)
+					y = posA[1];
+				else
+					y = posA[1] + (posB[1] - posA[1]) * (xpos - posA[0]) / (posB[0] - posA[0]);
+				if (graphs[graph]["unit"] == "Minuten/km") {
+					newvalue = secondsToTime(y * 60, false, false);
+				} else {
+					newvalue = y.toFixed(graphs[graph]["rounding"]);
+				}
+				console.debug("updateCursorSinglePlot: setting new value " + newvalue + " on legend for graph named " + graph_name);
+				legend.eq(i).text(graphs[graph]["label"] + " " + newvalue + " " + graphs[graph]["unit"]);
+			}
+		}
+
 		function updateCursor() {
 			updateCursorTimeout = null;
 			var pos = latestPosition;
 			var graph, plot, legend;
 
 			var i, j, dataset;
-			if(pos){
+			if (pos) {
 				{%  if gpx_url %}
 				var sample = rangeEdgeSamples(pos.x, pos.x)[0];
 				if( sample !== undefined ) {
@@ -601,40 +644,35 @@
 					layerCursor.addMarker(cursorMarker);
 				}
 				{% endif %} //gpx_url
-				for (graph in graphs) if(graphs.hasOwnProperty(graph)){
-					var newvalue;
+				for (graph in graphs) {
+					if(graphs.hasOwnProperty(graph)) {
+						var graph_name = graphs[graph]["name"];
+						plot = plots[graph_name];
+						// legend = legends[graph_name];
 
-					plot = plots[graphs[graph]["name"]];
-					legend = legends[graphs[graph]["name"]];
+						plot.setCrosshair(pos);
+						var axes = plot.getAxes();
+						if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
+							continue;
 
-					plot.setCrosshair(pos);
-					var axes = plot.getAxes();
-					if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
-						continue;
-
-					i, j, dataset = plot.getData();
-					for( i = 0; i < dataset.length; ++i) {
-						var series = dataset[i];
-
-						// find the nearest points, x-wise
-						for( j = 0; j < series.data.length; ++j)
-							if(series.data[j][0] > pos.x)
+						switch (graph_name) {
+							case "stance_time":
+							case "vertical_oscillation":
+								console.debug("updateCursor: no handler for graph named " + graph_name);
 								break;
-
-						// now interpolate
-						var y, posA = series.data[j - 1], posB = series.data[j];
-						if(posA == null)
-							y = posB[1];
-						else if(posB == null)
-							y = posA[1];
-						else
-							y = posA[1] + (posB[1] - posA[1]) * (pos.x - posA[0]) / (posB[0] - posA[0]);
-						if (graphs[graph]["unit"]=="Minuten/km") {
-							newvalue = secondsToTime(y*60, false, false);
-						} else {
-							newvalue = y.toFixed(graphs[graph]["rounding"]);
+							case "cad":
+								if (speedAsPace) {
+									console.debug("updateCursor: no handler for graph named " + graph_name);
+								} else {
+									console.debug("updateCursor: calling updateCursorSinglePlot for graph named " + graph_name);
+									updateCursorSinglePlot(graph, pos.x);
+								}
+								break;
+							default:
+								console.debug("updateCursor: calling updateCursorSinglePlot for graph named " + graph_name);
+								updateCursorSinglePlot(graph, pos.x);
+								break;
 						}
-						legend.eq(i).text(graphs[graph]["label"]+" "+newvalue+" "+graphs[graph]["unit"]);
 					}
 				}
 			} else {
@@ -645,16 +683,17 @@
 				{% endif %}
 				for (graph in graphs) {
 					if(graphs.hasOwnProperty(graph)){
-					plot = plots[graphs[graph]["name"]];
-					legend = legends[graphs[graph]["name"]];
+						plot = plots[graphs[graph]["name"]];
+						legend = legends[graphs[graph]["name"]];
 
-					plot.clearCrosshair();
+						plot.clearCrosshair();
 
-					i, j, dataset = plot.getData();
-					for( i = 0; i < dataset.length; ++i) {
-						legend.eq(i).text(graphs[graph]["label"]+" "+graphs[graph]["unit"]);
+						i, j, dataset = plot.getData();
+						for( i = 0; i < dataset.length; ++i) {
+							legend.eq(i).text(graphs[graph]["label"]+" "+graphs[graph]["unit"]);
+						}
 					}
-				}}
+				}
 			}
 		}
 

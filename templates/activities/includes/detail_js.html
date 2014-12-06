@@ -55,8 +55,8 @@
 		{ "name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "color": "#0070A3", "rounding": 1, "unit": speedUnit, "unit_short": speedUnit},
 		{ "name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "color": "#00FF00", "rounding": 0, "unit": "m", "unit_short": "m"},
 		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "color": "#FFBF00", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."},
-		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "#FFBF00", "rounding": 0, "unit": "Millisekunden","unit_short": "ms"},
-		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "#FFBF00", "rounding": 0, "unit": "mm","unit_short": "mm"},
+		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "Millisekunden","unit_short": "ms"},
+		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "mm","unit_short": "mm"},
 		{ "name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "°C","unit_short": "°C"}
 	];
 {% else %}
@@ -448,8 +448,6 @@
 			selection: { mode: "x" }
 		};
 		var pacePlot = {
-		//	transform: function(v) { return -v; },
-		//	inverseTransform: function (v) { return -v; },
 			transform: function(v) { return -Math.log(v); },
 			inverseTransform: function (v) { return Math.exp(-v); },
 			ticks: function (axis) {
@@ -460,10 +458,6 @@
 				} while (i<axis.max);
 				return res;
 			}
-		};
-		var cadrunPlot = {
-			transform: function(v) { return 2.0 * v; },
-			inverseTransform: function(v) { return v/2.0; }
 		};
 
 		for (var i in graphs) {
@@ -519,54 +513,63 @@
 						if (speedAsPace) {
 							console.debug("Pace plot with speed as pace set");
 							plotOptions["yaxis"] = pacePlot;
-							ymax = Math.floor(1.5*avg);
+							ymax = Math.floor(1.5 * avg);
 							break;
 						}
 						break;
 					case "cad":
 						if (speedAsPace) {
 							console.debug("Cadence plot for run detected");
-							plotOptions["yaxis"] = cadrunPlot;
+							var ymin = 60;
+							var ymax = 120;
+							plot_data[graphs[i]["name"]]["color"] = "rgb(152, 117, 178)";
+
+							plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+							plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+							plot_data[graphs[i]["name"]]["threshold"] = [
+								{below: 151 / 2, color: "rgb(223, 39, 39)"},
+								{below: 163 / 2, color: "rgb(235, 132, 87)"},
+								{below: 174 / 2, color: "rgb(149, 204, 119)"},
+								{below: 185 / 2, color: "rgb(134, 207, 214)"},
+								{above: 186 / 2, color: "rgb(152, 117, 178)"}
+							];
 							break;
 						}
 						break;
 					case "stance_time":
 						var ymin = 120;
 						var ymax = 350;
-							plotOptions["labelFormatter"] = function(label, series) {
-								console.debug("labelFormatter called for stance_time");
-							};
 						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
 						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
-						plot_data[graphs[i]["name"]]["constraints"] = [
-							{ threshold: 208, color: "rgb(152, 117, 178)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 240, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 272, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 305, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 305, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } }
+						plot_data[graphs[i]["name"]]["threshold"] = [
+							{below: 208, color: "rgb(152, 117, 178)"},
+							{below: 240, color: "rgb(134, 207, 214)"},
+							{below: 272, color: "rgb(149, 204, 119)"},
+							{below: 305, color: "rgb(235, 132, 87)"},
+							{above: 305, color: "rgb(223, 39, 39)"},
 						];
 						break;
 					case "vertical_oscillation":
 						var ymin = 50;
 						var ymax = 150;
-						plot_data[graphs[i]["name"]]["points"]={"show": true, "radius": 1};
-						plot_data[graphs[i]["name"]]["lines"]={"show": false};
-						plot_data[graphs[i]["name"]]["constraints"] = [
-							{ threshold: 67, color: "rgb(152, 117, 178)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 84, color: "rgb(134, 207, 214)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 101, color: "rgb(149, 204, 119)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 118, color: "rgb(235, 132, 87)", evaluate : function(y,threshold){ return y < threshold; } },
-							{ threshold: 118, color: "rgb(223, 39, 39)", evaluate : function(y,threshold){ return y >= threshold; } }
+						plot_data[graphs[i]["name"]]["legend"] = {"show": false};
+						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
+						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
+						plot_data[graphs[i]["name"]]["threshold"] = [
+							{below: 67, color: "rgb(152, 117, 178)"},
+							{below: 84, color: "rgb(134, 207, 214)"},
+							{below: 101, color: "rgb(149, 204, 119)"},
+							{below: 118, color: "rgb(235, 132, 87)"},
+							{above: 118, color: "rgb(223, 39, 39)"},
 						];
 						break;
 					default:
-						ymax = Math.ceil(1.1*max);
+						ymax = Math.ceil(1.1 * max);
 						break;
 				}
-
 				console.debug("Rescaling plot " + graphs[i]["name"] + " y axis to min/max " + ymin + "/" + ymax);
-				plotOptions["yaxis"]["min"]=ymin;
-				plotOptions["yaxis"]["max"]=ymax;
+				plotOptions["yaxis"]["min"] = ymin;
+				plotOptions["yaxis"]["max"] = ymax;
 
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
@@ -586,7 +589,7 @@
 		var latestPosition = null;
 		var cursorMarker = null;
 
-		function updateCursorSinglePlot(graph, xpos) {
+		function updateCursorPlot(graph, xpos) {
 			// go through all datasets and find the nearest point
 			var graph_name = graphs[graph]["name"];
 			plot = plots[graph_name];
@@ -596,7 +599,9 @@
 			var series, newvalue;
 			for (i = 0; i < dataset.length; ++i) {
 				series = dataset[i];
-				console.debug("updateCursorSinglePlot: Parsing dataset series " + i);
+				// skip parsing of empty datasets created by threshold graphs
+				if (series.data.length==0) continue;
+				console.debug("updateCursorPlot: Parsing dataset series " + i);
 				// find the nearest points, x-wise
 				for (j = 0; j < series.data.length; ++j) {
 					if (series.data[j]) {
@@ -618,7 +623,7 @@
 				} else {
 					newvalue = y.toFixed(graphs[graph]["rounding"]);
 				}
-				console.debug("updateCursorSinglePlot: setting new value " + newvalue + " on legend for graph named " + graph_name);
+				console.debug("updateCursorPlot: setting new value " + newvalue + " on legend for graph named " + graph_name);
 				legend.eq(i).text(graphs[graph]["label"] + " " + newvalue + " " + graphs[graph]["unit"]);
 			}
 		}
@@ -654,25 +659,7 @@
 						var axes = plot.getAxes();
 						if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max)
 							continue;
-
-						switch (graph_name) {
-							case "stance_time":
-							case "vertical_oscillation":
-								console.debug("updateCursor: no handler for graph named " + graph_name);
-								break;
-							case "cad":
-								if (speedAsPace) {
-									console.debug("updateCursor: no handler for graph named " + graph_name);
-								} else {
-									console.debug("updateCursor: calling updateCursorSinglePlot for graph named " + graph_name);
-									updateCursorSinglePlot(graph, pos.x);
-								}
-								break;
-							default:
-								console.debug("updateCursor: calling updateCursorSinglePlot for graph named " + graph_name);
-								updateCursorSinglePlot(graph, pos.x);
-								break;
-						}
+						updateCursorPlot(graph, pos.x);
 					}
 				}
 			} else {

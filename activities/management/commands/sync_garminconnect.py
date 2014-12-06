@@ -152,7 +152,7 @@ class Command(BaseCommand):
 		#  http://connect.garmin.com/proxy/activity-search-service-1.0/json/activities?&start=0&limit=50
 		#  session = self._get_session(record=serviceRecord)
 		page = 1
-		page_sz = 100
+		page_sz = 10
 		while True:
 			logging.debug("Req with " + str({"start": (page - 1) * page_sz, "limit": page_sz}))
 			self._rate_limit()
@@ -168,15 +168,15 @@ class Command(BaseCommand):
 				else:
 					break
 			try:
-				res = res.json["results"]
+				res = res.json()["results"]
 			except ValueError:
 				raise CommandError("Parse failure in GC list resp: %s" % res.status_code)
 			if "activities" not in res:
 				break  # No activities on this page - empty account.
 			for act in res["activities"]:
 				act = act["activity"]
-				print act['activityId']
-				print act['device']
+				print "########################################\n####  Activity ID: %s   ####\n########################################" % act['activityId']
+				print repr(act)
 
 			# TODO: Check if we already have activity with such ID, or activity matching timestamp
 			# If not, check if we can download and import activity file from

@@ -16,6 +16,9 @@ from django.core.management.base import BaseCommand, CommandError
 from activities.models import User
 
 
+GARMIN_DOWNLOAD_BASE = "http://connect.garmin.com/proxy/download-service/files/activity"
+
+
 class Command(BaseCommand):
 	args = 'username garmin_user garmin_pass'
 	help = 'Sync users activities with Garmin Connect API'
@@ -168,7 +171,7 @@ class Command(BaseCommand):
 				else:
 					break
 			try:
-				res = res.json()["results"]
+				res = res.json["results"]
 			except ValueError:
 				raise CommandError("Parse failure in GC list resp: %s" % res.status_code)
 			if "activities" not in res:
@@ -177,6 +180,7 @@ class Command(BaseCommand):
 				act = act["activity"]
 				print "########################################\n####  Activity ID: %s   ####\n########################################" % act['activityId']
 				print repr(act)
+				print ".fit file download URL is %s/%s" % (GARMIN_DOWNLOAD_BASE, act['activityId'])
 
 			# TODO: Check if we already have activity with such ID, or activity matching timestamp
 			# If not, check if we can download and import activity file from

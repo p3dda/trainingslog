@@ -7,3 +7,5 @@ trainingslog.db
 django.log
 media/uploads
 /nbproject/private/
+.idea
+astlassign-ide-plugin.xml

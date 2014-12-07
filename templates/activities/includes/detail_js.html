@@ -506,8 +506,8 @@
 				var min = rangeValues.min;
 				var max = rangeValues.max;
 				var avg = rangeValues.avg;
-
-				ymin = Math.floor(min);
+				var ymin = Math.floor(min);
+				var ymax;
 				switch (graphs[i]["name"]) {
 					case "speed":
 						if (speedAsPace) {
@@ -515,13 +515,15 @@
 							plotOptions["yaxis"] = pacePlot;
 							ymax = Math.floor(1.5 * avg);
 							break;
+						} else {
+							ymax = Math.ceil(1.1*max);
 						}
 						break;
 					case "cad":
 						if (speedAsPace) {
 							console.debug("Cadence plot for run detected");
-							var ymin = 60;
-							var ymax = 120;
+							ymin = 60;
+							ymax = 120;
 							plot_data[graphs[i]["name"]]["color"] = "rgb(152, 117, 178)";
 
 							plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
@@ -534,11 +536,13 @@
 								{above: 186 / 2, color: "rgb(152, 117, 178)"}
 							];
 							break;
+						} else {
+							ymax = Math.ceil(1.1 * max);;
 						}
 						break;
 					case "stance_time":
-						var ymin = 120;
-						var ymax = 350;
+						ymin = 120;
+						ymax = 350;
 						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
 						plot_data[graphs[i]["name"]]["lines"] = {"show": false};
 						plot_data[graphs[i]["name"]]["threshold"] = [
@@ -550,8 +554,8 @@
 						];
 						break;
 					case "vertical_oscillation":
-						var ymin = 50;
-						var ymax = 150;
+						ymin = 50;
+						ymax = 150;
 						plot_data[graphs[i]["name"]]["legend"] = {"show": false};
 						plot_data[graphs[i]["name"]]["points"] = {"show": true, "radius": 1};
 						plot_data[graphs[i]["name"]]["lines"] = {"show": false};

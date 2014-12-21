@@ -20,7 +20,7 @@ GARMIN_DOWNLOAD_BASE = "http://connect.garmin.com/proxy/download-service/files/a
 
 
 class Command(BaseCommand):
-	args = 'username garmin_user garmin_pass'
+	args = 'username'
 	help = 'Sync users activities with Garmin Connect API'
 
 	def __init__(self, *args, **kwargs):
@@ -38,22 +38,23 @@ class Command(BaseCommand):
 		cj = cookielib.CookieJar()
 		urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
-		if len(args) != 3:
-			CommandError("Invalid number of parameters")
+		if len(args) != 1:
+			raise CommandError("Invalid number of parameters")
 
-		users = [User.objects.get(username=args[0]), ]
+		user = User.objects.get(username=args[0])
+		self.username = user.profile.gc_username
+		self.password = user.profile.gc_password
 
-		print "Args: %s" % repr(args)
-		for user in users:
-			logging.debug("GarminConnect sync for user %s", user.username)
-			self.session = None
+		logging.debug("GarminConnect sync for user %s", user.username)
+		if self.username is None or self.password is None:
+			raise CommandError("Garmin credentials missing for user %s" % user.username)
 
-			self.username = args[1]  # FIXME: Take from user profile later
-			self.password = args[2]
-			self.session = self._get_session(email=self.username, password=self.password)
+		self.session = None
 
-			act_list = self.download_activity_list()
-			print "List is %s" % act_list
+		self.session = self._get_session(email=self.username, password=self.password)
+
+		act_list = self.download_activity_list()
+		print "List is %s" % act_list
 
 	def _get_session(self, email=None, password=None):
 		session = requests.Session()

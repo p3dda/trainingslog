@@ -1,6 +1,35 @@
 # encoding: utf-8
 from django import forms
-from activities.models import Activity, Equipment, Event
+from activities.models import Activity, Equipment, Event, UserProfile
+
+
+class UserProfileForm(forms.ModelForm):
+
+	def __init__(self, user, *args, **kw):
+		self.user = user
+		super(UserProfileForm, self).__init__(*args, **kw)
+
+		profile = self.user.profile
+		self.fields['gc_username'].initial = profile.gc_username
+		self.fields['gc_password'].initial = profile.gc_password
+
+		self.fields.keyOrder = [
+			'gc_username',
+			'gc_password',
+		]
+
+	def save(self, *args, **kw):
+		profile = self.user.profile
+		profile.gc_username = self.cleaned_data.get('gc_username', )
+		profile.gc_password = self.cleaned_data.get('gc_password')
+		profile.save()
+
+	class Meta:
+		model = UserProfile
+		exclude = ['user']
+		widgets = {
+			'gc_password': forms.PasswordInput(),
+		}
 
 
 class ActivityForm(forms.ModelForm):

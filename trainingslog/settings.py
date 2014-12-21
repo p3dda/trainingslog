@@ -123,6 +123,8 @@ MOBILE_TEMPLATE_DIRS = (
 	os.path.join(PROJECT_ROOT, 'templates/mobile'),
 )
 
+AUTH_PROFILE_MODULE = "activities.UserProfile"
+
 INSTALLED_APPS = (
 	'django.contrib.auth',
 	'django.contrib.contenttypes',

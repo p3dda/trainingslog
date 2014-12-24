@@ -4,6 +4,20 @@ from activities.models import Event
 from activities.models import Sport
 from django.contrib import admin
 
+import activities.models
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
+
+
+class UserProfileInline(admin.StackedInline):
+	model = activities.models.UserProfile
+	max_num = 1
+	can_delete = False
+
+
+class UserAdmin(AuthUserAdmin):
+	inlines = [UserProfileInline]
+
 
 class ActivityAdmin(admin.ModelAdmin):
 	list_display = ('name', 'user')
@@ -92,6 +106,10 @@ class EventAdmin(admin.ModelAdmin):
 					return False
 		return True
 
+# unregister old user admin
+admin.site.unregister(User)
+# register new user admin
+admin.site.register(User, UserAdmin)
 
 admin.site.register(Activity, ActivityAdmin)
 admin.site.register(Equipment, EquipmentAdmin)

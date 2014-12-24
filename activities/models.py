@@ -3,6 +3,16 @@ import os
 from django.db import models
 from django.contrib.auth.models import User
 
+import libs.fields.encryptedfields
+
+class UserProfile(models.Model):
+	user = models.ForeignKey(User, unique=True)
+	gc_username = models.CharField(max_length=200, null=True, blank=True)
+	gc_password = libs.fields.encryptedfields.EncryptedCharField(max_length=100, null=True, blank=True)
+
+
+User.profile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])
+
 
 class CalorieFormula(models.Model):
 	#

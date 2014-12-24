@@ -14,7 +14,7 @@ import traceback
 import logging
 
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
-from activities.forms import EquipmentForm
+from activities.forms import EquipmentForm, UserProfileForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile
 from activities.django_datatables_view.base_datatable_view import BaseDatatableView
@@ -22,7 +22,7 @@ from activities.django_datatables_view.base_datatable_view import BaseDatatableV
 from health.models import Desease, Weight, Goal
 
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import simplejson
 from django.utils import timezone
@@ -822,6 +822,18 @@ def settings(request):
 		equipment.distance = str(equipment.distance)
 
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
+
+
+@login_required
+def user_profile(request):
+	if request.method == 'POST':
+		form = UserProfileForm(request.user, request.POST)
+		if form.is_valid():
+			form.save()
+			return HttpResponseRedirect('/')
+	else:
+		form = UserProfileForm(request.user)
+	return render(request, 'activities/user_profile.html', {'form': form})
 
 
 class ActivityListJson(BaseDatatableView):

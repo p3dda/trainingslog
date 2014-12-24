@@ -110,5 +110,16 @@
             "name": "Rennrad", 
             "user": 2
         }
+    },
+    {
+        "pk": 4,
+        "model": "activities.sport",
+        "fields": {
+            "color": "#528232",
+            "calorie_formula": null,
+            "speed_as_pace": false,
+            "name": "Rad",
+            "user": 3
+        }
     }
 ]

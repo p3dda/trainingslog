@@ -214,7 +214,7 @@
 					ajaxDataGetter();
 					{% if goal %}
 					var lastWeight = weightData[weightData.length-1];
-					var distance = lastWeight[1] - {{goal.target_weight}};
+					var distance = lastWeight[1] - {{goal.target_weight|safe}};
 					$("#td_goal_distance").html(distance.toFixed(1));
 					{% endif %}
 				} else {

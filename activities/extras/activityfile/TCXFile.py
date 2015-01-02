@@ -116,8 +116,8 @@ class TCXFile(ActivityFile):
 			elif name == 'Time':
 				self.time = self.content
 
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
+	def __init__(self, track, request=None, user=None, activityname="Garmin Import"):
+		ActivityFile.__init__(self, track, request, user, activityname)
 		track.trackfile.open()
 		self.xmltree = ElementTree(file=track.trackfile)
 		track.trackfile.close()

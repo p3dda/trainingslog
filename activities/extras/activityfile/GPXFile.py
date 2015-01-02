@@ -9,8 +9,8 @@ from ActivityFile import ActivityFile
 class GPXFile(ActivityFile):
 	filetypes = ["gpx"]
 
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
+	def __init__(self, track, request=None, user=None, activityname="Garmin Import"):
+		ActivityFile.__init__(self, track, request, user, activityname)
 		self.gpxfile = gpxpy.parse(self.track.trackfile)
 		self.parse_trackpoints()
 

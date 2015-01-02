@@ -73,8 +73,6 @@ class ActivityFile(ActivityFileMetaclass):
 		if self.user is None:
 			if self.request:
 				self.user = self.request.user
-			else:
-				raise RuntimeError("Error importing ActivityFile: neither user nor request is passed")
 
 	def get_activity(self):
 		return self.activity

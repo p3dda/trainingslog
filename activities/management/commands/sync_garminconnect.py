@@ -158,32 +158,32 @@ class Command(BaseCommand):
 			# Not quite OAuth though, so I'll continue to collect raw credentials.
 			# Commented stuff left in case this ever breaks because of missing parameters...
 			data = {
-			"username": email,
-			"password": password,
-			"_eventId": "submit",
-			"embed": "true",
-			# "displayNameRequired": "false"
+				"username": email,
+				"password": password,
+				"_eventId": "submit",
+				"embed": "true",
+				# "displayNameRequired": "false"
 			}
 			params = {
-			"service": "http://connect.garmin.com/post-auth/login",
-			# "redirectAfterAccountLoginUrl": "http://connect.garmin.com/post-auth/login",
-			# "redirectAfterAccountCreationUrl": "http://connect.garmin.com/post-auth/login",
-			# "webhost": "olaxpw-connect00.garmin.com",
-			"clientId": "GarminConnect",
-			# "gauthHost": "https://sso.garmin.com/sso",
-			# "rememberMeShown": "true",
-			# "rememberMeChecked": "false",
-			"consumeServiceTicket": "false",
-			# "id": "gauth-widget",
-			# "embedWidget": "false",
-			# "cssUrl": "https://static.garmincdn.com/com.garmin.connect/ui/src-css/gauth-custom.css",
-			# "source": "http://connect.garmin.com/en-US/signin",
-			# "createAccountShown": "true",
-			# "openCreateAccount": "false",
-			# "usernameShown": "true",
-			# "displayNameShown": "false",
-			# "initialFocus": "true",
-			# "locale": "en"
+				"service": "http://connect.garmin.com/post-auth/login",
+				# "redirectAfterAccountLoginUrl": "http://connect.garmin.com/post-auth/login",
+				# "redirectAfterAccountCreationUrl": "http://connect.garmin.com/post-auth/login",
+				# "webhost": "olaxpw-connect00.garmin.com",
+				"clientId": "GarminConnect",
+				# "gauthHost": "https://sso.garmin.com/sso",
+				# "rememberMeShown": "true",
+				# "rememberMeChecked": "false",
+				"consumeServiceTicket": "false",
+				# "id": "gauth-widget",
+				# "embedWidget": "false",
+				# "cssUrl": "https://static.garmincdn.com/com.garmin.connect/ui/src-css/gauth-custom.css",
+				# "source": "http://connect.garmin.com/en-US/signin",
+				# "createAccountShown": "true",
+				# "openCreateAccount": "false",
+				# "usernameShown": "true",
+				# "displayNameShown": "false",
+				# "initialFocus": "true",
+				# "locale": "en"
 			}
 			# I may never understand what motivates people to mangle a perfectly good protocol like HTTP in the ways they do...
 			pre_resp = session.get("https://sso.garmin.com/sso/login", params=params)
@@ -246,7 +246,6 @@ class Command(BaseCommand):
 			raise CommandError("Parse failure in GC list resp: %s" % res.status_code)
 		if "activities" not in res:
 			return []  # No activities on this page - empty account.
-
 
 		# TODO: Check if we already have activity with such ID, or activity matching timestamp
 		# If not, check if we can download and import activity file from

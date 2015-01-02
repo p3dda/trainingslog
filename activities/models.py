@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 import libs.fields.encryptedfields
 
+
 class UserProfile(models.Model):
 	user = models.ForeignKey(User, unique=True)
 	gc_username = models.CharField(max_length=200, null=True, blank=True)

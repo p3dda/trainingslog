@@ -6,7 +6,7 @@ exec { 'apt-get update':
   tries   => 3
 }
 
-package { ['vim', 'python-django', 'python-dateutil', 'python-requests', 'python-setuptools']:
+package { ['vim', 'python-django', 'python-dateutil', 'python-requests', 'python-setuptools', 'python-crypto']:
   ensure  => 'installed',
   require => Exec['apt-get update'],
 }

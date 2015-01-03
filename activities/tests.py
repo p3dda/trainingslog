@@ -309,7 +309,6 @@ class ActivityTest(TestCase):
 
 		act.delete()
 
-
 	def test_gpx(self):
 		"""
 		Tests gpx file import and parsing with gps

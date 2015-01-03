@@ -26,7 +26,7 @@ GARMIN_DOWNLOAD_BASE = "http://connect.garmin.com/proxy/download-service/files/a
 
 
 class Command(BaseCommand):
-	args = 'username'
+	args = '[usernames]'
 	help = 'Sync users activities with Garmin Connect API'
 
 	def __init__(self, *args, **kwargs):
@@ -45,43 +45,45 @@ class Command(BaseCommand):
 		cj = cookielib.CookieJar()
 		urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
-		if len(args) != 1:
-			raise CommandError("Invalid number of parameters")
+		if len(args) > 0:
+			users = User.objects.filter(username__in=args)
+		else:
+			users = User.objects.all()
 
-		self.user = User.objects.get(username=args[0])
-		self.username = self.user.profile.gc_username
-		self.password = self.user.profile.gc_password
+		for self.user in users:
+			self.username = self.user.profile.gc_username
+			self.password = self.user.profile.gc_password
 
-		logging.debug("GarminConnect sync for user %s", self.user.username)
-		if self.username is None or self.password is None:
-			raise CommandError("Garmin credentials missing for user %s" % self.user.username)
+			logging.debug("GarminConnect sync for user %s", self.user.username)
+			if self.username is None or self.password is None:
+				logging.debug("Garmin credentials missing for user %s", self.user.username)
+				continue
 
-		self.session = None
+			self.session = None
+			act_list = self.get_activity_list()
 
-		act_list = self.get_activity_list()
+			import_list = []
+			db_activites = Activity.objects.filter(user=self.user)
+			for act in act_list:
+				# garmin connect reports timestamp in millis and local timezone, convert to seconds since epoch UTC
+				print repr(act)
+				start_ts = int(act["activity"]["beginTimestamp"]["millis"]) / 1000 - int(act["activity"]["activityTimeZone"]["offset"]) * 3600
+				imported = False
+				for db_act in db_activites:
+					db_start_ts = time.mktime(db_act.date.timetuple())
+					if abs(db_start_ts - start_ts) < 300:
+						# Found another activity within 5 minutes start time
+						imported = True
+						break
+				if imported:
+					logging.debug("Activity from %s already imported", act["activity"]["beginTimestamp"]["value"])
+				else:
+					import_list.append(act)
+			print "Import %s new activities" % (len(import_list))
 
-		import_list = []
-		db_activites = Activity.objects.filter(user=self.user)
-		for act in act_list:
-			# garmin connect reports timestamp in millis and local timezone, convert to seconds since epoch UTC
-			print repr(act)
-			start_ts = int(act["activity"]["beginTimestamp"]["millis"]) / 1000 - int(act["activity"]["activityTimeZone"]["offset"]) * 3600
-			imported = False
-			for db_act in db_activites:
-				db_start_ts = time.mktime(db_act.date.timetuple())
-				if abs(db_start_ts - start_ts) < 300:
-					# Found another activity within 5 minutes start time
-					imported = True
-					break
-			if imported:
-				print "Activity from %s already imported" % act["activity"]["beginTimestamp"]["value"]
-			else:
-				import_list.append(act)
-		print "Have to import %s of %s activities" % (len(import_list), len(act_list))
-
-		for activity in import_list:
-			print "Import activity ID %s with name %s from URL %s/%s" % (activity['activity']['activityId'], activity['activity']['activityName']['value'], GARMIN_DOWNLOAD_BASE, activity['activity']['activityId'])
-			self.import_activity(activity['activity']['activityId'], activity['activity']['activityName']['value'])
+			for activity in import_list:
+				print "Import activity ID %s with name %s from URL %s/%s" % (activity['activity']['activityId'], activity['activity']['activityName']['value'], GARMIN_DOWNLOAD_BASE, activity['activity']['activityId'])
+				self.import_activity(activity['activity']['activityId'], activity['activity']['activityName']['value'])
 
 	def import_activity(self, act_id, name):
 		is_saved = False
@@ -162,28 +164,11 @@ class Command(BaseCommand):
 				"password": password,
 				"_eventId": "submit",
 				"embed": "true",
-				# "displayNameRequired": "false"
 			}
 			params = {
 				"service": "http://connect.garmin.com/post-auth/login",
-				# "redirectAfterAccountLoginUrl": "http://connect.garmin.com/post-auth/login",
-				# "redirectAfterAccountCreationUrl": "http://connect.garmin.com/post-auth/login",
-				# "webhost": "olaxpw-connect00.garmin.com",
 				"clientId": "GarminConnect",
-				# "gauthHost": "https://sso.garmin.com/sso",
-				# "rememberMeShown": "true",
-				# "rememberMeChecked": "false",
 				"consumeServiceTicket": "false",
-				# "id": "gauth-widget",
-				# "embedWidget": "false",
-				# "cssUrl": "https://static.garmincdn.com/com.garmin.connect/ui/src-css/gauth-custom.css",
-				# "source": "http://connect.garmin.com/en-US/signin",
-				# "createAccountShown": "true",
-				# "openCreateAccount": "false",
-				# "usernameShown": "true",
-				# "displayNameShown": "false",
-				# "initialFocus": "true",
-				# "locale": "en"
 			}
 			# I may never understand what motivates people to mangle a perfectly good protocol like HTTP in the ways they do...
 			pre_resp = session.get("https://sso.garmin.com/sso/login", params=params)
@@ -214,10 +199,6 @@ class Command(BaseCommand):
 
 		else:
 			raise CommandError("Unknown GC prestart response %s %s" % (gc_pre_resp.status_code, gc_pre_resp.text))
-
-		# self._sessionCache.Set(record.ExternalID if record else email, session)
-
-		# session.headers.update(self._obligatory_headers)
 
 		return session
 
@@ -256,10 +237,8 @@ class Command(BaseCommand):
 
 	def _rate_limit(self):
 		min_period = 1  # I appear to been banned from Garmin Connect while determining this.
-		print("Waiting for lock")
 		fcntl.flock(self._rate_lock, fcntl.LOCK_EX)
 		try:
-			print("Have lock")
 			self._rate_lock.seek(0)
 			last_req_start = self._rate_lock.read()
 			if not last_req_start:
@@ -274,6 +253,5 @@ class Command(BaseCommand):
 			self._rate_lock.write(str(time.time()))
 			self._rate_lock.flush()
 
-			print("Rate limited for %f" % wait_time)
 		finally:
 			fcntl.flock(self._rate_lock, fcntl.LOCK_UN)

@@ -107,7 +107,7 @@ class FITFile(ActivityFile):
 				lap_altitude = []
 
 				max_speed = message.get("max_speed")
-				if max_speed.value:
+				if max_speed and max_speed.value:
 					if max_speed.units == "m/s":
 						lap.speed_max = (max_speed.value * 3600.0) / 1000
 					elif max_speed.units == "km/h":
@@ -118,7 +118,7 @@ class FITFile(ActivityFile):
 					lap.speed_max = 0
 
 				avg_speed = message.get("avg_speed")
-				if avg_speed.value:
+				if avg_speed and avg_speed.value:
 					if avg_speed:
 						if avg_speed.units == "m/s":
 							lap.speed_avg = (avg_speed.value * 3600.0) / 1000

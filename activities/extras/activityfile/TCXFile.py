@@ -8,6 +8,8 @@ import dateutil.parser
 
 import activities.utils
 from activities.models import Activity, Event, Sport, Lap
+from ActivityFile import ActivityFile
+
 
 found_xml_parser = False
 try:
@@ -28,8 +30,6 @@ else:
 
 if not found_xml_parser:
 	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
-
-from ActivityFile import ActivityFile
 
 GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
 	creator="https://github.com/p3dda/trainingslog"

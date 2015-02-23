@@ -297,6 +297,8 @@ def list_activities(request):
 
 					for line in content.splitlines()[1:]:
 						tmpfile.write(b64decode(line))
+				else:
+					raise RuntimeError("Received unknown filetype from garmin communicator plugin")
 				tmpfile.close()
 
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
@@ -503,9 +505,8 @@ def add_activity(request):
 
 		act.save()
 
-		for eq in equipment_list:
-			if eq != '':
-				act.equipment.add(Equipment.objects.get(pk=int(eq)))
+		eq_list = [Equipment.objects.get(pk=int(eq)) for eq in equipment_list if eq]
+		act.equipment = eq_list
 
 		act.save()
 		return HttpResponse(simplejson.dumps({'success': True}))

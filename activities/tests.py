@@ -13,8 +13,29 @@ from activities.extras.activityfile import ActivityFile
 import django.test.client
 from django.test import TestCase
 
+from django.contrib.auth.models import User
 from django.conf import settings as django_settings
 from django.core.urlresolvers import reverse
+
+
+class UserTest(TestCase):
+	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json']
+
+	def setUp(self):
+		self.client = django.test.client.Client()
+
+	def test_user_parameters(self):
+		user = User.objects.get(username='test1')
+		params = user.params
+		self.assertEqual({}, params.asPyDict())
+
+		params['foo'] = 'bar'
+		self.assertEqual({'foo': 'bar'}, params.asPyDict())
+		self.assertEqual(user.params['foo'], 'bar')
+		self.assertListEqual(user.params.keys(), ['foo'])
+
+		del params['foo']
+		self.assertListEqual(user.params.keys(), [])
 
 
 class ActivityTest(TestCase):

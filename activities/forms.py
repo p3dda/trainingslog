@@ -2,6 +2,7 @@
 from django import forms
 from activities.models import Activity, Equipment, Event
 
+
 class UserProfileForm(forms.Form):
 	PARAMS = [
 		('sync.imap.enable', forms.BooleanField(required=False)),
@@ -28,7 +29,6 @@ class UserProfileForm(forms.Form):
 				print("KVP: %s:%s" % (param, repr(value)))
 				self.fields[param].initial = value
 
-
 	def save(self, *args, **kw):
 		for param in self.changed_data:
 			value = self.cleaned_data.get(param)
@@ -48,7 +48,6 @@ class UserProfileForm(forms.Form):
 				print("Cleanup boolean value %s:%s to be False" % (field, repr(cleaned_data[field])))
 				cleaned_data[field] = False
 		return cleaned_data
-
 
 
 class ActivityForm(forms.ModelForm):

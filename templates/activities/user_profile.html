@@ -1,10 +1,10 @@
-<html>
-<head>
-	<title>User profile</title>
-</head>
-<body>
-<h1>Benutzerprofil</h1>
+{% extends "base.html" %}
 
+{% block title %}Benutzerprofil{% endblock %}
+{% block head %}
+<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
+{% endblock %}
+{% block content %}
 {% if form.errors %}
 	<p style="color: red;">
 		Please correct the error{{ form.errors|pluralize }} below.
@@ -12,11 +12,10 @@
 {% endif %}
 
 <form action="" method="post">
-	<table>
-		{{ form.as_table }}
+	<table id="userprofile_table" class="data_table">
+		{{ form }}
 	</table>
 	{% csrf_token %}
 	<input type="submit" value="Submit">
 </form>
-</body>
-</html>
+{% endblock %}

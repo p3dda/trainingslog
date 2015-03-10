@@ -2,23 +2,29 @@ import os
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+import django.core.exceptions
 
-import libs.fields.encryptedfields
+# import libs.fields.encryptedfields
 
 
-class Dictionary(models.Model):
+class Parameters(models.Model):
 	"""A model that represents a dictionary. This model implements most of the dictionary interface,
 	allowing it to be used like a python dictionary.
 
 	"""
-	name = models.CharField(max_length=255)
+	# name = models.CharField(max_length=255)
+	content_type = models.ForeignKey(ContentType)
+	object_id = models.PositiveIntegerField()
+	content_object = generic.GenericForeignKey('content_type', 'object_id')
 
 	@staticmethod
 	def getDict(name):
 		"""Get the Dictionary of the given name.
 
 		"""
-		df = Dictionary.objects.select_related().get(name=name)
+		df = Parameters.objects.select_related().get(name=name)
 
 		return df
 
@@ -157,19 +163,21 @@ class KeyValuePair(models.Model):
 	"""A Key-Value pair with a pointer to the Dictionary that owns it.
 
 	"""
-	container = models.ForeignKey(Dictionary, db_index=True)
+	container = models.ForeignKey(Parameters, db_index=True)
 	key = models.CharField(max_length=240, db_index=True)
 	value = models.CharField(max_length=240, db_index=True)
 
 
-class UserProfile(models.Model):
-	user = models.ForeignKey(User, unique=True)
-	gc_username = models.CharField(max_length=200, null=True, blank=True)
-	gc_password = libs.fields.encryptedfields.EncryptedCharField(max_length=100, null=True, blank=True)
-	params = models.ForeignKey(Dictionary, null=True, blank=True)
+def user_params_get_or_create(obj):
+	try:
+		return Parameters.objects.get(content_type__pk=ContentType.objects.get_for_model(obj).id, object_id=obj.id)
+	except django.core.exceptions.ObjectDoesNotExist:
+		params = Parameters(content_type=ContentType.objects.get_for_model(obj), object_id=obj.id)
+		params.save()
+		return params
 
 
-User.profile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])
+User.params = property(lambda u: user_params_get_or_create(u))
 
 
 class CalorieFormula(models.Model):

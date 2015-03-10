@@ -1,58 +1,54 @@
 # encoding: utf-8
 from django import forms
-from activities.models import Activity, Equipment, Event, UserProfile, Dictionary
+from activities.models import Activity, Equipment, Event
 
-
-class UserProfileForm(forms.ModelForm):
+class UserProfileForm(forms.Form):
 	PARAMS = [
-		('trainingslog.sync.imap.enable', forms.BooleanField),
-		('trainingslog.sync.imap.host', forms.CharField),
-		('trainingslog.sync.imap.user', forms.CharField),
-		('trainingslog.sync.imap.password', forms.CharField),
-		('trainingslog.sync.imap.mailbox', forms.CharField)
+		('sync.imap.enable', forms.BooleanField(required=False)),
+		('sync.imap.host', forms.CharField(required=False)),
+		('sync.imap.user', forms.CharField(required=False)),
+		('sync.imap.password', forms.CharField(required=False, widget=forms.PasswordInput)),
+		('sync.imap.mailbox', forms.CharField(required=False)),
+		('sync.garminconnect.enable', forms.BooleanField(required=False)),
+		('sync.garminconnect.username', forms.CharField(required=False)),
+		('sync.garminconnect.password', forms.CharField(required=False, widget=forms.PasswordInput))
 	]
 
 	def __init__(self, user, *args, **kw):
 		self.user = user
 		super(UserProfileForm, self).__init__(*args, **kw)
 
-		profile = self.user.profile
-		# check if profile has dynamic parameters. If not, initialize
-		if not profile.params:
-			params = Dictionary()
-			params.save()
-			profile.params = params
-			profile.save()
-
-		self.fields['gc_username'].initial = profile.gc_username
-		self.fields['gc_password'].initial = profile.gc_password
-
 		for (param, formtype) in self.PARAMS:
-			self.fields[param] = formtype()
-			if param in profile.params:
-				self.fields[param].initial = profile.params[param]
+			self.fields[param] = formtype
+			if param in self.user.params:
+				if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
+					value = self.user.params[param] == 'True'
+				else:
+					value = self.user.params[param]
+				print("KVP: %s:%s" % (param, repr(value)))
+				self.fields[param].initial = value
 
-		# self.fields.keyOrder = [
-		# 	'gc_username',
-		# 	'gc_password',
-		# ]
 
 	def save(self, *args, **kw):
-		profile = self.user.profile
-		profile.gc_username = self.cleaned_data.get('gc_username', )
-		profile.gc_password = self.cleaned_data.get('gc_password')
-
-		for (param, _) in self.PARAMS:
+		for param in self.changed_data:
 			value = self.cleaned_data.get(param)
-			profile.params[param] = value
-		profile.save()
+			print("KVP: %s:%s" % (param, repr(value)))
+			if value is not None:
+				self.user.params[param] = value
 
-	class Meta:
-		model = UserProfile
-		exclude = ['user', 'params']
-		widgets = {
-			'gc_password': forms.PasswordInput()
-		}
+	def clean(self):
+		cleaned_data = super(UserProfileForm, self).clean()
+
+		for field in ['sync.imap.password', 'sync.garminconnect.password']:
+			if len(self.cleaned_data[field]) == 0:
+				self.cleaned_data[field] = self.user.params[field]
+
+		for field in ['sync.imap.enable', 'sync.garminconnect.enable']:
+			if cleaned_data[field] != True:
+				print("Cleanup boolean value %s:%s to be False" % (field, repr(cleaned_data[field])))
+				cleaned_data[field] = False
+		return cleaned_data
+
 
 
 class ActivityForm(forms.ModelForm):

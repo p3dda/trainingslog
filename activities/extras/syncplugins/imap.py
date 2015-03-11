@@ -12,10 +12,13 @@ import shutil
 import tempfile
 import traceback
 
+from django.conf import settings as django_settings
 from django.core.files.base import File
 
 from activities.models import Track
 from activities.extras.activityfile import ActivityFile
+
+import libs.crypto.cipher
 
 
 class IMAPSyncException(Exception):
@@ -31,6 +34,7 @@ class IMAPSync(object):
 		self.user = user
 		self.imapclient = None
 		logging.debug("Initialize IMAP sync for user %s" % self.user.username)
+		self.cipher = libs.crypto.cipher.AESCipher(django_settings.ENCRYPTION_KEY)
 
 	def run(self):
 		"""
@@ -41,7 +45,7 @@ class IMAPSync(object):
 			logging.debug("IMAP sync is enabled for user %s" % self.user.username)
 
 			self.imapclient = imaplib.IMAP4(self.user.params['sync.imap.host'])
-			result = self.imapclient.login(self.user.params['sync.imap.user'], self.user.params['sync.imap.password'])
+			result = self.imapclient.login(self.user.params['sync.imap.user'], self.cipher.decrypt(self.user.params['sync.imap.password']))
 			if result[0] != 'OK':
 				raise IMAPSyncException('IMAP login failed: %s' % result)
 

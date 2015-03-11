@@ -1,6 +1,8 @@
 # encoding: utf-8
 from django import forms
+from django.conf import settings as django_settings
 from activities.models import Activity, Equipment, Event
+import libs.crypto.cipher
 
 class UserProfileForm(forms.Form):
 	PARAMS = [
@@ -16,6 +18,8 @@ class UserProfileForm(forms.Form):
 
 	def __init__(self, user, *args, **kw):
 		self.user = user
+		self.cipher = libs.crypto.cipher.AESCipher(django_settings.ENCRYPTION_KEY)
+
 		super(UserProfileForm, self).__init__(*args, **kw)
 
 		for (param, formtype) in self.PARAMS:
@@ -23,18 +27,21 @@ class UserProfileForm(forms.Form):
 			if param in self.user.params:
 				if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
 					value = self.user.params[param] == 'True'
+				elif param in ['sync.imap.password', 'sync.garminconnect.password']:
+					value = ''
 				else:
 					value = self.user.params[param]
-				print("KVP: %s:%s" % (param, repr(value)))
 				self.fields[param].initial = value
 
 
 	def save(self, *args, **kw):
 		for param in self.changed_data:
 			value = self.cleaned_data.get(param)
-			print("KVP: %s:%s" % (param, repr(value)))
 			if value is not None:
-				self.user.params[param] = value
+				if param in ['sync.imap.password', 'sync.garminconnect.password']:
+					self.user.params[param] = self.cipher.encrypt(value)
+				else:
+					self.user.params[param] = value
 
 	def clean(self):
 		cleaned_data = super(UserProfileForm, self).clean()
@@ -45,7 +52,6 @@ class UserProfileForm(forms.Form):
 
 		for field in ['sync.imap.enable', 'sync.garminconnect.enable']:
 			if cleaned_data[field] != True:
-				print("Cleanup boolean value %s:%s to be False" % (field, repr(cleaned_data[field])))
 				cleaned_data[field] = False
 		return cleaned_data
 

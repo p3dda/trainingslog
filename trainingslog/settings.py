@@ -161,3 +161,5 @@ LOGGING = {
 		},
 	},
 }
+
+ENCRYPTION_KEY = "XXXXXX"

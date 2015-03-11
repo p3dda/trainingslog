@@ -10,12 +10,27 @@ from decimal import Decimal
 from activities.models import Activity, CalorieFormula, Lap
 import activities.utils
 from activities.extras.activityfile import ActivityFile
+import libs.crypto.cipher
 import django.test.client
 from django.test import TestCase
 
 from django.contrib.auth.models import User
 from django.conf import settings as django_settings
 from django.core.urlresolvers import reverse
+
+
+class EncryptionTest(TestCase):
+	def test_encrypt_decrypt(self):
+		key = django_settings.ENCRYPTION_KEY
+		cipher = libs.crypto.cipher.AESCipher(key)
+		secret_text = "MySecretText"
+		enc1 = cipher.encrypt(secret_text)
+		enc2 = cipher.encrypt(secret_text)
+		self.assertNotEqual(secret_text, enc1)
+		self.assertNotEqual(secret_text, enc2)
+
+		self.assertEqual(cipher.decrypt(enc1), cipher.decrypt(enc2))
+		self.assertEqual(cipher.decrypt(enc1), secret_text)
 
 
 class UserTest(TestCase):

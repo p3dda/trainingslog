@@ -41,7 +41,7 @@ class IMAPSync(object):
 		IMAP import plugin main
 		"""
 		# profile = self.user.profile
-		if 'sync.imap.enable' in self.user.params and self.user.params['sync.imap.enable'] == 'True':
+		if 'sync.imap.enable' in self.user.params and self.user.params['sync.imap.enable']:
 			logging.debug("IMAP sync is enabled for user %s" % self.user.username)
 
 			self.imapclient = imaplib.IMAP4(self.user.params['sync.imap.host'])

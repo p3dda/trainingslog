@@ -56,6 +56,27 @@ class UserTest(TestCase):
 		del params['foo']
 		self.assertListEqual(user.params.keys(), [])
 
+	def test_parameters_datatypes(self):
+		user = User.objects.get(username='test1')
+		params = user.params
+		params['string'] = 'examplestring'
+		self.assertEqual(params['string'], 'examplestring')
+
+		params['bool'] = True
+		self.assertEqual(params['bool'], True)
+
+		params['int'] = 45
+		self.assertIsInstance(params['int'], int)
+
+		params['int'] = 1.5
+		self.assertIsInstance(params['int'], float)
+
+		params['list'] = ['a', 'b']
+		self.assertIsInstance(params['list'], list)
+
+		params['dict'] = {1: 'a', 2: 'b'}
+		self.assertIsInstance(params['dict'], dict)
+
 
 class ActivityTest(TestCase):
 	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json']

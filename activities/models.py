@@ -1,3 +1,4 @@
+import jsonfield
 import os
 
 from django.db import models
@@ -5,8 +6,6 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 import django.core.exceptions
-
-# import libs.fields.encryptedfields
 
 
 class Parameters(models.Model):
@@ -165,7 +164,7 @@ class KeyValuePair(models.Model):
 	"""
 	container = models.ForeignKey(Parameters, db_index=True)
 	key = models.CharField(max_length=240, db_index=True)
-	value = models.CharField(max_length=240, db_index=True)
+	value = jsonfield.JSONField()
 
 
 def user_params_get_or_create(obj):

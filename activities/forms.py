@@ -3,6 +3,7 @@ from django import forms
 from django.conf import settings as django_settings
 from activities.models import Activity, Equipment, Event
 import libs.crypto.cipher
+import django.core.exceptions
 
 
 class UserProfileForm(forms.Form):
@@ -26,9 +27,9 @@ class UserProfileForm(forms.Form):
 		for (param, formtype) in self.PARAMS:
 			self.fields[param] = formtype
 			if param in self.user.params:
-				if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
-					value = self.user.params[param] == 'True'
-				elif param in ['sync.imap.password', 'sync.garminconnect.password']:
+				# if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
+				# 	value = self.user.params[param] == 'True'
+				if param in ['sync.imap.password', 'sync.garminconnect.password']:
 					value = ''
 				else:
 					value = self.user.params[param]
@@ -48,7 +49,10 @@ class UserProfileForm(forms.Form):
 
 		for field in ['sync.imap.password', 'sync.garminconnect.password']:
 			if len(self.cleaned_data[field]) == 0:
-				self.cleaned_data[field] = self.user.params[field]
+				try:
+					self.cleaned_data[field] = self.user.params[field]
+				except django.core.exceptions.ObjectDoesNotExist:
+					pass
 
 		for field in ['sync.imap.enable', 'sync.garminconnect.enable']:
 			if cleaned_data[field] != True:

@@ -14,6 +14,7 @@ import traceback
 
 from django.conf import settings as django_settings
 from django.core.files.base import File
+import django.core.mail
 
 from activities.models import Track
 from activities.extras.activityfile import ActivityFile
@@ -67,8 +68,9 @@ class IMAPSync(object):
 					num_activities += num_act
 					self.imapclient.store(num, '+FLAGS', '\\Deleted')
 
-			# TODO: Send confirmation mail with number of processed emails and imported activities
-			self.imapclient.expunge()
+			if num_processed > 0:
+				self.imapclient.expunge()
+				self.send_import_confirm("IMAP Sync", num_processed, num_activities)
 		else:
 			logging.debug("IMAP sync is not enabled for user %s" % self.user.username)
 			return
@@ -131,3 +133,19 @@ class IMAPSync(object):
 				logging.error(line.strip())
 
 		return True
+
+	def send_import_confirm(self, title, num_processed, num_activities):
+		if self.user.email:
+			subject = "Trainingslog %s" % title
+			body = """
+	Trainingslog Activity Import
+
+	User %(user)s
+	Processed %(num_processed)s emails for IMAP Account %(email)s@%(host)s/%(maildir)s
+	Successfully imported %(num_activities)s Activities
+	"""\
+			% {
+				'user': self.user.username, 'email': self.user.params['sync.imap.user'], 'host': self.user.params['sync.imap.host'],
+				'maildir': self.user.params['sync.imap.mailbox'], 'num_processed': num_processed, 'num_activities': num_activities
+			}
+			django.core.mail.send_mail(subject, body, django_settings.EMAIL_FROM, [self.user.email])

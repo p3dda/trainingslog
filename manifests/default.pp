@@ -6,7 +6,12 @@ exec { 'apt-get update':
   tries   => 3
 }
 
-package { ['vim', 'python-django', 'python-dateutil', 'python-requests', 'python-setuptools', 'python-crypto']:
+package { ['vim', 'python-django', 'python-dateutil', 'python-requests', 'python-setuptools', 'python-crypto', 'python-pip']:
   ensure  => 'installed',
   require => Exec['apt-get update'],
+  before  => Exec['pip_requirements_install']
+}
+
+exec { "pip_requirements_install":
+  command => "pip install -r /vagrant/requirements.txt",
 }

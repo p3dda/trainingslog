@@ -46,7 +46,7 @@ class IMAPSync(object):
 		"""
 		dh = email.header.decode_header(header)
 		default_charset = 'ASCII'
-		return ' '.join([ unicode(t[0], t[1] or default_charset) for t in dh ])
+		return ' '.join([unicode(t[0], t[1] or default_charset) for t in dh])
 
 	def run(self):
 		"""
@@ -122,7 +122,7 @@ class IMAPSync(object):
 					num_act += 1
 		shutil.rmtree(tmpdirname)
 
-		return (email_success, num_act)
+		return email_success, num_act
 
 	def import_file(self, actfile, name):
 		is_saved = False

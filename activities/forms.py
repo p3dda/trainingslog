@@ -8,14 +8,15 @@ import django.core.exceptions
 
 class UserProfileForm(forms.Form):
 	PARAMS = [
-		('sync.imap.enable', forms.BooleanField(required=False)),
-		('sync.imap.host', forms.CharField(required=False)),
-		('sync.imap.user', forms.CharField(required=False)),
-		('sync.imap.password', forms.CharField(required=False, widget=forms.PasswordInput)),
-		('sync.imap.mailbox', forms.CharField(required=False)),
-		('sync.garminconnect.enable', forms.BooleanField(required=False)),
-		('sync.garminconnect.username', forms.CharField(required=False)),
-		('sync.garminconnect.password', forms.CharField(required=False, widget=forms.PasswordInput))
+		('sync.imap.enable', forms.BooleanField(required=False), False),
+		('sync.imap.host', forms.CharField(required=False), None),
+		('sync.imap.user', forms.CharField(required=False), None),
+		('sync.imap.password', forms.CharField(required=False, widget=forms.PasswordInput), None),
+		('sync.imap.mailbox', forms.CharField(required=False), None),
+		('sync.garminconnect.enable', forms.BooleanField(required=False), False),
+		('sync.garminconnect.username', forms.CharField(required=False), None),
+		('sync.garminconnect.password', forms.CharField(required=False, widget=forms.PasswordInput), None),
+		('frontend.garminplugin.enable', forms.BooleanField(required=False), True)
 	]
 
 	def __init__(self, user, *args, **kw):
@@ -24,7 +25,7 @@ class UserProfileForm(forms.Form):
 
 		super(UserProfileForm, self).__init__(*args, **kw)
 
-		for (param, formtype) in self.PARAMS:
+		for (param, formtype, default) in self.PARAMS:
 			self.fields[param] = formtype
 			if param in self.user.params:
 				# if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
@@ -34,6 +35,8 @@ class UserProfileForm(forms.Form):
 				else:
 					value = self.user.params[param]
 				self.fields[param].initial = value
+			elif default is not None:
+				self.fields[param].initial = default
 
 	def save(self, *args, **kw):
 		for param in self.changed_data:

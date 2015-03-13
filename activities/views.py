@@ -335,9 +335,12 @@ def list_activities(request):
 		# get list of activities
 		# activities = Activity.objects.select_related('sport').filter(user=request.user)
 
-		try:
-			garmin_keys = django_settings.GARMIN_KEYS
-		except AttributeError:
+		if 'frontend.garminplugin.enable' not in request.user.params or request.user.params['frontend.garminplugin.enable']:
+			try:
+				garmin_keys = django_settings.GARMIN_KEYS
+			except AttributeError:
+				garmin_keys = False
+		else:
 			garmin_keys = False
 
 		weight = Weight.objects.filter(user=request.user).order_by('-date')

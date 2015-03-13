@@ -5,6 +5,7 @@ Import activities as email attachment from IMAP folder
 """
 
 import email
+import email.header
 import imaplib
 import logging
 import os
@@ -36,6 +37,16 @@ class IMAPSync(object):
 		self.imapclient = None
 		logging.debug("Initialize IMAP sync for user %s" % self.user.username)
 		self.cipher = libs.crypto.cipher.AESCipher(django_settings.ENCRYPTION_KEY)
+
+	@staticmethod
+	def _decode_header(header):
+		"""Decode MIME-Encoded Email header
+		@param header: Encoded Email header
+		@return: Decoded header as string
+		"""
+		dh = email.header.decode_header(header)
+		default_charset = 'ASCII'
+		return ' '.join([ unicode(t[0], t[1] or default_charset) for t in dh ])
 
 	def run(self):
 		"""
@@ -99,7 +110,7 @@ class IMAPSync(object):
 				if not mail["Subject"]:
 					name = 'IMAP Import'
 				else:
-					name = mail["Subject"]
+					name = self._decode_header(mail["Subject"])
 
 				tmpfile = os.path.join(tmpdirname, part.get_filename())
 				with open(tmpfile, 'wb') as f:

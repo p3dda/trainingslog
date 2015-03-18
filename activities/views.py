@@ -335,7 +335,7 @@ def list_activities(request):
 		# get list of activities
 		# activities = Activity.objects.select_related('sport').filter(user=request.user)
 
-		if 'frontend.garminplugin.enable' not in request.user.params or request.user.params['frontend.garminplugin.enable']:
+		if 'frontend_garminplugin_enable' not in request.user.params or request.user.params['frontend_garminplugin_enable']:
 			try:
 				garmin_keys = django_settings.GARMIN_KEYS
 			except AttributeError:
@@ -846,6 +846,7 @@ def user_profile(request):
 			return HttpResponseRedirect('/')
 	else:
 		form = UserProfileForm(request.user)
+	print repr(form)
 	return render(request, 'activities/user_profile.html', {'form': form})
 
 

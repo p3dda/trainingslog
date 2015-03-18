@@ -10,9 +10,8 @@
 		Please correct the error{{ form.errors|pluralize }} below.
 	</p>
 {% endif %}
-
 <form action="" method="post">
-	<table id="userprofile_table" class="data_table">
+		<table id="userprofile_table" class="data_table">
 		{{ form }}
 	</table>
 	{% csrf_token %}

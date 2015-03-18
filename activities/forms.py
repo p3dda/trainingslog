@@ -7,14 +7,15 @@ import django.core.exceptions
 
 class UserProfileForm(forms.Form):
 	PARAMS = [
-		('sync.imap.enable', forms.BooleanField(required=False)),
-		('sync.imap.host', forms.CharField(required=False)),
-		('sync.imap.user', forms.CharField(required=False)),
-		('sync.imap.password', forms.CharField(required=False, widget=forms.PasswordInput)),
-		('sync.imap.mailbox', forms.CharField(required=False)),
-		('sync.garminconnect.enable', forms.BooleanField(required=False)),
-		('sync.garminconnect.username', forms.CharField(required=False)),
-		('sync.garminconnect.password', forms.CharField(required=False, widget=forms.PasswordInput))
+		('sync_imap_enable', forms.BooleanField(required=False), False),
+		('sync_imap_host', forms.CharField(required=False), None),
+		('sync_imap_user', forms.CharField(required=False), None),
+		('sync_imap_password', forms.CharField(required=False, widget=forms.PasswordInput), None),
+		('sync_imap_mailbox', forms.CharField(required=False), None),
+		('sync_garminconnect_enable', forms.BooleanField(required=False), False),
+		('sync_garminconnect_username', forms.CharField(required=False), None),
+		('sync_garminconnect_password', forms.CharField(required=False, widget=forms.PasswordInput), None),
+		('frontend_garminplugin_enable', forms.BooleanField(required=False), True)
 	]
 
 	def __init__(self, user, *args, **kw):
@@ -28,7 +29,7 @@ class UserProfileForm(forms.Form):
 			if param in self.user.params:
 				# if param in ['sync.imap.enable', 'sync.garminconnect.enable']:
 				# 	value = self.user.params[param] == 'True'
-				if param in ['sync.imap.password', 'sync.garminconnect.password']:
+				if param in ['sync_imap_password', 'sync_garminconnect_password']:
 					value = ''
 				else:
 					value = self.user.params[param]
@@ -39,7 +40,7 @@ class UserProfileForm(forms.Form):
 		for param in self.changed_data:
 			value = self.cleaned_data.get(param)
 			if value is not None:
-				if param in ['sync.imap.password', 'sync.garminconnect.password']:
+				if param in ['sync_imap_password', 'sync_garminconnect_password']:
 					self.user.params[param] = self.cipher.encrypt(value)
 				else:
 					self.user.params[param] = value
@@ -47,14 +48,14 @@ class UserProfileForm(forms.Form):
 	def clean(self):
 		cleaned_data = super(UserProfileForm, self).clean()
 
-		for field in ['sync.imap.password', 'sync.garminconnect.password']:
+		for field in ['sync_imap_password', 'sync_garminconnect_password']:
 			if len(self.cleaned_data[field]) == 0:
 				try:
 					self.cleaned_data[field] = self.user.params[field]
 				except django.core.exceptions.ObjectDoesNotExist:
 					pass
 
-		for field in ['sync.imap.enable', 'sync.garminconnect.enable']:
+		for field in ['sync_imap_enable', 'sync_garminconnect_enable']:
 			if cleaned_data[field] != True:
 				cleaned_data[field] = False
 		return cleaned_data

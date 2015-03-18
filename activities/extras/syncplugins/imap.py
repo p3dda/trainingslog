@@ -53,17 +53,17 @@ class IMAPSync(object):
 		IMAP import plugin main
 		"""
 		# profile = self.user.profile
-		if 'sync.imap.enable' in self.user.params and self.user.params['sync.imap.enable']:
+		if 'sync_imap_enable' in self.user.params and self.user.params['sync_imap_enable']:
 			logging.debug("IMAP sync is enabled for user %s" % self.user.username)
 
-			self.imapclient = imaplib.IMAP4(self.user.params['sync.imap.host'])
-			result = self.imapclient.login(self.user.params['sync.imap.user'], self.cipher.decrypt(self.user.params['sync.imap.password']))
+			self.imapclient = imaplib.IMAP4(self.user.params['sync_imap_host'])
+			result = self.imapclient.login(self.user.params['sync_imap_user'], self.cipher.decrypt(self.user.params['sync_imap_password']))
 			if result[0] != 'OK':
 				raise IMAPSyncException('IMAP login failed: %s' % result)
 
-			result = self.imapclient.select(self.user.params['sync.imap.mailbox'])
+			result = self.imapclient.select(self.user.params['sync_imap_mailbox'])
 			if result[0] != 'OK':
-				raise IMAPSyncException('IMAP failed to select mailbox %s: %s' % (self.user.params['sync.imap.mailbox'], result))
+				raise IMAPSyncException('IMAP failed to select mailbox %s: %s' % (self.user.params['sync_imap_mailbox'], result))
 
 			typ, data = self.imapclient.search(None, 'ALL')
 
@@ -156,7 +156,7 @@ class IMAPSync(object):
 	Successfully imported %(num_activities)s Activities
 	"""\
 			% {
-				'user': self.user.username, 'email': self.user.params['sync.imap.user'], 'host': self.user.params['sync.imap.host'],
-				'maildir': self.user.params['sync.imap.mailbox'], 'num_processed': num_processed, 'num_activities': num_activities
+				'user': self.user.username, 'email': self.user.params['sync_imap_user'], 'host': self.user.params['sync_imap_host'],
+				'maildir': self.user.params['sync_imap_mailbox'], 'num_processed': num_processed, 'num_activities': num_activities
 			}
 			django.core.mail.send_mail(subject, body, django_settings.EMAIL_FROM, [self.user.email])

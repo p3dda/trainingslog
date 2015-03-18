@@ -15,7 +15,7 @@ import traceback
 import logging
 
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
-from activities.forms import EquipmentForm
+from activities.forms import EquipmentForm, UserProfileForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile
 from activities.django_datatables_view.base_datatable_view import BaseDatatableView
@@ -337,9 +337,12 @@ def list_activities(request):
 		# get list of activities
 		# activities = Activity.objects.select_related('sport').filter(user=request.user)
 
-		try:
-			garmin_keys = django_settings.GARMIN_KEYS
-		except AttributeError:
+		if 'frontend_garminplugin_enable' not in request.user.params or request.user.params['frontend_garminplugin_enable']:
+			try:
+				garmin_keys = django_settings.GARMIN_KEYS
+			except AttributeError:
+				garmin_keys = False
+		else:
 			garmin_keys = False
 
 		weight = Weight.objects.filter(user=request.user).order_by('-date')
@@ -840,6 +843,19 @@ def settings(request):
 		equipment.distance = str(equipment.distance)
 
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
+
+
+@login_required
+def user_profile(request):
+	if request.method == 'POST':
+		form = UserProfileForm(request.user, request.POST)
+		if form.is_valid():
+			form.save()
+			return HttpResponseRedirect('/')
+	else:
+		form = UserProfileForm(request.user)
+	print repr(form)
+	return render(request, 'activities/user_profile.html', {'form': form})
 
 
 class ActivityListJson(BaseDatatableView):

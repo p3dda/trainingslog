@@ -167,7 +167,7 @@ class KeyValuePair(models.Model):
 	value = jsonfield.JSONField()
 
 
-def user_params_get_or_create(obj):
+def instance_params_get_or_create(obj):
 	try:
 		return Parameters.objects.get(content_type__pk=ContentType.objects.get_for_model(obj).id, object_id=obj.id)
 	except django.core.exceptions.ObjectDoesNotExist:
@@ -176,8 +176,7 @@ def user_params_get_or_create(obj):
 		return params
 
 
-User.params = property(lambda u: user_params_get_or_create(u))
-
+User.params = property(lambda u: instance_params_get_or_create(u))
 
 class CalorieFormula(models.Model):
 	#
@@ -348,3 +347,7 @@ class Lap(models.Model):
 	elevation_max = models.IntegerField(blank=True, null=True)
 	hf_max = models.IntegerField('hf_max', blank=True, null=True)
 	hf_avg = models.IntegerField('hf_avg', blank=True, null=True)
+
+
+ActivityBaseClass.params = property(lambda u: instance_params_get_or_create(u))
+Lap.params = property(lambda u: instance_params_get_or_create(u))

@@ -44,7 +44,7 @@
 		// Initialize datepicker input
 		$(function() {
 			now = new Date();
-			var weightDate = $("#weight_date");
+			var weightDate = $("#weight_date_input");
 			var weightGoalDate = $("#weightgoal_date");
 			var pulseDate = $("#pulse_date");
 			weightDate.datepicker({
@@ -78,48 +78,51 @@
 		updatePlot();
 	}
 	function updatePlot() {
+		var plots = [
+			{ "name": "weight", "dataname": "weight", "label": "Gewicht = ", "color": "#FF0000",  "unit": "kg", "yaxis": 1},
+			{ "name": "body_fat", "dataname": "body_fat", "label": "Körperfettanteil = ", "color": "#0070A3", "unit": "%", "yaxis": 3},
+			{ "name": "body_water", "dataname": "body_water", "label": "Wasseranteil = ", "color": "#00FF00", "unit": "%", "yaxis": 3},
+			{ "name": "bones_weight", "dataname": "bones_weight", "label": "Knochengewicht = ", "color": "#FFBF00", "unit": "kg", "yaxis": 1},
+			{ "name": "muscles_weight", "dataname": "muscles_weight", "label": "Muskelgewicht = ", "color": "##FFBF00", "unit": "kg", "yaxis": 1},
+			{ "name": "pulse_rest", "dataname": "pulse_rest", "label": "Ruhepuls = ", "color": "##FFBF00", "unit": "1/min", "yaxis": 2},
+			{ "name": "pulse_max", "dataname": "pulse_max", "label": "Maximalpuls = ", "color": "##FFBF00", "unit": "1/min", "yaxis": 2},
+			{ "name": "weight_goal", "dataname": "weight_goal", "label": "Zielgewicht = ", "color": "##FFBF00", "unit": "kg", "yaxis": 1}
+		];
+
 		var plotweightData = {};
-		if( $("#weight_avg").is(':checked')) {
-			plotweightData["data"] = series["weight_weekly_list"];
-		} else {
-			plotweightData["data"] = series["weight_list"];
+
+
+		for( var i = 0; i < plots.length; i++){
+			if (plots[i].name == "weight"){
+				if( $("#weight_avg").is(':checked')) {
+					plots[i]["data"] = series["data"]['weight_weekly'];
+				} else {
+					plots[i]["data"] = series["data"]['weight'];
+				}
+			} else {
+				plots[i]["data"] = series["data"][plots[i]["dataname"]];
+			}
 		}
-		plotweightData["label"] = "Gewicht = 0.0";
-		plotweightData["lines"] = {"show": true};
-		plotweightData["points"] = {"show": true};
-		
-		var plotpulseminData = {};
-		plotpulseminData["data"] = series["pulse_min_list"];
-		plotpulseminData["label"] = "Ruhepuls = 0.0";
-		plotpulseminData["yaxis"] = 2;
-		plotpulseminData["lines"] = {"show": true};
-		plotpulseminData["points"] = {"show": true};
-		var plotpulsemaxData = {};
-		plotpulsemaxData["data"] = series["pulse_max_list"];
-		plotpulsemaxData["label"] = "Maximalpuls = 0.0";
-		plotpulsemaxData["yaxis"] = 2;
-		plotpulsemaxData["lines"] = {"show": true};
-		plotpulsemaxData["points"] = {"show": true};
-		
-		var plotgoalData = {"data": series["goal_data"],
-						"label": "Zielgewicht",
-						"lines": {"show": true}
-						};
 
 		var plotPlaceHolder = $("#placeholder");
-		var plot = $.plot(plotPlaceHolder, [plotweightData, plotgoalData, plotpulseminData, plotpulsemaxData], {
+		var plot = $.plot(plotPlaceHolder, plots, {
 			xaxis : {
 				mode : "time",
 				minTickSize : [1, "day"],
 				timeformat : "%d.%m.%y"
 			},
-			yaxes : [{
-				position : "left"
-			}, {
-				position : "right"
-			}, {
-				position : "right"
-			}],
+			yaxes : [
+				{
+					position : "left",
+					axisLabel: "kg"
+				}, {
+					position : "right",
+					axisLabel: "bpm"
+				}, {
+					position : "right",
+					axisLabel: "%"
+				}
+			],
 			crosshair : {
 				mode : "x"
 			},
@@ -132,7 +135,7 @@
 		var legends = plotPlaceHolder.find(".legendLabel");
 		legends.each(function() {
 			// fix the widths so they don't jump around
-			$(this).css('width', $(this).width());
+		//	$(this).css('width', $(this).width());
 		});
 		var updateLegendTimeout = null;
 		var latestPosition = null;
@@ -174,7 +177,6 @@
 			}
 		}
 
-
 		plotPlaceHolder.bind("plothover", function(event, pos, item) {
 			latestPosition = pos;
 			if(!updateLegendTimeout)
@@ -199,33 +201,34 @@
 
 	var addWeight = function() {
 		// retrieve the text entered
-		var date = $("#weight_date").val();
-		var weight =$("#weight_input").val();
-		if(date != "") {
-			// store value in data variable
-			var data = {
-				date: date,
-				weight: weight
-			};
-			$.post("/health/weights/add/", data, function(data) {
-				if (data["success"]) {
-					noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
-					$("#weight_dialog").dialog("close");
-					ajaxDataGetter();
-					{% if goal %}
-					var lastWeight = weightData[weightData.length-1];
+		var fields = ['weight_date', 'weight', 'body_fat', 'body_water', 'bones_weight', 'muscles_weight'];
+		var data = {};
+
+		// store value in data variable
+		var value;
+		for(var field in fields){
+			value =$("#" + fields[field] + "_input").val();
+			if(value != "") {
+				data[fields[field]] = value;
+			}
+		}
+
+		$.post("/health/weights/add/", data, function(data) {
+			if (data["success"]) {
+				noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
+				$("#weight_dialog").dialog("close");
+				ajaxDataGetter();
+				{% if goal %}
+					var lastWeight = series['data']['weight'][series['data']['weight'].length - 1];
 					var distance = lastWeight[1] - {{goal.target_weight|safe}};
 					$("#td_goal_distance").html(distance.toFixed(1));
-					{% endif %}
-				} else {
-					noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
-				}
-			}, "json");
-
-		} else {
-			alert("Enter some text silly!");
-		}
+				{% endif %}
+			} else {
+				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
+			}
+		}, "json");
 		return false;
+
 	};
 
 	var addPulse = function() {
@@ -287,7 +290,7 @@
 
 	var showWeightDialog = function() {
 		$("#weight_dialog").dialog("open");
-		$("#weight_date").datepicker("hide");
+		$("#weight_date_input").datepicker("hide");
 		$("#weight_input").focus();
 	};
 	
@@ -347,12 +350,26 @@
 	</p>
 	<input type="submit" id="weightgoal_add" value="Neues Zielgewicht...">
 	<div id="weight_dialog" title="Neue Gewichtsmessung">
-		Datum:
-		<input type="text" id="weight_date"/>
-		<br/>
-		Gewicht:
-		<input type="text" id="weight_input"/>
-		<br/>
+		<table>
+			<tr>
+				<td>Datum: </td><td><input type="text" id="weight_date_input"/></td>
+			</tr>
+			<tr>
+				<td>Gewicht: </td><td><input type="text" id="weight_input"/></td>
+			</tr>
+			<tr>
+				<td>Körperfett: </td><td><input type="text" id="body_fat_input"/></td>
+			</tr>
+			<tr>
+				<td>Wasseranteil: </td><td><input type="text" id="body_water_input"/></td>
+			</tr>
+			<tr>
+				<td>Knochengewicht: </td><td><input type="text" id="bones_weight_input"/></td>
+			</tr>
+			<tr>
+				<td>Muskelgewicht: </td><td><input type="text" id="muscles_weight_input"/></td>
+			</tr>
+		</table>
 		<input type="submit" id="weight_send" value="Speichern"/>
 	</div>
 	<div id="pulse_dialog" title="Neue Pulsmessung">

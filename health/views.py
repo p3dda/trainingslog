@@ -45,16 +45,13 @@ def show_weight(request):
 @login_required
 def add_weight(request):
 	logging.debug("add_weight called")
+	datafields = ["weight", "body_fat", "body_water", "bones_weight", "muscles_weight"]
+
 	try:
 		if request.method == 'POST':
 			logging.debug("add_weight post request with items %s" % repr(request.POST.items()))
-			datestring = request.POST.get('date')
-			try:
-				weight = str(parsefloat(request.POST.get('weight')))
-			except ValueError, exc:
-				logging.exception("Exception occured in add_weight: %s" % exc)
-				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}
-				return HttpResponse(simplejson.dumps(result))
+			datestring = request.POST.get('weight_date')
+
 			try:
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 				date = datetime.date(year=d.year, month=d.month, day=d.day)
@@ -67,7 +64,17 @@ def add_weight(request):
 					result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
 					return HttpResponse(simplejson.dumps(result))
 
-			new_weight = Weight(date=date, weight=weight, user=request.user)
+			new_weight = Weight(date=date, user=request.user)
+
+			for field in datafields:
+				if field in request.POST:
+					try:
+						value = str(parsefloat(request.POST.get(field)))
+						setattr(new_weight, field, value)
+					except ValueError as exc:
+						logging.exception("Exception occured in add_weight parsing field %s: %s" % (field, exc))
+						result = {'success': False, 'msg': "Ungueltiger Wert in %s: %s" % (field, request.POST.get(field))}
+
 			new_weight.save()
 			result = {'success': True}
 			return HttpResponse(simplejson.dumps(result))
@@ -173,6 +180,11 @@ def get_desease(request):
 
 @login_required
 def get_data(request):
+	weight_attrs = ["weight", "body_fat", "body_water", "bones_weight", "muscles_weight"]
+	data = {}
+	for attr in weight_attrs:
+		data[attr] = []
+
 	timespan = request.GET.get('timespan', '')
 	today = datetime.date.today()
 
@@ -183,7 +195,7 @@ def get_data(request):
 
 	pulse_max_list = []
 	pulse_rest_list = []
-	weight_list = []
+
 	weight_weekly_list = []
 
 	pulses = Pulse.objects.filter(user=request.user).order_by('date', 'id')
@@ -210,8 +222,12 @@ def get_data(request):
 
 	# building detailed weight_list
 	for weight in weights:
-		weight_list.append([time.mktime(weight.date.timetuple()) * 1000, float(weight.weight)])
+		for attr in weight_attrs:
+			value = getattr(weight, attr)
+			if value is not None:
+				data[attr].append([time.mktime(weight.date.timetuple()) * 1000, float(value)])
 
+	# building pulses list
 	for pulse in pulses:
 		if pulse.rest:
 			pulse_rest_list.append([time.mktime(pulse.date.timetuple()) * 1000, pulse.rest])
@@ -229,7 +245,12 @@ def get_data(request):
 			goal = goals[0]
 			goal_data = [[time.mktime(first_date.timetuple()) * 1000, int(goal.target_weight)], [time.mktime(last_date.timetuple()) * 1000, int(goal.target_weight)]]
 
-	return HttpResponse(simplejson.dumps({"weight_list": weight_list, "weight_weekly_list": weight_weekly_list, "pulse_min_list": pulse_rest_list, "pulse_max_list": pulse_max_list, "goal_data": goal_data}))
+		data['weight_weekly'] = weight_weekly_list
+		data['weight_goal'] = goal_data
+		data['pulse_rest'] = pulse_rest_list
+		data['pulse_max'] = pulse_max_list
+
+	return HttpResponse(simplejson.dumps({"data": data}))
 
 
 @login_required

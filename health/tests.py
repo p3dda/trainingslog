@@ -102,21 +102,21 @@ class HealthTest(TestCase):
 		datestring = "01.01.2014"
 		weight = "71"
 
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertTrue(response["success"])
 
 		datestring = "01.2014"
 		weight = "71"
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])
 
 		datestring = "01.01.2014"
 		weight = "71c"
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])

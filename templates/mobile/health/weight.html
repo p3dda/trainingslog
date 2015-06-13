@@ -111,13 +111,19 @@
 	<script>
 		function add_weight(){
 			if( $( "#weight_form" ).valid() ){
-				var date = $("#weight_date").val();
-				var weight =$("#weight_input").val();
+				// retrieve the text entered
+				var fields = ['weight_date', 'weight', 'body_fat', 'body_water', 'bones_weight', 'muscles_weight'];
+				var data = {};
+
 				// store value in data variable
-				var data = {
-					date: date,
-					weight: weight
-				};
+				var value;
+				for(var field in fields){
+					value =$("#" + fields[field] + "_input").val();
+					if(value != "") {
+						data[fields[field]] = value;
+					}
+				}
+
 				$.post("/health/weights/add/", data, function(data) {
 					if (data["success"]) {
 						location.href = window.location.pathname;
@@ -149,10 +155,18 @@
 	<div data-role="content">
 		<form id="weight_form">
 		<div data-role="fieldcontain">
-			<label for="weight_date">Datum</label>
-			<input name="weight_date" type="date" id="weight_date" data-mini="true"/>
+			<label for="weight_date_input">Datum</label>
+			<input name="weight_date_input" type="date" id="weight_date_input" data-mini="true"/>
 			<label for="weight_input">Gewicht</label>
 			<input name="weight_input" type="text" id="weight_input" data-mini="true"/>
+			<label for="body_fat_input">Körperfett</label>
+			<input name="body_fat_input" type="text" id="body_fat_input" data-mini="true"/>
+			<label for="body_water_input">Wasseranteil</label>
+			<input name="body_water_input" type="text" id="body_water_input" data-mini="true"/>
+			<label for="bones_weight_input">Knochengewicht</label>
+			<input name="bones_weight_input" type="text" id="bones_weight_input" data-mini="true"/>
+			<label for="muscles_weight_input">Muskelmasse</label>
+			<input name="muscles_weight_input" type="text" id="muscles_weight_input" data-mini="true"/>
 		</div>
 		</form>
 	</div>

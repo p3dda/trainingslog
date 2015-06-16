@@ -32,65 +32,8 @@
 			success : onDataReceived
 		});
 	});
-
-	function onDataReceived(rcvd_series) {
-		series = rcvd_series;
-		update_plot();
-	}
-	function update_plot() {
-		plotweight_data = new Object();
-		if( $("#weight_avg").is(':checked')) {
-			plotweight_data["data"] = series["weight_weekly_list"];
-		} else {
-			plotweight_data["data"] = series["weight_list"];
-		}
-		plotweight_data["label"] = "Gewicht = 0.0";
-		plotweight_data["lines"] = {"show": true};
-		plotweight_data["points"] = {"show": true};
-
-		plotpulsemin_data = new Object();
-		plotpulsemin_data["data"] = series["pulse_min_list"];
-		plotpulsemin_data["label"] = "Ruhepuls = 0.0";
-		plotpulsemin_data["yaxis"] = 2;
-		plotpulsemin_data["lines"] = {"show": true};
-		plotpulsemin_data["points"] = {"show": true};
-		plotpulsemax_data = new Object();
-		plotpulsemax_data["data"] = series["pulse_max_list"];
-		plotpulsemax_data["label"] = "Maximalpuls = 0.0";
-		plotpulsemax_data["yaxis"] = 2;
-		plotpulsemax_data["lines"] = {"show": true};
-		plotpulsemax_data["points"] = {"show": true};
-
-		plotgoal_data = {"data": series["goal_data"],
-						"label": "Zielgewicht",
-						"lines": {"show": true}
-						}
-
-		plot = $.plot($("#placeholder"), [plotweight_data, plotgoal_data, plotpulsemin_data, plotpulsemax_data], {
-			xaxis : {
-				mode : "time",
-				minTickSize : [1, "day"],
-				timeformat : "%d.%m.%y"
-			},
-			yaxes : [{
-				position : "left"
-			}, {
-				position : "right"
-			}, {
-				position : "right"
-			}],
-			crosshair : {
-				mode : "x"
-			},
-			grid : {
-				hoverable : true,
-				autoHighlight : false
-			}
-		});
-		return series
-	}
-
 	</script>
+{% include "health/includes/weight_plot_js.html" %}
 
 	<div data-role="header">
 		<a href="#navpanel" data-role="button" data-inline="true" data-mini="true">Men&uuml;</a>

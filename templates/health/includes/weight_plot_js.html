@@ -1,0 +1,113 @@
+<script type="text/javascript">
+	function onDataReceived(rcvdSeries) {
+		series = rcvdSeries;
+		updatePlot();
+	}
+
+	function updatePlot() {
+		var plots = [
+			{ "name": "weight", "dataname": "weight", "label": "Gewicht = ", "color": "#FF0000",  "unit": "kg", "yaxis": 1},
+			{ "name": "body_fat", "dataname": "body_fat", "label": "Körperfettanteil = ", "color": "#0070A3", "unit": "%", "yaxis": 3},
+			{ "name": "body_water", "dataname": "body_water", "label": "Wasseranteil = ", "color": "#00FF00", "unit": "%", "yaxis": 3},
+			{ "name": "bones_weight", "dataname": "bones_weight", "label": "Knochengewicht = ", "color": "#FFBF00", "unit": "kg", "yaxis": 1},
+			{ "name": "muscles_weight", "dataname": "muscles_weight", "label": "Muskelgewicht = ", "color": "##FFBF00", "unit": "kg", "yaxis": 1},
+			{ "name": "pulse_rest", "dataname": "pulse_rest", "label": "Ruhepuls = ", "color": "##FFBF00", "unit": "1/min", "yaxis": 2},
+			{ "name": "pulse_max", "dataname": "pulse_max", "label": "Maximalpuls = ", "color": "##FFBF00", "unit": "1/min", "yaxis": 2},
+			{ "name": "weight_goal", "dataname": "weight_goal", "label": "Zielgewicht = ", "color": "##FFBF00", "unit": "kg", "yaxis": 1}
+		];
+
+		var plotweightData = {};
+
+		for( var i = 0; i < plots.length; i++){
+			if (plots[i].name == "weight"){
+				if( $("#weight_avg").is(':checked')) {
+					plots[i]["data"] = series["data"]['weight_weekly'];
+				} else {
+					plots[i]["data"] = series["data"]['weight'];
+				}
+			} else {
+				plots[i]["data"] = series["data"][plots[i]["dataname"]];
+			}
+		}
+
+		var plotPlaceHolder = $("#placeholder");
+		var plot = $.plot(plotPlaceHolder, plots, {
+			xaxis : {
+				mode : "time",
+				minTickSize : [1, "day"],
+				timeformat : "%d.%m.%y"
+			},
+			yaxes : [
+				{
+					position : "left",
+					axisLabel: "kg"
+				}, {
+					position : "right",
+					axisLabel: "bpm"
+				}, {
+					position : "right",
+					axisLabel: "%"
+				}
+			],
+			crosshair : {
+				mode : "x"
+			},
+			grid : {
+				hoverable : true,
+				autoHighlight : false
+			}
+		});
+
+		var legends = plotPlaceHolder.find(".legendLabel");
+		legends.each(function() {
+			// fix the widths so they don't jump around
+			//	$(this).css('width', $(this).width());
+		});
+		var updateLegendTimeout = null;
+		var latestPosition = null;
+
+		function updateLegend() {
+			updateLegendTimeout = null;
+
+			var pos = latestPosition;
+
+			var axes = plot.getAxes();
+			if(pos.x < axes.xaxis.min || pos.x > axes.xaxis.max || pos.y < axes.yaxis.min || pos.y > axes.yaxis.max)
+				return;
+
+			var i, j, dataset = plot.getData();
+			for( i = 0; i < dataset.length; ++i) {
+				var series = dataset[i];
+
+				// find the nearest points, x-wise
+				for( j = 0; j < series.data.length; ++j)
+					if(series.data[j][0] > pos.x)
+						break;
+
+				// now interpolate
+				var y, posA = series.data[j - 1], posB = series.data[j];
+				if(posA == null)
+					if(posB != null)
+						y = posB[1];
+					else
+						y = 0;
+				else if(posB == null)
+					if(posA != null)
+						y = posA[1];
+					else
+						y = 0;
+				else
+					y = posA[1] + (posB[1] - posA[1]) * (pos.x - posA[0]) / (posB[0] - posA[0]);
+
+				legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
+			}
+		}
+
+		plotPlaceHolder.bind("plothover", function(event, pos, item) {
+			latestPosition = pos;
+			if(!updateLegendTimeout)
+				updateLegendTimeout = setTimeout(updateLegend, 50);
+		});
+		return series
+	}
+</script>

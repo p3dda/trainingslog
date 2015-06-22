@@ -75,8 +75,8 @@
 		if(layerMarkers) {
 			var size = new OpenLayers.Size(21,25);
 			var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-			var startIcon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-green.png', size, offset);
-			var endIcon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size.clone(), offset.clone());
+			var startIcon = new OpenLayers.Icon('/media/img/marker-green.png', size, offset);
+			var endIcon = new OpenLayers.Icon('/media/img/marker-red.png', size.clone(), offset.clone());
 			var startLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][1], plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),detailsMap.getProjectionObject());
 			var endLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][1], plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), detailsMap.getProjectionObject());
 
@@ -645,7 +645,7 @@
 					}
 					var size = new OpenLayers.Size(21,25);
 					var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-					var cursorIcon = new OpenLayers.Icon('http://openlayers.org/api/img/marker-blue.png', size, offset);
+					var cursorIcon = new OpenLayers.Icon('/media/img/marker-blue.png', size, offset);
 					var cursorLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][sample][1], plotDataRaw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),detailsMap.getProjectionObject());
 					cursorMarker = new OpenLayers.Marker(cursorLonLat,cursorIcon);
 					layerCursor.addMarker(cursorMarker);

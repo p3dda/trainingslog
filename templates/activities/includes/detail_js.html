@@ -327,7 +327,6 @@
 	};
 
 	var rangeData = function(data){
-		// TODO Calculate average over time
 		var min = false;
 		var max = false;
 		var avg = false;
@@ -346,13 +345,13 @@
 
 				// calculation of average
 				if(lastTimeStamp != false ) {
-					avg = avg + y * (x - lastTimeStamp);
-					avgCount = avgCount + (x - lastTimeStamp);
+					avg = avg + y * (x - lastTimeStamp)/1000;
+					avgCount = avgCount + (x - lastTimeStamp)/1000;
 					lastTimeStamp = x;
 				} else {
 					// first sample...
 					lastTimeStamp = x;
-					avg = 0;
+					avg = y;
 				}
 			}
 		}
@@ -467,7 +466,6 @@
 			plot_data[graphs[i]["name"]]["lines"]={"show": true, "lineWidth": 1, "fill": 0.2};
 			plot_data[graphs[i]["name"]]["points"]={"show": false};
 			plot_data[graphs[i]["name"]]["color"]=graphs[i]["color"];
-
 
 			var graphdata;
 

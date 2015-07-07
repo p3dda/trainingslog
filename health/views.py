@@ -180,7 +180,7 @@ def get_desease(request):
 
 @login_required
 def get_data(request):
-	weight_attrs = ["weight", "body_fat", "body_water", "bones_weight", "muscles_weight"]
+	weight_attrs = ["weight", "body_fat", "body_water", "bones_weight", "muscles_weight", "lean_weight"]
 	data = {}
 	for attr in weight_attrs:
 		data[attr] = []
@@ -222,6 +222,12 @@ def get_data(request):
 
 	# building detailed weight_list
 	for weight in weights:
+		if weight.weight and weight.body_fat:
+			lean_weight = weight.weight - (weight.weight * weight.body_fat / 100)
+		else:
+			lean_weight = None
+		setattr(weight, 'lean_weight', lean_weight)
+
 		for attr in weight_attrs:
 			value = getattr(weight, attr)
 			if value is not None:

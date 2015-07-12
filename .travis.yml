@@ -12,3 +12,4 @@ script:
   - ./manage.py test activities health
   - coverage run --source=activities,health manage.py test activities health
 after_success: coveralls
+sudo: false

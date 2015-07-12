@@ -176,12 +176,30 @@ class HealthTest(TestCase):
 		self.assertFalse(response["success"])
 
 	def test_get_data_view(self):
+		required_attrs = ["weight", "body_fat", "body_water", "bones_weight", "muscles_weight", "lean_weight"]
 		url = reverse("health.views.get_data")
+
+		weight = Weight()
+		weight.body_fat = 10
+		weight.weight = 80
+		weight.user = User.objects.get(username='test1')
+		weight.date = datetime.date(2050, 1, 1)
+		weight.save()
 
 		resp = self.c.get(url)
 		self.assertEqual(resp.status_code, 200)
 		data = json.loads(resp.content)
 		self.assertIsInstance(data, dict)
+		for attr in required_attrs:
+			self.assertTrue(data['data'].has_key(attr))
+
+		# check if calculation of lean weight is correct (weight - (weight * bodyfat / 100)
+		weight = data['data']['weight'][-1][1]
+		bf = data['data']['body_fat'][-1][1]
+		lean_weight = data['data']['lean_weight'][-1][1]
+
+		self.assertEqual(lean_weight, weight - (weight * bf / 100))
+
 
 	def test_health_utils(self):
 		s = "1.2"

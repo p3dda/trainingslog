@@ -191,7 +191,7 @@ class HealthTest(TestCase):
 		data = json.loads(resp.content)
 		self.assertIsInstance(data, dict)
 		for attr in required_attrs:
-			self.assertTrue(data['data'].has_key(attr))
+			self.assertTrue(attr in data['data'])
 
 		# check if calculation of lean weight is correct (weight - (weight * bodyfat / 100)
 		weight = data['data']['weight'][-1][1]
@@ -199,7 +199,6 @@ class HealthTest(TestCase):
 		lean_weight = data['data']['lean_weight'][-1][1]
 
 		self.assertEqual(lean_weight, weight - (weight * bf / 100))
-
 
 	def test_health_utils(self):
 		s = "1.2"

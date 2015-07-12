@@ -514,7 +514,7 @@ def add_activity(request):
 		return HttpResponseBadRequest
 
 
-def detail(request, activity_id):
+def detail(request, activity_id, version='classic'):
 	param = request.GET.get('p', False)
 	act = get_object_or_404(Activity, id=activity_id)
 
@@ -592,6 +592,10 @@ def detail(request, activity_id):
 					lap.speed_max = speed_to_pace(lap.speed_max)
 				if lap.speed_avg:
 					lap.speed_avg = speed_to_pace(lap.speed_avg)
+
+		if version == 'modern':
+			django_settings.TEMPLATE_DIRS = django_settings.MODERN_TEMPLATE_DIRS + django_settings.TEMPLATE_DIRS
+
 		if not public:
 
 			if request.GET.get('edit', '0') == '1':

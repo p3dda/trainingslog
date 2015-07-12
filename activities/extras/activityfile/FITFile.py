@@ -4,14 +4,8 @@ from django.utils.timezone import utc
 from activities.models import Lap
 from libs.fitparse import fitparse
 
-from ActivityFile import ActivityFile
 
-GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
-	creator="https://github.com/p3dda/trainingslog"
-	version="1.1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
-"""
+from ActivityFile import ActivityFile
 
 
 class FITFile(ActivityFile):
@@ -28,32 +22,6 @@ class FITFile(ActivityFile):
 		)
 
 		self.parse_trackpoints()
-
-	def to_gpx(self):
-		gps_fixes = 0
-		gps_no_fixes = 0
-		try:
-			with open(self.track.trackfile.path + ".gpx", 'w') as gpx_file:
-				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path + ".gpx")
-				gpx_file.write(GPX_HEADER)
-
-				# start gpx track
-				gpx_file.write(' <trk>\n  <trkseg>\n')
-
-				for p in self.get_pos():
-					(lat, lon) = p
-					if lat is None or lon is None:
-						gps_no_fixes += 1
-						continue
-					else:
-						gps_fixes += 1
-					gpx_file.write('   <trkpt lat="%s" lon="%s"> </trkpt>\n' % p)
-
-				# end gpx track
-				gpx_file.write('  </trkseg>\n </trk>')
-				gpx_file.write('</gpx>\n')
-		except Exception, msg:
-			logging.debug("Exception occured in convert: %s" % msg)
 
 	def parse_file(self):
 		self.laps = []

@@ -10,21 +10,12 @@ import urllib2
 
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.base import File
-import dateutil
 from django.conf import settings as django_settings
 from django.utils.timezone import utc
 
-import activities.utils
+import libs.gpxpy.gpxpy
+import libs.gpxpy.gpxpy.gpx
 from activities.models import Activity, Event, Sport, Lap
-from libs.fitparse import fitparse
-
-
-GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
-	creator="https://github.com/p3dda/trainingslog"
-	version="1.1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
-"""
 
 
 class ActivityFileMeta(type):
@@ -75,8 +66,30 @@ class ActivityFile(ActivityFileMetaclass):
 		return self.laps
 
 	def to_gpx(self):
-		# TODO: Port .fit implementation and use for all file types
-		raise NotImplementedError
+		gps_fixes = 0
+		gps_no_fixes = 0
+		try:
+			with open(self.track.trackfile.path + ".gpx", 'w') as gpx_file:
+				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path + ".gpx")
+				gpx = libs.gpxpy.gpxpy.gpx.GPX()
+				gpx_track = libs.gpxpy.gpxpy.gpx.GPXTrack()
+				gpx.tracks.append(gpx_track)
+				gpx_segment = libs.gpxpy.gpxpy.gpx.GPXTrackSegment()
+				gpx_track.segments.append(gpx_segment)
+
+				for p in self.get_pos():
+					(lat, lon) = p
+					if lat is None or lon is None:
+						gps_no_fixes += 1
+						continue
+					else:
+						gps_fixes += 1
+					gpx_segment.points.append(libs.gpxpy.gpxpy.gpx.GPXTrackPoint(lat, lon))
+
+				gpx_file.write(gpx.to_xml())
+
+		except Exception, msg:
+			logging.debug("Exception occured in convert: %s" % msg)
 
 	def set_weather(self):
 		try:

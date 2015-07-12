@@ -31,13 +31,6 @@ else:
 if not found_xml_parser:
 	raise ImportError("No valid XML parsers found. Please install a Python XML parser")
 
-GPX_HEADER = """<gpx xmlns="http://www.topografix.com/GPX/1/1"
-	creator="https://github.com/p3dda/trainingslog"
-	version="1.1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
-"""
-
 
 class TCXFile(ActivityFile):
 	filetypes = ["tcx"]
@@ -48,74 +41,6 @@ class TCXFile(ActivityFile):
 	xmlactextns = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
 	xml_instance = "{http://www.w3.org/2001/XMLSchema-instance}"
 
-	class MyHandler(sax.handler.ContentHandler):
-		def __init__(self, w):
-			self.time = ""
-			self.lat = ""
-			self.lon = ""
-			self.alt = ""
-			self.content = ""
-			self.w = w
-			self.min_lat = 1000.0
-			self.max_lat = 0
-			self.min_lon = 1000.0
-			self.max_lon = 0
-
-			self.gpsfixes = 0
-
-		def startDocument(self):
-			self.w(GPX_HEADER)
-
-		def endDocument(self):
-			self.w(' <bounds minlat="%s" minlon="%s" maxlat="%s" maxlon="%s"/>\n' % (self.min_lat, self.min_lon, self.max_lat, self.max_lon))
-			self.w('</gpx>\n')
-
-		def startElement(self, name, attrs):
-
-			self.content = ""
-			if name == 'Track':
-				self.w(' <trk>\n  <trkseg>\n')
-
-		def characters(self, content):
-			self.content = self.content + saxutils.escape(content)
-
-		#    def endElementNS(fname, qname, attrs):
-		#        (ns, name) = fname
-
-		def endElement(self, name):
-			if name == 'Track':
-				self.w('  </trkseg>\n </trk>\n')
-			elif name == 'Trackpoint':
-				try:
-					if float(self.lat) < self.min_lat:
-						self.min_lat = float(self.lat)
-					if float(self.lat) > self.max_lat:
-						self.max_lat = float(self.lat)
-					if float(self.lon) < self.min_lon:
-						self.min_lon = float(self.lon)
-					if float(self.lon) > self.max_lon:
-						self.max_lon = float(self.lon)
-				except ValueError:
-					pass
-				else:
-					if self.lon and self.lat:
-						self.w('   <trkpt lat="%s" lon="%s">\n' % (self.lat, self.lon))
-						if self.alt:
-							self.w('    <ele>%s</ele>\n' % self.alt)
-						if self.time:
-							self.w('    <time>%s</time>\n' % self.time)
-						self.w('   </trkpt>\n')
-						sys.stdout.flush()
-						self.gpsfixes += 1
-			elif name == 'LatitudeDegrees':
-				self.lat = self.content
-			elif name == 'LongitudeDegrees':
-				self.lon = self.content
-			elif name == 'AltitudeMeters':
-				self.alt = self.content
-			elif name == 'Time':
-				self.time = self.content
-
 	def __init__(self, track, request=None):
 		ActivityFile.__init__(self, track, request)
 		track.trackfile.open()
@@ -124,22 +49,6 @@ class TCXFile(ActivityFile):
 		# logging.debug("Trackfile %r closed" % tcxfile.trackfile)
 
 		self.parse_trackpoints()
-
-	def to_gpx(self):
-		logging.debug("convert called with track %s" % self.track.trackfile)
-		try:
-			with open(self.track.trackfile.path + ".gpx", 'w') as f:
-				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path + ".gpx")
-				w = f.write
-				handler = self.MyHandler(w)
-				sax.parse(self.track.trackfile.path, handler)
-
-			# do not keep empty gpx files (occurs when having .tcx recordings without GPS enabled)
-			if handler.gpsfixes == 0:
-				gpxfile = self.track.trackfile.path + ".gpx"
-				os.remove(gpxfile)
-		except Exception, msg:
-			logging.debug("Exception occured in convert: %s" % msg)
 
 	def parse_file(self):
 		self.laps = []

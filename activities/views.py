@@ -7,6 +7,7 @@ import json
 import copy
 import datetime
 import itertools
+import json
 import os
 import tempfile
 import time
@@ -24,7 +25,6 @@ from health.models import Desease, Weight, Goal
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.utils import simplejson
 from django.utils import timezone
 from django.core import serializers
 from django.db.models import Sum
@@ -47,7 +47,7 @@ def add_calformula(request):
 		calformula.weight_dist_factor = request.POST.get('weight_dist_factor')
 		calformula.weight_time_factor = request.POST.get('weight_time_factor')
 		calformula.save()
-		return HttpResponse(simplejson.dumps((True, )))
+		return HttpResponse(json.dumps((True, )))
 	else:
 		return HttpResponseBadRequest
 
@@ -58,9 +58,9 @@ def delete_calformula(request):
 		calformula = CalorieFormula.objects.get(pk=int(request.POST.get('id')))
 		if calformula.user == request.user:
 			calformula.delete()
-			return HttpResponse(simplejson.dumps((True, )))
+			return HttpResponse(json.dumps((True, )))
 		else:
-			return HttpResponse(simplejson.dumps((False, "Permission denied")))
+			return HttpResponse(json.dumps((False, "Permission denied")))
 
 
 @login_required
@@ -68,7 +68,7 @@ def get_calformula(request):
 
 	calformula = CalorieFormula.objects.get(pk=int(request.GET.get('id')))
 	if calformula.user == request.user or calformula.public:
-		return HttpResponse(serializers.serialize('json', [calformula]), mimetype='application/json')
+		return HttpResponse(serializers.serialize('json', [calformula]), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -98,7 +98,7 @@ def add_sport(request):
 		else:
 			sport.speed_as_pace = True
 		sport.save()
-		return HttpResponse(simplejson.dumps((True, )))
+		return HttpResponse(json.dumps((True, )))
 	else:
 		return HttpResponseBadRequest
 
@@ -109,7 +109,7 @@ def get_sport(request):
 
 	sport = Sport.objects.get(pk=int(sport_id))
 	if sport.user == request.user:
-		return HttpResponse(serializers.serialize('json', [sport]), mimetype='application/json')
+		return HttpResponse(serializers.serialize('json', [sport]), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -120,12 +120,12 @@ def delete_sport(request):
 		try:
 			sport = Sport.objects.get(id=int(request.POST.get('id')))
 		except Sport.DoesNotExist:
-			return HttpResponse(simplejson.dumps((False, 'DoesNotExist')))
+			return HttpResponse(json.dumps((False, 'DoesNotExist')))
 		if sport.user == request.user:
 			sport.delete()
-			return HttpResponse(simplejson.dumps((True, )))
+			return HttpResponse(json.dumps((True, )))
 		else:
-			return HttpResponse(simplejson.dumps((False, "Permission denied")))
+			return HttpResponse(json.dumps((False, "Permission denied")))
 
 
 @login_required
@@ -141,7 +141,7 @@ def add_event(request):
 
 		event.name = request.POST.get('name')
 		event.save()
-		return HttpResponse(simplejson.dumps((True, )))
+		return HttpResponse(json.dumps((True, )))
 	else:
 		return HttpResponseBadRequest
 
@@ -152,7 +152,7 @@ def get_event(request):
 
 	event = Event.objects.get(pk=int(event_id))
 	if event.user == request.user:
-		return HttpResponse(serializers.serialize('json', [event]), mimetype='application/json')
+		return HttpResponse(serializers.serialize('json', [event]), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -162,9 +162,9 @@ def delete_event(request):
 		event = Event.objects.get(id=int(request.POST.get('id')))
 		if event.user == request.user:
 			event.delete()
-			return HttpResponse(simplejson.dumps((True, )))
+			return HttpResponse(json.dumps((True, )))
 		else:
-			return HttpResponse(simplejson.dumps((False, "Permission denied")))
+			return HttpResponse(json.dumps((False, "Permission denied")))
 
 
 @login_required
@@ -190,7 +190,7 @@ def add_equipment(request):
 			equipment.archived = True
 
 		equipment.save()
-		return HttpResponse(simplejson.dumps((True, )))
+		return HttpResponse(json.dumps((True, )))
 	else:
 		return HttpResponseBadRequest
 
@@ -201,7 +201,7 @@ def get_equipment(request):
 
 	equipment = Equipment.objects.get(pk=int(equipment_id))
 	if equipment.user == request.user:
-		return HttpResponse(serializers.serialize('json', [equipment]), mimetype='application/json')
+		return HttpResponse(serializers.serialize('json', [equipment]), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -211,9 +211,9 @@ def delete_equipment(request):
 		equipment = Equipment.objects.get(id=int(request.POST.get('id')))
 		if equipment.user == request.user:
 			equipment.delete()
-			return HttpResponse(simplejson.dumps((True, )))
+			return HttpResponse(json.dumps((True, )))
 		else:
-			return HttpResponse(simplejson.dumps((False, "Permission denied")))
+			return HttpResponse(json.dumps((False, "Permission denied")))
 
 
 @login_required
@@ -224,7 +224,7 @@ def list_event(request):
 @login_required
 def get_events(request):
 	event_list = Event.objects.filter(user=request.user)
-	return HttpResponse(serializers.serialize('json', event_list), mimetype='application/json')
+	return HttpResponse(serializers.serialize('json', event_list), content_type='application/json')
 
 
 @login_required
@@ -267,11 +267,12 @@ def list_activities(request):
 				activity.save()
 			except Exception as msg:
 				logging.error("Exception occured in import with message %s" % msg)
+				raise
 				if is_saved:
 					newtrack.delete()
 				for line in traceback.format_exc().splitlines():
 					logging.error(line.strip())
-				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(msg)}))
+				return HttpResponse(json.dumps({'success': False, 'msg': str(msg)}))
 			else:
 				return HttpResponseRedirect('/activities/%i/?edit=1' % activity.pk)
 		elif 'content' in request.POST:
@@ -311,14 +312,14 @@ def list_activities(request):
 				activity.save()
 				tmpfile.close()
 				os.remove(tmpfilename)
-				return HttpResponse(simplejson.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
+				return HttpResponse(json.dumps({'success': True, 'redirect_to': '/activities/%i/?edit=1' % activity.pk}))
 			except Exception, exc:
 				logging.error("Exception raised in importtrack: %s" % str(exc))
 				if is_saved:
 					newtrack.delete()
 				for line in traceback.format_exc().splitlines():
 					logging.error(line.strip())
-				return HttpResponse(simplejson.dumps({'success': False, 'msg': str(exc)}))
+				return HttpResponse(json.dumps({'success': False, 'msg': str(exc)}))
 
 		else:
 			logging.error("Missing upload data")
@@ -368,7 +369,7 @@ def get_activity(request):
 			# https seems not to be supported by facebook
 			result['preview_img'] = activity.track.preview_img.url
 
-		return HttpResponse(json.dumps(result), mimetype='application/json')
+		return HttpResponse(json.dumps(result), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -383,20 +384,20 @@ def delete_activity(request):
 			try:
 				act = Activity.objects.get(id=act_id)
 			except Activity.DoesNotExist:
-				return HttpResponse(simplejson.dumps({'success': False, 'msg': 'DoesNotExist'}))
+				return HttpResponse(json.dumps({'success': False, 'msg': 'DoesNotExist'}))
 		elif tmpl_id:
 			try:
 				act = ActivityTemplate.objects.get(id=tmpl_id)
 			except ActivityTemplate.DoesNotExist:
-				return HttpResponse(simplejson.dumps({'success': False, 'msg': 'DoesNotExist'}))
+				return HttpResponse(json.dumps({'success': False, 'msg': 'DoesNotExist'}))
 		else:
-			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Missing ID"}))
+			return HttpResponse(json.dumps({'success': False, 'msg': "Missing ID"}))
 
 		if act.user == request.user:
 			act.delete()
-			return HttpResponse(simplejson.dumps({'success': True}))
+			return HttpResponse(json.dumps({'success': True}))
 		else:
-			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Permission denied"}))
+			return HttpResponse(json.dumps({'success': False, 'msg': "Permission denied"}))
 
 
 @login_required
@@ -474,7 +475,7 @@ def add_activity(request):
 						if request.POST.get('is_template'):
 							date = None
 						else:
-							return HttpResponse(simplejson.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+							return HttpResponse(json.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
 
 			act.date = date
 
@@ -501,7 +502,7 @@ def add_activity(request):
 
 		except Exception, exc:
 			logging.exception("Exception occured in add_activits")
-			return HttpResponse(simplejson.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
+			return HttpResponse(json.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
 
 		act.save()
 
@@ -509,7 +510,7 @@ def add_activity(request):
 		act.equipment = eq_list
 
 		act.save()
-		return HttpResponse(simplejson.dumps({'success': True}))
+		return HttpResponse(json.dumps({'success': True}))
 	else:
 		return HttpResponseBadRequest
 
@@ -684,7 +685,7 @@ def get_report_data(request):
 		# make shure we include the current day
 		logging.debug("Time range is from %s (%s) to %s (%s)" % (start_date, startdate_timestamp, end_date, enddate_timestamp))
 	except ValueError:
-		return HttpResponse(simplejson.dumps((False, "Invalid timestamps")))
+		return HttpResponse(json.dumps((False, "Invalid timestamps")))
 
 	logging.debug("Filter activities between %s and %s" % (start_date, end_date))
 	events_filter = []
@@ -741,7 +742,7 @@ def get_report_data(request):
 				data['time'].append(sport_time)
 				data['count'].append(sport_count)
 
-	return HttpResponse(simplejson.dumps(data))
+	return HttpResponse(json.dumps(data))
 
 
 @login_required
@@ -798,7 +799,7 @@ def calendar_get_events(request):
 			'allDay': True, 'type': 'week_summary', 'start': summary[week]['date'].isoformat(), 'end': summary[week]['date'].isoformat(),
 			'className': 'fc-event-weeksummary'})
 
-	return HttpResponse(simplejson.dumps(events))
+	return HttpResponse(json.dumps(events))
 
 
 @login_required

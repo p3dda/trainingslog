@@ -23,9 +23,8 @@ class ActivityTest(TestCase):
 	def setUp(self):
 		self.client = django.test.client.Client()
 
-	def tearDown(self):
-		for act in Activity.objects.all():
-			act.delete()
+	# def tearDown(self):
+	# 	Activity.objects.all().delete
 
 	def test_calformula_model(self):
 		"""

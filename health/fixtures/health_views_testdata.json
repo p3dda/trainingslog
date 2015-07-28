@@ -27,33 +27,6 @@
         }
     }, 
     {
-        "pk": 58, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "add_activitytemplate", 
-            "name": "Can add activity template", 
-            "content_type": 20
-        }
-    }, 
-    {
-        "pk": 59, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "change_activitytemplate", 
-            "name": "Can change activity template", 
-            "content_type": 20
-        }
-    }, 
-    {
-        "pk": 60, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "delete_activitytemplate", 
-            "name": "Can delete activity template", 
-            "content_type": 20
-        }
-    }, 
-    {
         "pk": 49, 
         "model": "auth.permission", 
         "fields": {
@@ -348,33 +321,6 @@
             "codename": "delete_contenttype", 
             "name": "Can delete content type", 
             "content_type": 5
-        }
-    }, 
-    {
-        "pk": 61, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "add_desease", 
-            "name": "Can add desease", 
-            "content_type": 21
-        }
-    }, 
-    {
-        "pk": 62, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "change_desease", 
-            "name": "Can change desease", 
-            "content_type": 21
-        }
-    }, 
-    {
-        "pk": 63, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "delete_desease", 
-            "name": "Can delete desease", 
-            "content_type": 21
         }
     }, 
     {

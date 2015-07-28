@@ -1,8 +1,8 @@
 from decimal import Decimal
+import json
 import sys
 
 from django.http import HttpResponse
-from django.utils import simplejson
 from django.core.mail import mail_admins
 from django.utils.encoding import force_unicode
 from django.utils.functional import Promise
@@ -11,7 +11,7 @@ from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import TemplateView
 
 
-class DTEncoder(simplejson.JSONEncoder):
+class DTEncoder(json.JSONEncoder):
 	"""Encodes django's lazy i18n strings and Decimals
 	"""
 	def default(self, obj):
@@ -19,7 +19,7 @@ class DTEncoder(simplejson.JSONEncoder):
 			return force_unicode(obj)
 		elif isinstance(obj, Decimal):
 			return force_unicode(obj)
-		return simplejson.JSONEncoder.default(self, obj)
+		return json.JSONEncoder.default(self, obj)
 
 
 class JSONResponseMixin(object):
@@ -82,9 +82,8 @@ class JSONResponseMixin(object):
 			response = {'result': 'error',
 						'text': msg}
 
-		json = simplejson.dumps(response, cls=DTEncoder)
-		return self.render_to_response(json)
-
+		j = json.dumps(response, cls=DTEncoder)
+		return self.render_to_response(j)
 
 class JSONResponseView(JSONResponseMixin, TemplateView):
 	pass

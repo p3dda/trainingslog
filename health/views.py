@@ -1,5 +1,6 @@
 import time
 import datetime
+import json
 import logging
 
 from collections import namedtuple
@@ -8,7 +9,6 @@ from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequ
 
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
-from django.utils import simplejson
 from django.core import serializers
 
 from health.models import Desease, Weight, Goal, Pulse
@@ -62,7 +62,7 @@ def add_weight(request):
 				except ValueError, exc:
 					logging.exception("Exception occured in add_weight: %s" % exc)
 					result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-					return HttpResponse(simplejson.dumps(result))
+					return HttpResponse(json.dumps(result))
 
 			new_weight = Weight(date=date, user=request.user)
 
@@ -77,13 +77,13 @@ def add_weight(request):
 
 			new_weight.save()
 			result = {'success': True}
-			return HttpResponse(simplejson.dumps(result))
+			return HttpResponse(json.dumps(result))
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_weight: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
-		return HttpResponse(simplejson.dumps(result))
+		return HttpResponse(json.dumps(result))
 
 
 @login_required
@@ -98,26 +98,26 @@ def add_weightgoal(request):
 			except Exception, exc:
 				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-				return HttpResponse(simplejson.dumps(result))
+				return HttpResponse(json.dumps(result))
 			try:
 				weight = str(parsefloat(request.POST.get('weight')))
 			except ValueError, exc:
 				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}
-				return HttpResponse(simplejson.dumps(result))
+				return HttpResponse(json.dumps(result))
 
 			due_date = datetime.date(year=d.year, month=d.month, day=d.day)
 			date = datetime.date.today()
 			new_goal = Goal(date=date, due_date=due_date, target_weight=weight, user=request.user)
 			new_goal.save()
 			result = {'success': True}
-			return HttpResponse(simplejson.dumps(result))
+			return HttpResponse(json.dumps(result))
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_weightgoal: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
-		return HttpResponse(simplejson.dumps(result))
+		return HttpResponse(json.dumps(result))
 
 
 @login_required
@@ -144,14 +144,14 @@ def add_desease(request):
 			except ValueError, exc:
 				logging.exception("Exception occured in add_desease: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % startdate_string}
-				return HttpResponse(simplejson.dumps(result))
+				return HttpResponse(json.dumps(result))
 			try:
 				ed = datetime.datetime.strptime(enddate_string, "%d.%m.%Y")
 				enddate = datetime.date(year=ed.year, month=ed.month, day=ed.day)
 			except ValueError, exc:
 				logging.exception("Exception occured in add_desease: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % enddate_string}
-				return HttpResponse(simplejson.dumps(result))
+				return HttpResponse(json.dumps(result))
 
 			desease.start_date = startdate
 			desease.end_date = enddate
@@ -159,13 +159,13 @@ def add_desease(request):
 			desease.name = name
 			desease.save()
 			result = {'success': True}
-			return HttpResponse(simplejson.dumps(result))
+			return HttpResponse(json.dumps(result))
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_desease: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}
-		return HttpResponse(simplejson.dumps(result))
+		return HttpResponse(json.dumps(result))
 
 
 @login_required
@@ -173,7 +173,7 @@ def get_desease(request):
 	desease_id = request.GET.get('id', '')
 	desease = Desease.objects.get(pk=int(desease_id))
 	if desease.user == request.user:
-		return HttpResponse(serializers.serialize('json', [desease]), mimetype='application/json')
+		return HttpResponse(serializers.serialize('json', [desease]), content_type='application/json')
 	else:
 		return HttpResponseForbidden()
 
@@ -256,7 +256,7 @@ def get_data(request):
 		data['pulse_rest'] = pulse_rest_list
 		data['pulse_max'] = pulse_max_list
 
-	return HttpResponse(simplejson.dumps({"data": data}))
+	return HttpResponse(json.dumps({"data": data}))
 
 
 @login_required
@@ -267,7 +267,7 @@ def add_pulse(request):
 			logging.debug("add_pulse post request with items %s" % repr(request.POST.items()))
 			if not ("rest" in request.POST or "maximum" in request.POST):
 				logging.error("Received neither rest nor maximum pulse")
-				return HttpResponse(simplejson.dumps({"success": False, 'msg': "Keine Pulswerte uebermittelt"}))
+				return HttpResponse(json.dumps({"success": False, 'msg': "Keine Pulswerte uebermittelt"}))
 			else:
 				try:
 					d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
@@ -279,7 +279,7 @@ def add_pulse(request):
 					except ValueError, exc:
 						logging.exception("Exception occured in add_pulse: %s" % exc)
 						result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-						return HttpResponse(simplejson.dumps(result))
+						return HttpResponse(json.dumps(result))
 
 				new_pulse = Pulse(user=request.user, date=date)
 				if "rest" in request.POST:
@@ -287,10 +287,10 @@ def add_pulse(request):
 				if "maximum" in request.POST:
 					new_pulse.maximum = request.POST.get("maximum")
 				new_pulse.save()
-				return HttpResponse(simplejson.dumps({"success": True}))
+				return HttpResponse(json.dumps({"success": True}))
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:
 		logging.exception("Exception occured in add_pulse: %s" % exc)
 		result = {'success': False, 'msg': "Fehler aufgetreten:: %s" % exc}
-		return HttpResponse(simplejson.dumps(result))
+		return HttpResponse(json.dumps(result))

@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 
 from activities.views import ActivityListJson
@@ -7,7 +7,6 @@ from activities.views import ActivityListJson
 from django.contrib import admin
 import django.contrib.auth.views
 from django.http import HttpResponse
-import django.views.generic.create_update
 from activities.models import Activity, Sport
 import settings
 admin.autodiscover()

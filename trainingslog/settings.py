@@ -6,6 +6,8 @@ import sys
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 sys.path.append(os.path.join(PROJECT_ROOT, 'libs'))
 
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

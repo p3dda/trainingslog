@@ -85,5 +85,6 @@ class JSONResponseMixin(object):
 		j = json.dumps(response, cls=DTEncoder)
 		return self.render_to_response(j)
 
+
 class JSONResponseView(JSONResponseMixin, TemplateView):
 	pass

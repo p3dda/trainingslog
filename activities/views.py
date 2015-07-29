@@ -256,10 +256,10 @@ def list_activities(request):
 			logging.debug("Creating activity from file upload")
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
+				newtrack.save()
 				filename, fileextension = os.path.splitext(newtrack.trackfile.path)
 				newtrack.filetype = fileextension.lower()[1:]
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
-
 				newtrack.save()
 				is_saved = True
 				activityfile.import_activity()

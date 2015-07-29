@@ -269,7 +269,7 @@ class ActivityTest(TestCase):
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
-		act = Activity.objects.get(pk=1)
+		act = Activity.objects.get(pk=2)
 		self.assertEqual(act.distance, Decimal('0'))
 		self.assertEqual(act.time, 4365)
 		self.assertEqual(act.time_movement, None)

@@ -77,7 +77,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "apt-get install --yes puppet"
 
   config.vm.provision "puppet" do |puppet|
-    puppet.manifests_path = "manifests"
+    puppet.manifests_path = "puppet/manifests"
+    puppet.module_path = "puppet/modules"
     puppet.manifest_file  = "default.pp"
   end
 

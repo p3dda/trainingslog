@@ -591,7 +591,7 @@ table.fc-border-separate {
 /* Custom style */
 .fc-week-summary {
 	border: 1px solid #2694e8;
-	background: #C9E7F7 url(images/ui-bg_glass_50_3baae3_1x400.png) 50% 50% repeat-x;
+	background: #C9E7F7 url(/javascript/jquery-ui-themes/cupertino/images/ui-bg_glass_50_3baae3_1x400.png) 50% 50% repeat-x;
 	font-weight: bold;
 	color: #2694e8;
 }

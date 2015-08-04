@@ -6,9 +6,7 @@ exec { 'apt-get update':
   tries   => 3
 }
 
-package { ['vim', 'python-django', 'python-dateutil',
-            'libjs-jquery', 'libjs-jquery-mobile','libjs-jquery-ui', 'libjs-jquery-ui-theme-cupertino',
-            'libjs-jquery-flot', 'libjs-jquery-timepicker', 'libjs-jquery-tablesorter', 'libjs-openlayers']:
+package { ['vim', 'python-django', 'python-dateutil']:
   ensure  => 'installed',
   require => Exec['apt-get update'],
 }
@@ -37,10 +35,10 @@ nginx::resource::location { 'trainingslog_media':
 }
 
 
-nginx::resource::location { 'javascript':
-  ensure => present,
-  location => '/javascript',
-  vhost => 'trainingslog',
-  www_root => '/usr/share',
-  autoindex => 'on',
-}
+#nginx::resource::location { 'javascript':
+#  ensure => present,
+#  location => '/javascript',
+#  vhost => 'trainingslog',
+#  www_root => '/usr/share',
+#  autoindex => 'on',
+#}

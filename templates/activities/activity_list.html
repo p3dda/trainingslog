@@ -15,20 +15,22 @@
 
 <script type="text/javascript" src="/media/js/common.js"></script>
 
-<script type="text/javascript" src="/javascript/jquery/jquery.min.js"></script>
-<script type="text/javascript" src="/javascript/jquery-ui/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/javascript/jquery-tablesorter/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="/javascript/jquery-tablesorter/addons/pager/jquery.tablesorter.pager.min.js"></script>
-<script type="text/javascript" src="/javascript/jquery-timepicker/jquery-ui-timepicker-addon.js"></script>
-<script type="text/javascript" src="/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/extras/jquery.tablesorter.pager.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
 
-<script type="text/javascript" src="/media/js/noty/jquery.noty.js"></script>
-<script type="text/javascript" src="/media/js/noty/layouts/top.js"></script>
-<script type="text/javascript" src="/media/js/noty/themes/default.js"></script>
-
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/jquery.noty.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/layouts/top.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/themes/default.js"></script>
+{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables.css'/>#}
+{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>#}
+{#<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables.css'/>#}
 <link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
-<link rel='stylesheet' type='text/css' href='/javascript/jquery-ui-themes/cupertino/jquery.ui.all.css' />
-<link rel='stylesheet' type='text/css' href='/javascript/jquery-timepicker/jquery-ui-timepicker-addon.css'/>
+<link rel='stylesheet' type='text/css' href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/cupertino/jquery-ui.css' />
+<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.css'/>
 <link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
 
 <script>
@@ -170,6 +172,7 @@
 			"oLanguage": {
 				"sUrl":   "/media/lang/dataTables.de_DE.txt"
 			},
+			"pagingType": "simple",
 			"sAjaxSource": "/activities/get"
 		});
 	});

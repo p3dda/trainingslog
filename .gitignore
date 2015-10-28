@@ -8,6 +8,7 @@ trainingslog.db
 *.swp
 django.log
 media/uploads
+/nbproject/private/
 .idea
 .vagrant
 .coverage

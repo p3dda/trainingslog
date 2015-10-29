@@ -10,7 +10,7 @@ class WeightAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Weight.objects.all()
 		return Weight.objects.filter(user=request.user)
@@ -32,7 +32,7 @@ class GoalAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Goal.objects.all()
 		return Goal.objects.filter(user=request.user)
@@ -54,7 +54,7 @@ class PulseAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Pulse.objects.all()
 		return Pulse.objects.filter(user=request.user)

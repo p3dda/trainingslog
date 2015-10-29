@@ -13,7 +13,7 @@ class ActivityAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Activity.objects.all()
 		return Activity.objects.filter(user=request.user)
@@ -35,7 +35,7 @@ class EquipmentAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Equipment.objects.all()
 		return Equipment.objects.filter(user=request.user)
@@ -57,7 +57,7 @@ class SportAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Sport.objects.all()
 		return Sport.objects.filter(user=request.user)
@@ -79,7 +79,7 @@ class EventAdmin(admin.ModelAdmin):
 			obj.user = request.user
 		obj.save()
 
-	def queryset(self, request):
+	def get_queryset(self, request):
 		if request.user.is_superuser:
 			return Event.objects.all()
 		return Event.objects.filter(user=request.user)

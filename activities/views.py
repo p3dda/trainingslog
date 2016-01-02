@@ -446,18 +446,18 @@ def add_activity(request):
 			act.sport = sport
 
 			if sport.speed_as_pace:
-				if request.POST.get('speed_max') != 'null':
+				if request.POST.get('speed_max') != u'':
 					act.speed_max = str(pace_to_speed(request.POST.get('speed_max')))
-				if request.POST.get('speed_avg') != 'null':
+				if request.POST.get('speed_avg') != u'':
 					act.speed_avg = str(pace_to_speed(request.POST.get('speed_avg')))
-				if request.POST.get('speed_avg_movement') != 'null':
+				if request.POST.get('speed_avg_movement') != u'':
 					act.speed_avg_movement = str(pace_to_speed(request.POST.get('speed_avg_movement')))
 			else:
-				if request.POST.get('speed_max') != 'null':
+				if request.POST.get('speed_max') != u'':
 					act.speed_max = str_float_or_none(request.POST.get('speed_max'))
-				if request.POST.get('speed_avg') != 'null':
+				if request.POST.get('speed_avg') != u'':
 					act.speed_avg = str_float_or_none(request.POST.get('speed_avg'))
-				if request.POST.get('speed_avg_movement') != 'null':
+				if request.POST.get('speed_avg_movement') != u'':
 					act.speed_avg_movement = str_float_or_none(request.POST.get('speed_avg_movement'))
 
 			equipment_list = request.POST.get('equipment').split(" ")

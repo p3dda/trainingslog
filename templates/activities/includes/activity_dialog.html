@@ -258,10 +258,10 @@
 		);
 		
 		$( "#new_act_date" ).datepicker("setDate", now);
-		$( "#new_act_datetime" ).timepicker();//{hourText: "Stunde"});
-		$( "#new_act_time" ).timepicker({hourText: "Stunde"});
-		$( "#new_act_elapsed_time" ).timepicker({hourText: "Stunde"});
-		$( "#new_act_time_movement" ).timepicker({hourText: "Stunde"});
+		$( "#new_act_datetime" ).timepicker({timeFormat: 'H:i:s' });//{hourText: "Stunde"});
+		$( "#new_act_time" ).timepicker({hourText: "Stunde", timeFormat: 'G:i:s'});
+		$( "#new_act_elapsed_time" ).timepicker({hourText: "Stunde", timeFormat: 'G:i:s'});
+		$( "#new_act_time_movement" ).timepicker({hourText: "Stunde", timeFormat: 'G:i:s'});
 		$( "#tabs" ).tabs();
 
 		$("#new_act_save").click(submitActivityClicked);
@@ -386,7 +386,7 @@
 			if(fields.date != null ){
 				var dateObject = new Date(fields.date);
 				$("#new_act_date").datepicker("setDate", dateObject);
-				$("#new_act_datetime").timepicker("setTime", dateObject.toLocaleTimeString());
+				$("#new_act_datetime").timepicker("setTime", dateObject);
 			}
 			
 			if(fields.name != null){

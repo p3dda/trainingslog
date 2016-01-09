@@ -144,7 +144,7 @@ class FITFile(ActivityFile):
 			trackpoint_time = ((delta.seconds + 86400 * delta.days) - offset_time) * 1000
 
 			# Find sections with speed < 0.5m/s (no real movement, remove duration of this section from timeline)
-			if last_distance is not None and distance is not None:
+			if last_distance is not None and distance is not None and distance > 0:
 				delta_dist = distance - last_distance
 				delta_time = (trackpoint_time - self.track_by_distance[last_distance]["trackpoint_time"]) / 1000
 				if delta_time > 0 and (delta_dist / delta_time) < 0.5:

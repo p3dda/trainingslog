@@ -12,3 +12,4 @@ media/uploads
 .idea
 .vagrant
 .coverage
+.DS_Store

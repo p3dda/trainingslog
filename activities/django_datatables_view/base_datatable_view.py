@@ -19,7 +19,7 @@ class DatatableMixin(object):
     max_display_length = 100  # max limit of records returned, do not allow to kill our server by huge sets of data
     pre_camel_case_notation = False  # datatables 1.10 changed query string parameter names
     none_string = ''
-    
+
     @property
     def _querydict(self):
         if self.request.method == 'POST':
@@ -60,7 +60,7 @@ class DatatableMixin(object):
                 text = obj
         if text is None:
             text = self.none_string
-            
+
         if text and hasattr(row, 'get_absolute_url'):
             return '<a href="%s">%s</a>' % (row.get_absolute_url(), text)
         else:
@@ -218,7 +218,7 @@ class DatatableMixin(object):
                        'recordsTotal': total_records,
                        'recordsFiltered': total_display_records,
                        'data': data
-                }
+                       }
         except Exception as e:
             logger.exception(str(e))
 

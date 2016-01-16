@@ -844,6 +844,7 @@ class ActivityListJson(BaseDatatableView):
 	# order is important and should be same as order of columns
 	# displayed by datatables. For non sortable columns use empty
 	# value like ''
+	columns = ['name', 'sport', 'date', 'time']
 	order_columns = ['name', 'sport', 'date', 'time']
 
 	# set max limit of records returned, this is used to protect our site if someone tries to attack our site
@@ -860,9 +861,9 @@ class ActivityListJson(BaseDatatableView):
 		# use request parameters to filter queryset
 
 		# simple example:
-		ssearch = self.request.GET.get('sSearch', None)
-		if ssearch:
-			qs = qs.filter(name__icontains=ssearch)
+		search = self.request.GET.get(u'search[value]', None)
+		if search:
+			qs = qs.filter(name__icontains=search)
 
 		return qs
 

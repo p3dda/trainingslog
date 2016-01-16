@@ -2,8 +2,9 @@
 
 {% block head %}
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/extras/jquery.tablesorter.pager.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.10/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.10/js/dataTables.jqueryui.min.js"></script>
+
 	<style>
 		label.error {
 				color: red;
@@ -23,19 +24,20 @@
 	<script>
 	$("#act_list_page").on('pageinit', function() {
 		var act_table = $('#activities_table').dataTable({
-			"aaSorting": [[ 2, "desc" ]],
-			"aoColumnDefs": [
+			"order": [[ 2, "desc" ]],
+
+			"columnDefs": [
 				{
-					"aTargets": [2],
-					"bSearchable": false,
-					"mRender": function ( data, type, full ) {
+					"targets": [2],
+					"searchable": false,
+					"render": function ( data, type, full ) {
 						return secondsToTime(data);
 					}
 				},
-				{ "aTargets": [1],
-					"bSearchable": false,
-					"sType": 'date',
-					"mRender": function ( data, type, full ) {
+				{ "targets": [1],
+					"searchable": false,
+					"type": 'date',
+					"render": function ( data, type, full ) {
 						var javascriptDate = new Date(data);
 						var dateString = pad(javascriptDate.getDate(),2) + "." + pad(javascriptDate.getMonth() + 1,2) + "." + javascriptDate.getFullYear() + " " + pad(javascriptDate.getHours(),2) + ":" + pad(javascriptDate.getMinutes(),2);
 						//javascriptDate = javascriptDate.getDate()+"/"+javascriptDate.getMonth()+1+"/"+javascriptDate.getFullYear();
@@ -43,14 +45,10 @@
 					}
 				}
 			],
- 			"bJQueryUI": true,
-			"bPaginate": true,
-			"bServerSide": true,
-			"sPaginationType": "two_button",
-			"oLanguage": {
-			"sUrl":   "/media/lang/dataTables.de_DE.txt"
-			},
-			"sAjaxSource": "/activities/get"
+			"paging": true,
+			"ajax": "/activities/get",
+			"processing": true,
+			"serverSide": true
 		});
 	});
 

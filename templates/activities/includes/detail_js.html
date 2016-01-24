@@ -153,14 +153,15 @@
 
 	function hideTooltips() {
 		// Hide tooltip for each graph
+		console.debug("hideTooltips called");
 		if(tooltipsVisible) {
 			for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
-				$("#details_"+graphs[graph]["name"]+"_container").tooltip("disable").tooltip("close");
+				$("#details_"+graphs[graph]["name"]+"_container").tooltip("option", "disabled", true ).tooltip("close");
 			}
 
 			{%  if gpx_url %}
 			// Hide map tooltip
-			$("#details_map_tooltip").tooltip("disable").tooltip("close");
+			$("#details_map_tooltip").tooltip("option", "disabled", true ).tooltip("close");
 			{% endif %}
 			tooltipsVisible = false;
 		}
@@ -172,6 +173,7 @@
 		var graph;
 
 		for(graph in graphs)if (graphs.hasOwnProperty(graph)) {
+			console.debug("showTooltips: update text for graph " + graphs[graph]["dataname"]);
 			var text = "";
 			rangeValues = rangeData(plotDataRaw[graphs[graph]["dataname"]].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]));
 
@@ -221,22 +223,26 @@
 		mapTooltip.tooltip("option", "content", text);
 		{% endif %}
 
-
 		// show tooltip
 		if(!tooltipsVisible){
+			console.debug("showTooltips: show tooltips");
 			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {
 				$("#details_" + graphs[graph]["name"] + "_container")
 						.tooltip("option", "position", { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
+						.tooltip("option", "disabled", false )
 						.tooltip("open");
 			}
 
 			{% if gpx_url %}
 			mapTooltip
 				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
+				.tooltip("option", "disabled", false )
 				.tooltip("open");
 			{% endif %}
 
 			tooltipsVisible = true;
+		} else {
+			console.debug("showTooltips: tooltips are already visible");
 		}
 	}
 
@@ -603,7 +609,7 @@
 				series = dataset[i];
 				// skip parsing of empty datasets created by threshold graphs
 				if (series.data.length==0) continue;
-				console.debug("updateCursorPlot: Parsing dataset series " + i);
+{#				console.debug("updateCursorPlot: Parsing dataset series " + i);#}
 				// find the nearest points, x-wise
 				for (j = 0; j < series.data.length; ++j) {
 					if (series.data[j]) {
@@ -625,7 +631,7 @@
 				} else {
 					newvalue = y.toFixed(graphs[graph]["rounding"]);
 				}
-				console.debug("updateCursorPlot: setting new value " + newvalue + " on legend for graph named " + graph_name);
+{#				console.debug("updateCursorPlot: setting new value " + newvalue + " on legend for graph named " + graph_name);#}
 				legend.eq(i).text(graphs[graph]["label"] + " " + newvalue + " " + graphs[graph]["unit"]);
 			}
 		}

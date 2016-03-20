@@ -56,8 +56,8 @@
 
 	<div id="tabs-details" >
 		<div id="details_left_tables">
-			<div class="details_left_tables" id="details_overview">
-				<h3><a href="#">&Uuml;bersicht</a></h3>
+			<div class="details_left_tables ui-widget  ui-widget-content ui-corner-all" id="details_overview">
+				<h3 class="ui-widget-header ui-corner-top">&Uuml;bersicht</h3>
 				<div>
 					<table class = "activity_details">
 						<colgroup>
@@ -72,8 +72,8 @@
 					</table>
 				</div>
 			</div>
-			<div class="details_left_tables" id="details_details">
-				<h3><a href="#">Details</a></h3>
+			<div class="details_left_tables ui-widget  ui-widget-content ui-corner-all" id="details_details">
+				<h3 class="ui-widget-header ui-corner-top">Details</h3>
 				<div>
 					<table class = "activity_details" id="activity_details_table">
 						<colgroup>
@@ -101,8 +101,8 @@
 				</div>
 			</div>
 			{% if activity.weather_stationname  %}
-			<div class="details_left_tables" id="details_weather">
-				<h3><a href="#">Wetter</a></h3>
+			<div class="details_left_tables ui-widget  ui-widget-content ui-corner-all" id="details_weather">
+			<h3 class="ui-widget-header ui-corner-top">Wetter</h3>
 				<div>
 					<table class = "activity_weather">
 						<colgroup>
@@ -121,9 +121,9 @@
 {% endif %}
 		</div>
 		{% if gpx_url %}
-		<div id="details_map" class="details_plot">
-			<h3><a href="#">Karte</a></h3>
-			<div id="details_map_container" class="hidden"></div>
+		<div class="details_plot ui-widget ui-widget-content ui-corner-all" id="details_map">
+			<h3 class="ui-widget-header ui-corner-top">Karte</h3>
+			<div id="details_map_container"></div>
 		</div>
 		<div id="details_map_tooltip" class="details_plot" title="Tooltip"></div>
 		{% endif %}
@@ -131,33 +131,32 @@
 		<div id="spinning_icon" class="details_plot ">
 			<img src="/media/img/spinning-icon.gif" alt="Bitte warten..."/>
 		</div>
-
-		<div id="details_speed" class="details_plot hidden">
-			<h3><a href="#">Geschwindigkeit</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_speed">
+			<h3 class="ui-widget-header ui-corner-top">Geschwindigkeit</h3>
 			<div class="details_plot_container" title="Geschwindigkeit" id="details_speed_container"></div>
 		</div>
-		<div id="details_hf" class="details_plot hidden">
-			<h3><a href="#">Herzfrequenz</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_hf">
+			<h3 class="ui-widget-header ui-corner-top">Herzfrequenz</h3>
 			<div class="details_plot_container" title="HF" id="details_hf_container"></div>
 		</div>
-		<div id="details_alt" class="details_plot hidden">
-			<h3><a href="#">H&ouml;he</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_alt">
+			<h3 class="ui-widget-header ui-corner-top">H&ouml;he</h3>
 			<div class="details_plot_container" title="Hoehe" id="details_alt_container"></div>
 		</div>
-		<div id="details_cad" class="details_plot hidden">
-			<h3><a href="#">Trittfrequenz</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_cad">
+			<h3 class="ui-widget-header ui-corner-top">Trittfrequenz</h3>
 			<div class="details_plot_container" title="Trittfrequenz" id="details_cad_container"></div>
 		</div>
-		<div id="details_stance_time" class="details_plot hidden">
-			<h3><a href="#">Bodenkontaktzeit</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_stance_time">
+			<h3 class="ui-widget-header ui-corner-top">Bodenkontaktzeit</h3>
 			<div class="details_plot_container" title="Bodenkontaktzeit" id="details_stance_time_container"></div>
 		</div>
-		<div id="details_vertical_oscillation" class="details_plot hidden">
-			<h3><a href="#">Vertikale Bewegung</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_vertical_oscillation">
+			<h3 class="ui-widget-header ui-corner-top">Vertikale Bewegung</h3>
 			<div class="details_plot_container" title="Vertikale Bewegung" id="details_vertical_oscillation_container"></div>
 		</div>
-		<div id="details_temperature" class="details_plot hidden">
-			<h3><a href="#">Temperatur</a></h3>
+		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_temperature">
+			<h3 class="ui-widget-header ui-corner-top">Temperatur</h3>
 			<div class="details_plot_container" title="Temperatur" id="details_temperature_container"></div>
 		</div>
 		<div id="plotbase_form" class="hidden">
@@ -176,8 +175,8 @@
 
 	{% if laps %}
 	<div id="tabs-laps">
-		<div id="laps_laps">
-			<h3><a href="#">Runden</a></h3>
+		<div class="details_laps ui-widget  ui-widget-content ui-corner-all" id="laps_laps">
+			<h3 class="ui-widget-header ui-corner-top">Runden</h3>
 			<table id="laps_table" class="data_table">
 				<thead>
 					<tr><th>Zeit</th><th>Distanz</th><th>Max. Geschwindigkeit</th><th>Ø Geschwindigkeit</th><th>Aufstieg</th><th>Abstieg</th><th>Max. HF</th><th>Ø HF</th><th>Kalorien</th></tr>

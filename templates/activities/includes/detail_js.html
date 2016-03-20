@@ -247,10 +247,6 @@
 	}
 
 	$(document).ready(function() {
-		$( "#details_overview" ).accordion({collapsible: true});
-		$( "#details_details" ).accordion({collapsible: true});
-		$( "#details_weather" ).accordion({collapsible: true});
-		$( "#laps_laps").accordion();
 		$( "#details_tabs" ).tabs({
 			activate: function(event ,ui){
 				// hide tooltips when switching to laps tab
@@ -268,10 +264,6 @@
 		});
 
 {% if tcx %}
-		$( "#details_map" ).accordion({collapsible: true});
-		for (var i in graphs) if(graphs.hasOwnProperty(i)){
-			$( "#details_"+graphs[i]["name"] ).accordion({collapsible: true});
-		}
 		$( "#plot_xaxis").change(plotXaxisChanged);
 		$( "#plot_zoom").click(plotZoomClicked);
 		$( "#plot_reset_zoom").click(plotResetZoomClicked);
@@ -300,7 +292,6 @@
 					console.debug("Unknown detail entry: " + detailName);
 				}
 			}
-			$( "#details_details" ).accordion( "refresh" );
 
 			for(var graph in graphs)if (graphs.hasOwnProperty(graph)) {
 				var dataname = graphs[graph]["dataname"];

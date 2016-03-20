@@ -124,12 +124,25 @@ hr {
 
 div .details_left_tables {
 	width: 295px;
+	margin-bottom: 5px;
 }
 
 div #details_left_tables {
 	width: 295px;
 	float: left;
 	font-size: small;
+}
+
+.details_left_tables h3 {
+	margin: 0px;
+}
+
+.details_plot h3 {
+	margin: 0px;
+}
+
+.details_laps h3 {
+	margin: 0px;
 }
 div #plot_selection{
 	height: 200px;
@@ -141,11 +154,11 @@ div #details_map_container {
 	z-index:0
 }
 
-
 div .details_plot {
 	font-size: small;
 	width: 600px;
 	margin-left: 305px;
+	margin-bottom: 5px;
 }
 
 div .details_plot_container{
@@ -248,4 +261,3 @@ div #tabs-laps {
 	vertical-align: top;
 	width: 20%;
 }
-

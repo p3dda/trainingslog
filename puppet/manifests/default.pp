@@ -11,7 +11,9 @@ package { ['vim', 'python-django', 'python-dateutil']:
   require => Exec['apt-get update'],
 }
 
-class {'nginx': }
+class {'nginx':
+  sendfile => 'off'
+}
 
 nginx::resource::vhost {'trainingslog':
   listen_port => 8000,

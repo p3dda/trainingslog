@@ -542,6 +542,17 @@ def detail(request, activity_id, version='classic'):
 	if not param:
 		# no parameter given, reply with activity detail template
 
+		if act.sport.speed_as_pace:
+			if act.speed_max:
+				act.speed_max = speed_to_pace(act.speed_max)
+			if act.speed_avg:
+				act.speed_avg = speed_to_pace(act.speed_avg)
+			if act.speed_avg_movement:
+				act.speed_avg_movement = speed_to_pace(act.speed_avg_movement)
+			speed_unit = "min/km"
+		else:
+			speed_unit = "km/h"
+
 		if act.track:
 			trackfile = act.track.trackfile
 
@@ -563,21 +574,21 @@ def detail(request, activity_id, version='classic'):
 			else:
 				preview_img = None
 
+			plots = [
+				{"name": "hf", "dataname": "hf", "label": "HF", "label_short": "HF", "color": "#FF0000", "rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
+				{"name": "speed", "dataname": "speed", "label": "Geschwindigkeit", "label_short": "Geschw.", "color": "#0070A3", "rounding": 1, "unit": speed_unit, "unit_short": speed_unit},
+				{"name": "alt", "dataname": "altitude", "label": "Hoehe", "label_short": "Hoehe", "color": "#00FF00", "rounding": 0, "unit": "m", "unit_short": "m"},
+				{"name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "color": "#FFBF00", "rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
+				{"name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "Millisekunden", "unit_short": "ms"},
+				{"name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "mm", "unit_short": "mm"},
+				{"name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "C", "unit_short": "C"}
+			]
+
 		else:
 			trackfile = None
 			gpx_url = None
 			preview_img = None
-
-		if act.sport.speed_as_pace:
-			if act.speed_max:
-				act.speed_max = speed_to_pace(act.speed_max)
-			if act.speed_avg:
-				act.speed_avg = speed_to_pace(act.speed_avg)
-			if act.speed_avg_movement:
-				act.speed_avg_movement = speed_to_pace(act.speed_avg_movement)
-			speed_unit = "min/km"
-		else:
-			speed_unit = "km/h"
+			plots = []
 
 		act.time = seconds_to_time(act.time, force_hour=True)
 		if act.time_movement:
@@ -615,9 +626,9 @@ def detail(request, activity_id, version='classic'):
 			else:
 				weight = None
 
-			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
+			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id, 'plots': plots})
 		else:
-			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public})
+			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'plots': plots})
 	if param == 'plots':
 		if act.track:
 			track = ActivityFile.ActivityFile(act.track)

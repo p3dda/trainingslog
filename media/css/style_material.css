@@ -3,6 +3,20 @@ nav
     margin-bottom: 30px;
 }
 
+
+
+div .details_plot_container{
+    width: 100%;
+    height: 250px;
+}
+
+.details_plot_container table {
+    width: unset;
+}
+.legend td{
+    padding: 0px;
+}
+
 /* DataTable stuff*/
 table.dataTable thead .sorting {
     background-repeat: no-repeat;

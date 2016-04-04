@@ -197,7 +197,9 @@
 					text = text + "<tr><td>Avg. </td><td>" + rangeValues.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 				}
 			}
-			$("#details_" + graphs[graph]["name"] + "_container").tooltip("option", "content", "<table>" + text + "</table>");
+{#			$("#details_" + graphs[graph]["name"] + "_container").tooltip("option", "content", "<table>" + text + "</table>");#}
+			$("#details_" + graphs[graph]["name"] + "_container").tooltip({ tooltip: 'MyToolTipText'});
+			break;   // FIXME
 		}
 		{% if gpx_url %}
 		text = "<table>";
@@ -213,58 +215,60 @@
 						text = text + "<tr><td>Ø Geschw.</td><td>" + (rangeValues.distance * 3600 / rangeValues.duration).toFixed(1).toString().replace('.', ',') + " km/h</td></tr>";
 					}
 				}
+				console.debug("Updated text to " + text);
 
 				break;
 			}
 		}
 		text = text + "</table>";
-
-		var mapTooltip = $("#details_map_tooltip");
-		mapTooltip.tooltip("option", "content", text);
+		// FIXME
+{#		var mapTooltip = $("#details_map_tooltip");#}
+{#		mapTooltip.tooltip("option", "content", text);#}
 		{% endif %}
 
 		// show tooltip
-		if(!tooltipsVisible){
-			console.debug("showTooltips: show tooltips");
-			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {
-				$("#details_" + graphs[graph]["name"] + "_container")
-						.tooltip("option", "position", { my: "right-10 bottom-25", at: "right bottom", collision: "none" })
-						.tooltip("option", "disabled", false )
-						.tooltip("open");
-			}
-
-			{% if gpx_url %}
-			mapTooltip
-				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })
-				.tooltip("option", "disabled", false )
-				.tooltip("open");
-			{% endif %}
-
-			tooltipsVisible = true;
-		} else {
-			console.debug("showTooltips: tooltips are already visible");
-		}
+		// FIXME
+{#		if(!tooltipsVisible){#}
+{#			console.debug("showTooltips: show tooltips");#}
+{#			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {#}
+{#				$("#details_" + graphs[graph]["name"] + "_container")#}
+{#						.tooltip("option", "position", { my: "right-10 bottom-25", at: "right bottom", collision: "none" })#}
+{#						.tooltip("option", "disabled", false )#}
+{#						.tooltip("open");#}
+{#			}#}
+{##}
+{#			{% if gpx_url %}#}
+{#			mapTooltip#}
+{#				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })#}
+{#				.tooltip("option", "disabled", false )#}
+{#				.tooltip("open");#}
+{#			{% endif %}#}
+{##}
+{#			tooltipsVisible = true;#}
+{#		} else {#}
+{#			console.debug("showTooltips: tooltips are already visible");#}
+{#		}#}
 	}
 
 	$(document).ready(function() {
 		{% if gpx_url %}
 			initMap();
 		{% endif %}
-		$( "#details_tabs" ).tabs({
-			activate: function(event ,ui){
-				// hide tooltips when switching to laps tab
-				plotLockSelectionCB = true;
-				if(ui.newTab.index() == 1 && tooltipsVisible){
-					hideTooltips();
-				}
-				//show tooltips when switching to details tab, restore selection in plots
-				if(ui.newTab.index() == 0 && plotselectionActive){
-					showTooltips();
-					showPlotsSelection();
-				}
-				plotLockSelectionCB = false;
-			}
-		});
+{#		$( "#details_tabs" ).tabs({#}
+{#			activate: function(event ,ui){#}
+{#				// hide tooltips when switching to laps tab#}
+{#				plotLockSelectionCB = true;#}
+{#				if(ui.newTab.index() == 1 && tooltipsVisible){#}
+{#					hideTooltips();#}
+{#				}#}
+{#				//show tooltips when switching to details tab, restore selection in plots#}
+{#				if(ui.newTab.index() == 0 && plotselectionActive){#}
+{#					showTooltips();#}
+{#					showPlotsSelection();#}
+{#				}#}
+{#				plotLockSelectionCB = false;#}
+{#			}#}
+{#		});#}
 
 {% if tcx %}
 		$( "#plot_xaxis").change(plotXaxisChanged);
@@ -287,6 +291,7 @@
 			$("#spinning_icon").hide();
 			for(var detailName in detailsData) if(detailsData.hasOwnProperty(detailName)){
 				if(detailName in detailsEntries){
+					console.debug("onDataReceive: Found detail entry: " + detailName);
 					$("#activity_details_table").find("> tbody").append('<tr><td>'+detailsEntries[detailName]['label']+'</td><td>' + detailsData[detailName].toFixed(detailsEntries[detailName]["rounding"]) + ' ' + detailsEntries[detailName]['unit'] + '</td></tr>');
 				} else {
 					console.debug("Unknown detail entry: " + detailName);
@@ -312,7 +317,6 @@
 			$("#plotbase_form").show();
 
 		}
-
 
 		$.ajax({
 			async : true,
@@ -573,12 +577,13 @@
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
 				legends[graphs[i]["name"]].each(function() {
-					$(this).css('width', $(this).width());
+{#					$(this).css('width', $(this).width());#}
 				});
 			} else {
 				plot_data[graphs[i]["name"]]["data"] = [];
-				$("#details_"+graphs[i]["name"]).hide();
 
+				$("#details_"+graphs[i]["name"]+"_li").remove();
+				$("#details_"+graphs[i]["name"]+"_div").remove();
 				// Delete entry from graph list for non-existing graphs
 				delete graphs[i];
 			}
@@ -686,11 +691,11 @@
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)) {
 			// Add tooltip
 			var graphcontainer = $("#details_"+graphs[graph]["name"]+"_container");
-			graphcontainer.tooltip({
-					disabled: true,
-					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },
-					tooltipClass: "details_plot_tooltip"
-			});
+{#			graphcontainer.tooltip({#}
+{#					disabled: true,#}
+{#					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },#}
+{#					tooltipClass: "details_plot_tooltip"#}
+{#			});#}
 			graphcontainer.bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
 				if(!updateCursorTimeout)
@@ -712,7 +717,7 @@
 					showMapSelection();
 					{% endif %}
 					showPlotsSelection();
-					showTooltips();
+{#					showTooltips();#}  // FIXME
 
 					plotLockSelectionCB = false;
 				}
@@ -850,7 +855,7 @@
 				hideMapSelection();
 			{% endif %}
 			hidePlotsSelection();
-			hideTooltips();
+{#			hideTooltips();#}  // FIXME
 			plotLockSelectionCB = false;
 		}
 	}

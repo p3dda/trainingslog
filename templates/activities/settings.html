@@ -4,7 +4,7 @@
 {% block head %} 
 <script type="text/javascript" src="/media/js/colorpicker.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
-<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
+{#<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>#}
 {#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>#}
 <link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpickerlayout.css" />
@@ -37,7 +37,7 @@
 			widt = !widt;
 		});
 
-		$( "#tabs" ).tabs();
+{#		$( "#tabs" ).tabs();#}
 
 		$( ".datatable").dataTable({
  			"bJQueryUI": true,
@@ -426,195 +426,217 @@
 {% endblock %}
 
 {% block content %}
-<div id="tabs">
-	<ul>
-		<li><a href="#tabs-equipment">Equipment</a></li>
-		<li><a href="#tabs-events">Events</a></li>
-		<li><a href="#tabs-templates">Vorlagen</a></li>
-		<li><a href="#tabs-sports">Sportarten</a></li>
-		<li><a href="#tabs-calformula">Kalorienformeln</a></li>
-	</ul>
-	<div id="tabs-equipment">
-{% if equipments %}
-	<table id="equipment_table" class="datatable_equipment">
-		<thead>
-		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
-		</thead>
-		<tbody>
-		{% for equ in equipments %}
-			<tr>
-				<td>
-					{{equ.name}}&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
-				</td>
-				<td>{{equ.distance}}</td>
-				<td>{{equ.time}}</td>
-				<td>{{equ.speed}}</td>
-			</tr>
-		{%endfor %}
-		</tbody>
-	</table>
-{% else %}
-	<p>No equipments are available</p>
-{%endif%}
-<input type="submit" id="equipment_add" value="Neues Equipment...">
 
-{% if equipments_archived %}
-<h2>Archiv</h2>
-	<table id="equipment_archived_table" class="datatable_equipment">
-		<thead>
-		<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
-		</thead>
-		<tbody>
-		{% for equ in equipments_archived %}
-			<tr>
-				<td>
-					{{equ.name}}&nbsp;&nbsp;
-					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
-					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
-				</td>
-				<td>{{equ.distance}}</td>
-				<td>{{equ.time}}</td>
-				<td>{{equ.speed}}</td>
-			</tr>
-		{%endfor %}
-		</tbody>
-	</table>
-{%endif%}
-</div>
+	<div class="row">
+		<div class="col s12">
+			<ul class="tabs">
+				<li class="tab col s3"><a class="active" href="#tabs-equipment">Equipment</a></li>
+				<li class="tab col s3"><a href="#tabs-events">Events</a></li>
+				<li class="tab col s3"><a href="#tabs-templates">Vorlagen</a></li>
+				<li class="tab col s3"><a href="#tabs-sports">Sportarten</a></li>
+				<li class="tab col s3"><a href="#tabs-calformula">Kalorienformeln</a></li>
+			</ul>
+		</div>
+{#		<div id="inbox" class="col s12">Inbox</div>#}
+{#		<div id="unread" class="col s12">Unread</div>#}
+{#		<div id="outbox" class="col s12">Outbox (Disabled)</div>#}
+{#		<div id="sent" class="col s12">Sent</div>#}
 
-<div id="tabs-events">
-	{% if events %}
-	<table id="event_table" class="datatable">
-		<thead>
-			<tr>
-				<th>Name</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for event in events %}
-				<tr>
-					<td>
-						{{event.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEventDialog({{event.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEventDeleteDialog({{event.id}})"/>
-					</td>
-				</tr>
-			{%endfor %}
-		</tbody>
-	
-	</table>
-{% else %}
-	<p>No events are available</p>
-{%endif%}
-<input type="submit" id="event_add" value="Neues Event...">
-</div>
+		<div id="tabs-equipment" class="col s12">
+			{% if equipments %}
+{#				<table id="equipment_table" class="datatable_equipment">#}
+				<table id="equipment_table" class="datatable_equipment ui compact selectable striped celled table raised segment">
+					<thead>
+					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
+					</thead>
+					<tbody>
+					{% for equ in equipments %}
+						<tr>
+							<td>
+								{{equ.name}}&nbsp;&nbsp;
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
+							</td>
+							<td>{{equ.distance}}</td>
+							<td>{{equ.time}}</td>
+							<td>{{equ.speed}}</td>
+						</tr>
+					{%endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<p>No equipments are available</p>
+			{%endif%}
+			<input type="submit" id="equipment_add" value="Neues Equipment...">
 
-<div id="tabs-templates">
-{% if activitytemplates %}
-	<table id="activitytemplates_table" class="datatable">
-		<thead>
-			<tr>
-				<th>Name</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for acttmp in activitytemplates %}
-				<tr>
-					<td>
-						{{acttmp.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityTemplateDialog({{acttmp.id}}, onlytemplate = true)"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityTemplateDelete_dialog({{acttmp.id}})"/>
-					</td>
-				</tr>
-			{%endfor %}
-		</tbody>
-	
-	</table>
-{% else %}
-	<p>Keine Vorlagen vorhanden</p>
-{%endif%}
-<input type="submit" id="acttmp_add" value="Neue Vorlage...">
-</div>
+			{% if equipments_archived %}
+				<h2>Archiv</h2>
+				<table id="equipment_archived_table" class="datatable_equipment">
+					<thead>
+					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
+					</thead>
+					<tbody>
+					{% for equ in equipments_archived %}
+						<tr>
+							<td>
+								{{equ.name}}&nbsp;&nbsp;
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
+							</td>
+							<td>{{equ.distance}}</td>
+							<td>{{equ.time}}</td>
+							<td>{{equ.speed}}</td>
+						</tr>
+					{%endfor %}
+					</tbody>
+				</table>
+			{%endif%}
+		</div>
 
-<div id="tabs-sports">
-{% if sports %}
-	<table id="sport_table" class="datatable">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Kalorienberechnung</th>
-				<th>Farbe</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for sport in sports %}
-				<tr>
-					<td>
-						{{sport.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showSportDialog({{sport.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showSportDeleteDialog({{sport.id}})"/>
-					</td>
-					<td>
-						{% if sport.calorie_formula %}
-							{{sport.calorie_formula}}
-						{% else %}
-							-
-						{% endif %}
-					</td>
-					<td>
-						<div class="colordisplay">
-							<div style="background-color: {{sport.color}}"></div>
-						</div>
-					</td>
-				</tr>
-			{%endfor %}
-		
-		</tbody>
-	</table>
-{% else %}
-	<p>Keine Sportarten festgelegt</p>
-{% endif %}
-<input type="submit" id="sport_add" value="Neue Sportart...">
-</div>
+		<div id="tabs-events" class="col s12">
+			{% if events %}
+				<table id="event_table" class="datatable">
+					<thead>
+					<tr>
+						<th>Name</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for event in events %}
+						<tr>
+							<td>
+								{{event.name}}
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEventDialog({{event.id}})"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEventDeleteDialog({{event.id}})"/>
+							</td>
+						</tr>
+					{%endfor %}
+					</tbody>
 
-<div id="tabs-calformula">
-{% if calformulas %}
-	<table id="calories_table" class="datatable">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Formel</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for calformula in calformulas %}
-				<tr>
-					<td>
-						{{calformula.name}}
-						<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showCalformulaDialog({{calformula.id}})"/>
-						<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showCalformulaDeleteDialog({{calformula.id}})"/>
-					</td>
-					<td>
-						kcal = 
-						{% if calformula.weight_dist_factor != 0 %}
-							Distanz x Gewicht x {{calformula.weight_dist_factor}}
-							{% if calformula.weight_time_factor != 0 %} + {% endif %}
-						{% endif %}
-						{% if calformula.weight_time_factor != 0 %}
-							Zeit x Gewicht x {{calformula.weight_time_factor}}
-						{% endif %}
-					</td>
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-{% endif %}
-<input type="submit" id="calformula_add" value="Neue Kalorienformel...">
-</div>
-</div>
-<div id="sport_dialog" title="Neue Sportart">
+				</table>
+			{% else %}
+				<p>No events are available</p>
+			{%endif%}
+			<input type="submit" id="event_add" value="Neues Event...">
+		</div>
+
+		<div id="tabs-templates" class="col s12">
+			{% if activitytemplates %}
+				<table id="activitytemplates_table" class="datatable">
+					<thead>
+					<tr>
+						<th>Name</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for acttmp in activitytemplates %}
+						<tr>
+							<td>
+								{{acttmp.name}}
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityTemplateDialog({{acttmp.id}}, onlytemplate = true)"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityTemplateDelete_dialog({{acttmp.id}})"/>
+							</td>
+						</tr>
+					{%endfor %}
+					</tbody>
+
+				</table>
+			{% else %}
+				<p>Keine Vorlagen vorhanden</p>
+			{%endif%}
+			<input type="submit" id="acttmp_add" value="Neue Vorlage...">
+		</div>
+
+		<div id="tabs-sports" class="col s12">
+			{% if sports %}
+				<table id="sport_table" class="datatable">
+					<thead>
+					<tr>
+						<th>Name</th>
+						<th>Kalorienberechnung</th>
+						<th>Farbe</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for sport in sports %}
+						<tr>
+							<td>
+								{{sport.name}}
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showSportDialog({{sport.id}})"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showSportDeleteDialog({{sport.id}})"/>
+							</td>
+							<td>
+								{% if sport.calorie_formula %}
+									{{sport.calorie_formula}}
+								{% else %}
+									-
+								{% endif %}
+							</td>
+							<td>
+								<div class="colordisplay">
+									<div style="background-color: {{sport.color}}"></div>
+								</div>
+							</td>
+						</tr>
+					{%endfor %}
+
+					</tbody>
+				</table>
+			{% else %}
+				<p>Keine Sportarten festgelegt</p>
+			{% endif %}
+			<input type="submit" id="sport_add" value="Neue Sportart...">
+		</div>
+
+		<div id="tabs-calformula" class="col s12">
+			{% if calformulas %}
+				<table id="calories_table" class="datatable">
+					<thead>
+					<tr>
+						<th>Name</th>
+						<th>Formel</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for calformula in calformulas %}
+						<tr>
+							<td>
+								{{calformula.name}}
+								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showCalformulaDialog({{calformula.id}})"/>
+								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showCalformulaDeleteDialog({{calformula.id}})"/>
+							</td>
+							<td>
+								kcal =
+								{% if calformula.weight_dist_factor != 0 %}
+									Distanz x Gewicht x {{calformula.weight_dist_factor}}
+									{% if calformula.weight_time_factor != 0 %} + {% endif %}
+								{% endif %}
+								{% if calformula.weight_time_factor != 0 %}
+									Zeit x Gewicht x {{calformula.weight_time_factor}}
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			{% endif %}
+			<input type="submit" id="calformula_add" value="Neue Kalorienformel...">
+		</div>
+
+	</div>
+{##}
+{##}
+{#	<div id="tabs">#}
+{#	<ul>#}
+{#		<li><a href="#tabs-equipment">Equipment</a></li>#}
+{#		<li><a href="#tabs-events">Events</a></li>#}
+{#		<li><a href="#tabs-templates">Vorlagen</a></li>#}
+{#		<li><a href="#tabs-sports">Sportarten</a></li>#}
+{#		<li><a href="#tabs-calformula">Kalorienformeln</a></li>#}
+{#	</ul>#}
+{#</div>#}
+
+	<div id="sport_dialog" title="Neue Sportart">
 	<table>
 		<tr>
 			<td><label for="sport_name_input">Name: </label></td><td><input type="text" id="sport_name_input"/></td>

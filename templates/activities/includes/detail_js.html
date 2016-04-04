@@ -247,6 +247,9 @@
 	}
 
 	$(document).ready(function() {
+		{% if gpx_url %}
+			initMap();
+		{% endif %}
 		$( "#details_tabs" ).tabs({
 			activate: function(event ,ui){
 				// hide tooltips when switching to laps tab
@@ -268,9 +271,6 @@
 		$( "#plot_zoom").click(plotZoomClicked);
 		$( "#plot_reset_zoom").click(plotResetZoomClicked);
 		plotGraphs();
-{% endif %}
-{% if gpx_url %}
-		initMap();
 {% endif %}
 	});
 
@@ -735,6 +735,7 @@
 	var cursorMarker;
 
 	var initMap = function () {
+		console.debug("initMap");
 		detailsMap = new OpenLayers.Map ("details_map_container", {
 			controls:[
 				new OpenLayers.Control.Navigation(),

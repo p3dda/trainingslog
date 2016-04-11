@@ -150,7 +150,15 @@
 				{% for graph in plots %}
 					<div class="card-panel" id="details_{{ graph.name }}_div">
 						<div class="card-content">
-						<div class="details_plot_container" id="details_{{ graph.name }}_container"></div>
+							<div id="details_hf_overlay" class="details_plot_overlay" style="padding: 0px; position: relative;">
+{#								<div style="position: absolute; width: 100%; top: 30px; right: 24px; background-color: rgb(255, 255, 255); opacity: 0.85;"> </div>#}
+								<div class="card-panel graph_summary" id="details_{{ graph.name }}_summary" style="visibility: hidden">
+									<div class="card-content" id="details_{{ graph.name }}_summary_content">
+										Test
+									</div>
+								</div>
+							</div>
+							<div class="details_plot_container" id="details_{{ graph.name }}_container"></div>
 						</div>
 					</div>
 				{% endfor %}

@@ -3,17 +3,29 @@ nav
     margin-bottom: 30px;
 }
 
-
-
 div .details_plot_container{
     width: 100%;
-    height: 250px;
+    height: 200px;
 }
 
 .details_plot_container table {
     width: unset;
 }
 .legend td{
+    padding: 0px;
+}
+
+.graph_summary {
+    position:absolute;
+    width: 130px;
+    top:100px;
+    right:24px;
+    font-size:smaller;
+    background: rgb(127, 127, 127);
+    padding: 5px;
+}
+
+.graph_summary td{
     padding: 0px;
 }
 

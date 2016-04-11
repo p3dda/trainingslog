@@ -156,7 +156,7 @@
 		console.debug("hideTooltips called");
 		if(tooltipsVisible) {
 			for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
-				$("#details_"+graphs[graph]["name"]+"_container").tooltip("option", "disabled", true ).tooltip("close");
+				$("#details_" + graphs[graph]["name"] + "_summary").css('visibility', 'hidden')
 			}
 
 			{%  if gpx_url %}
@@ -198,8 +198,10 @@
 				}
 			}
 {#			$("#details_" + graphs[graph]["name"] + "_container").tooltip("option", "content", "<table>" + text + "</table>");#}
-			$("#details_" + graphs[graph]["name"] + "_container").tooltip({ tooltip: 'MyToolTipText'});
-			break;   // FIXME
+{#			$("#details_" + graphs[graph]["name"] + "_container").tooltip({ tooltip: 'MyToolTipText'});#}
+
+			$("#details_" + graphs[graph]["name"] + "_summary_content").html("<table>" + text + "</table>");
+			$("#details_" + graphs[graph]["name"] + "_summary").css('visibility', 'visible');
 		}
 		{% if gpx_url %}
 		text = "<table>";
@@ -228,15 +230,15 @@
 
 		// show tooltip
 		// FIXME
-{#		if(!tooltipsVisible){#}
-{#			console.debug("showTooltips: show tooltips");#}
+		if(!tooltipsVisible){
+			console.debug("showTooltips: show tooltips");
 {#			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {#}
 {#				$("#details_" + graphs[graph]["name"] + "_container")#}
 {#						.tooltip("option", "position", { my: "right-10 bottom-25", at: "right bottom", collision: "none" })#}
 {#						.tooltip("option", "disabled", false )#}
 {#						.tooltip("open");#}
 {#			}#}
-{##}
+
 {#			{% if gpx_url %}#}
 {#			mapTooltip#}
 {#				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })#}
@@ -244,10 +246,10 @@
 {#				.tooltip("open");#}
 {#			{% endif %}#}
 {##}
-{#			tooltipsVisible = true;#}
-{#		} else {#}
-{#			console.debug("showTooltips: tooltips are already visible");#}
-{#		}#}
+			tooltipsVisible = true;
+		} else {
+			console.debug("showTooltips: tooltips are already visible");
+		}
 	}
 
 	$(document).ready(function() {
@@ -717,7 +719,7 @@
 					showMapSelection();
 					{% endif %}
 					showPlotsSelection();
-{#					showTooltips();#}  // FIXME
+					showTooltips();
 
 					plotLockSelectionCB = false;
 				}
@@ -855,7 +857,7 @@
 				hideMapSelection();
 			{% endif %}
 			hidePlotsSelection();
-{#			hideTooltips();#}  // FIXME
+			hideTooltips();
 			plotLockSelectionCB = false;
 		}
 	}

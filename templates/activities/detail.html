@@ -27,7 +27,6 @@
 					<span class="card-title">{{ activity.name }}</span>
 					<p>
 					{% localtime on %}
-{#						<div class="activity_facts">#}
 						{{ activity.date }} <br/>
 					{% endlocaltime %}
 					Sportart: <b>{{ activity.sport }}</b> | Ereignistyp: <b>{{ activity.event }}</b> <br/>
@@ -41,19 +40,14 @@
 				<div class="card-action">
 					<i class="material-icons" onclick="showActivityDialog({{ activity.id }})">edit</i>
 					<i class="material-icons" onclick="showActivityDeleteDialog({{ activity.id }})">delete</i>
-{#					<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog({{ activity.id }})"/>&nbsp;&nbsp;#}
-{#					<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog({{ activity.id }})">&nbsp;&nbsp;#}
 					{% if tcx %}
 						<a href="{{ tcx.url }}"><i class="material-icons">file_download</i></a>&nbsp;&nbsp;
 					{% endif %}
 					{% if fb_app_id %}
 						<i class="material-icons" onclick="postToFeed()">share</i>
-{#						<img src="/media/img/facebook-icon.png" alt="Share on facebook" onclick="postToFeed()"/>#}
 					{% endif %}
 				</div>
 				{% endif %}
-{#					</div>#}
-
 			</div>
 		</div>
 	</div>
@@ -74,10 +68,6 @@
 			<div class="card-panel">
 				<div class="card-content">
 					<table>
-{#						<colgroup>#}
-{#							<col style="width: 200px">#}
-{#							<col style="width: 100px">#}
-{#						</colgroup>#}
 						<tr><td>Distanz</td><td>{{ activity.distance|default_if_none:"-" }} km</td></tr>
 						<tr><td>Dauer</td><td>{{ activity.time|default_if_none:"-" }}</td></tr>
 						<tr><td>Ø Geschwindigkeit</td><td>{{ activity.speed_avg|default_if_none:"-" }} {{speed_unit}}</td></tr>
@@ -89,10 +79,6 @@
 			<div class="card-panel">
 				<div class="card-content">
 					<table id="activity_details_table">
-{#						<colgroup>#}
-{#							<col style="width: 200px">#}
-{#							<col style="width: 100px">#}
-{#						</colgroup>#}
 						<tbody>
 						{% if not public %}
 							<tr><td>Ausr&uuml;stung</td><td>{{ activity.equipment.all|join:", " }}</td></tr>
@@ -129,29 +115,25 @@
 			{% endif %}
 		</div>
 		<div class="col s12 m8">
+			{% if gpx_url %}
 			<div class="card-panel medium">
-				{% if gpx_url %}
+				<div class="card-content">
+					<div class="details_plot_overlay" style="padding: 0px; position: relative;">
+						<div class="card-panel graph_summary" id="details_map_summary" style="visibility: hidden">
+							<div class="card-content" id="details_map_summary_content">
+								Test
+							</div>
+						</div>
+					</div>
 					<div id="details_map_container" style="height:400px"></div>
-					<div id="details_map_tooltip" class="details_plot" title="Tooltip"></div>
-				{% endif %}
-
+				</div>
 			</div>
+			{% endif %}
 			{% if tcx %}
-{#				<ul class="collapsible" data-collapsible="expandable">#}
-{#					{% for graph in plots %}#}
-{#					<li id="details_{{ graph.name }}_li">#}
-{#						<div class="collapsible-header active">{{ graph.label }}</div>#}
-{#						<div class="collapsible-body">#}
-{#							<div class="details_plot_container" id="details_{{ graph.name }}_container"></div>#}
-{#						</div>#}
-{#					</li>#}
-{#					{% endfor %}#}
-{#				</ul>#}
 				{% for graph in plots %}
 					<div class="card-panel" id="details_{{ graph.name }}_div">
 						<div class="card-content">
-							<div id="details_hf_overlay" class="details_plot_overlay" style="padding: 0px; position: relative;">
-{#								<div style="position: absolute; width: 100%; top: 30px; right: 24px; background-color: rgb(255, 255, 255); opacity: 0.85;"> </div>#}
+							<div class="details_plot_overlay" style="padding: 0px; position: relative;">
 								<div class="card-panel graph_summary" id="details_{{ graph.name }}_summary" style="visibility: hidden">
 									<div class="card-content" id="details_{{ graph.name }}_summary_content">
 										Test
@@ -162,9 +144,7 @@
 						</div>
 					</div>
 				{% endfor %}
-
 			{% endif %}
-
 		</div>
 
 	</div>
@@ -196,40 +176,6 @@
 	{% endif %}
 	</div>
 
-{#		<div id="details_map_tooltip" class="details_plot" title="Tooltip"></div>#}
-{#		{% endif %}#}
-{#		{% if tcx %}#}
-{#		<div id="spinning_icon" class="details_plot ">#}
-{#			<img src="/media/img/spinning-icon.gif" alt="Bitte warten..."/>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_speed">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Geschwindigkeit</h3>#}
-{#			<div class="details_plot_container" title="Geschwindigkeit" id="details_speed_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_hf">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Herzfrequenz</h3>#}
-{#			<div class="details_plot_container" title="HF" id="details_hf_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_alt">#}
-{#			<h3 class="ui-widget-header ui-corner-top">H&ouml;he</h3>#}
-{#			<div class="details_plot_container" title="Hoehe" id="details_alt_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_cad">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Trittfrequenz</h3>#}
-{#			<div class="details_plot_container" title="Trittfrequenz" id="details_cad_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_stance_time">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Bodenkontaktzeit</h3>#}
-{#			<div class="details_plot_container" title="Bodenkontaktzeit" id="details_stance_time_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_vertical_oscillation">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Vertikale Bewegung</h3>#}
-{#			<div class="details_plot_container" title="Vertikale Bewegung" id="details_vertical_oscillation_container"></div>#}
-{#		</div>#}
-{#		<div class="details_plot hidden ui-widget ui-widget-content ui-corner-all" id="details_temperature">#}
-{#			<h3 class="ui-widget-header ui-corner-top">Temperatur</h3>#}
-{#			<div class="details_plot_container" title="Temperatur" id="details_temperature_container"></div>#}
-{#		</div>#}
 {#		<div id="plotbase_form" class="hidden">#}
 {#			<select id="plot_xaxis">#}
 {#				<option value = 0>Distanz</option>#}
@@ -237,13 +183,6 @@
 {#			</select>#}
 {#			<input type="submit" id="plot_zoom" value="Zoom" />#}
 {#			<input type="submit" id="plot_reset_zoom" value="Reset Zoom" style="visibility: hidden"/>#}
-{##}
-{#		</div>#}
-{#		{% endif %}#}
-{#		<br style="clear:both"/>#}
-{#	</div>#}
-{##}
-{##}
 
 </div>
 {% if not public %}

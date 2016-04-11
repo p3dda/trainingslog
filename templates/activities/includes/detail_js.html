@@ -156,12 +156,12 @@
 		console.debug("hideTooltips called");
 		if(tooltipsVisible) {
 			for (var graph in graphs) if(graphs.hasOwnProperty(graph)){
-				$("#details_" + graphs[graph]["name"] + "_summary").css('visibility', 'hidden')
+				$("#details_" + graphs[graph]["name"] + "_summary").css('visibility', 'hidden');
 			}
 
 			{%  if gpx_url %}
 			// Hide map tooltip
-			$("#details_map_tooltip").tooltip("option", "disabled", true ).tooltip("close");
+			$("#details_map_summary").css('visibility', 'hidden');
 			{% endif %}
 			tooltipsVisible = false;
 		}
@@ -197,9 +197,6 @@
 					text = text + "<tr><td>Avg. </td><td>" + rangeValues.avg.toFixed(graphs[graph]["rounding"]) + " " + graphs[graph]["unit_short"] + "</td></tr>";
 				}
 			}
-{#			$("#details_" + graphs[graph]["name"] + "_container").tooltip("option", "content", "<table>" + text + "</table>");#}
-{#			$("#details_" + graphs[graph]["name"] + "_container").tooltip({ tooltip: 'MyToolTipText'});#}
-
 			$("#details_" + graphs[graph]["name"] + "_summary_content").html("<table>" + text + "</table>");
 			$("#details_" + graphs[graph]["name"] + "_summary").css('visibility', 'visible');
 		}
@@ -224,53 +221,17 @@
 		}
 		text = text + "</table>";
 		// FIXME
-{#		var mapTooltip = $("#details_map_tooltip");#}
-{#		mapTooltip.tooltip("option", "content", text);#}
+		$("#details_map_summary_content").html(text);
+		$("#details_map_summary").css('visibility', 'visible');
 		{% endif %}
 
-		// show tooltip
-		// FIXME
-		if(!tooltipsVisible){
-			console.debug("showTooltips: show tooltips");
-{#			for(graph in graphs)if (graphs.hasOwnProperty(graph)) {#}
-{#				$("#details_" + graphs[graph]["name"] + "_container")#}
-{#						.tooltip("option", "position", { my: "right-10 bottom-25", at: "right bottom", collision: "none" })#}
-{#						.tooltip("option", "disabled", false )#}
-{#						.tooltip("open");#}
-{#			}#}
-
-{#			{% if gpx_url %}#}
-{#			mapTooltip#}
-{#				.tooltip( "option", "position",  { my: "right-10 bottom-10", at: "right top", collision: "none" })#}
-{#				.tooltip("option", "disabled", false )#}
-{#				.tooltip("open");#}
-{#			{% endif %}#}
-{##}
-			tooltipsVisible = true;
-		} else {
-			console.debug("showTooltips: tooltips are already visible");
-		}
+		tooltipsVisible = true;
 	}
 
 	$(document).ready(function() {
 		{% if gpx_url %}
 			initMap();
 		{% endif %}
-{#		$( "#details_tabs" ).tabs({#}
-{#			activate: function(event ,ui){#}
-{#				// hide tooltips when switching to laps tab#}
-{#				plotLockSelectionCB = true;#}
-{#				if(ui.newTab.index() == 1 && tooltipsVisible){#}
-{#					hideTooltips();#}
-{#				}#}
-{#				//show tooltips when switching to details tab, restore selection in plots#}
-{#				if(ui.newTab.index() == 0 && plotselectionActive){#}
-{#					showTooltips();#}
-{#					showPlotsSelection();#}
-{#				}#}
-{#				plotLockSelectionCB = false;#}
-{#			}#}
-{#		});#}
 
 {% if tcx %}
 		$( "#plot_xaxis").change(plotXaxisChanged);
@@ -579,7 +540,6 @@
 				plots[graphs[i]["name"]]= $.plot($("#details_"+graphs[i]["name"]+"_container"), [plot_data[graphs[i]["name"]]], plotOptions);
 				legends[graphs[i]["name"]] = $("#details_"+graphs[i]["name"]+"_container .legendLabel");
 				legends[graphs[i]["name"]].each(function() {
-{#					$(this).css('width', $(this).width());#}
 				});
 			} else {
 				plot_data[graphs[i]["name"]]["data"] = [];
@@ -607,7 +567,6 @@
 				series = dataset[i];
 				// skip parsing of empty datasets created by threshold graphs
 				if (series.data.length==0) continue;
-{#				console.debug("updateCursorPlot: Parsing dataset series " + i);#}
 				// find the nearest points, x-wise
 				for (j = 0; j < series.data.length; ++j) {
 					if (series.data[j]) {
@@ -629,7 +588,6 @@
 				} else {
 					newvalue = y.toFixed(graphs[graph]["rounding"]);
 				}
-{#				console.debug("updateCursorPlot: setting new value " + newvalue + " on legend for graph named " + graph_name);#}
 				legend.eq(i).text(graphs[graph]["label"] + " " + newvalue + " " + graphs[graph]["unit"]);
 			}
 		}
@@ -693,11 +651,6 @@
 		for (var graph in graphs) if(graphs.hasOwnProperty(graph)) {
 			// Add tooltip
 			var graphcontainer = $("#details_"+graphs[graph]["name"]+"_container");
-{#			graphcontainer.tooltip({#}
-{#					disabled: true,#}
-{#					position: { my: "right-10 bottom-25", at: "right bottom", collision: "none" },#}
-{#					tooltipClass: "details_plot_tooltip"#}
-{#			});#}
 			graphcontainer.bind("plothover", function(event, pos, item) {
 				latestPosition = pos;
 				if(!updateCursorTimeout)
@@ -758,11 +711,6 @@
 		} );
 
 		populateMap(detailsMap);
-
-		$("#details_map_tooltip").tooltip({
-			disabled: true,
-			tooltipClass: "details_plot_tooltip"
-		});
 	};
 
 	var populateMap = function(map) {
@@ -799,8 +747,6 @@
 		map.addLayer(layerMarkers);
 		map.addLayer(layerCursor);
 
-//		var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-//		map.setCenter(lonLat, zoom);
 		layerGPX.events.register('loadend', detailsMap, function(){
 			this.zoomToExtent(layerGPX.getDataExtent())
 		});
@@ -906,7 +852,6 @@
 						picture: '{{ preview_img }}',
 						description: desc.join(" - ")
 					};
-
 
 					function callback(response) {
 						document.getElementById('msg').innerHTML = "Post ID: " + response['post_id'];

@@ -23,6 +23,7 @@ div .details_plot_container{
     font-size:smaller;
     background: rgb(127, 127, 127);
     padding: 5px;
+    z-index: 2000;
 }
 
 .graph_summary td{

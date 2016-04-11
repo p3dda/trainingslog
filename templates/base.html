@@ -1,32 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<script type="text/javascript" src="/media/js/common.js"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script type="text/javascript" src="/media/js/common.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/jquery.tablesorter.min.js"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.js"></script>
 
+
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.css" />
-{#	<link rel='stylesheet' type='text/css' href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/cupertino/jquery-ui.css' />#}
 	<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.css'/>
 
 	<!-- Compiled and minified CSS -->
 	<link rel="stylesheet" href="/media/css/materialize.css">
-{#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.css">#}
 	<link rel="stylesheet" href="/media/css/style_material.css" />
 	<!-- Compiled and minified JavaScript -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.js"></script>
-	<script>
-		$( document ).ready(function(){
-			$(".dropdown-button").dropdown();
-		});
-	</script>
-{#	<link rel="stylesheet" href="/media/css/style.css" />#}
 	{% block head %}{% endblock %}
 	<title>{% block title %}TrainingsLog{% endblock %}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$(".button-collapse").sideNav();
+		});
+	</script>
 </head>
 
 <body class="container">
@@ -39,7 +37,15 @@
 	</ul>
 	<nav>
 		<div class="nav-wrapper">
-			<ul id="nav-mobile" class="left hide-on-med-and-down">
+			<a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+			<ul class="left hide-on-med-and-down">
+				<li><a href="/activities/">Aktivit&auml;ten</a></li>
+				<li><a href="/calendar/">Kalender</a></li>
+				<li><a href="/reports/">Berichte</a></li>
+				<li><a href="/health/">Gesundheit</a></li>
+				<li><a href="/settings/">Einstellungen</a></li>
+			</ul>
+			<ul class="side-nav" id="mobile-demo">
 				<li><a href="/activities/">Aktivit&auml;ten</a></li>
 				<li><a href="/calendar/">Kalender</a></li>
 				<li><a href="/reports/">Berichte</a></li>
@@ -62,5 +68,14 @@
     <div id="content">
         {% block content %}{% endblock %}
     </div>
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.js"></script>
+	<script type="text/javascript">
+		$( document ).ready(function() {
+			$(".dropdown-button").dropdown();
+			$(".button-collapse").sideNav();
+		});
+	</script>
+
 </body>
 </html>

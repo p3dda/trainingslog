@@ -15,18 +15,28 @@ div .details_plot_container{
     padding: 0px;
 }
 
-.graph_summary {
+.details_plot_overlay {
+    padding: 0px;
+    position: relative;
+}
+.details_plot_summary {
     position:absolute;
     width: 130px;
-    top:100px;
+    bottom:-170px;
     right:24px;
     font-size:smaller;
-    background: rgb(127, 127, 127);
+    background: rgba(209, 209, 209, 0.8);
     padding: 5px;
+    margin: 0px;
+    z-index: 10;
+}
+
+.details_map_summary {
+    bottom:-380px;
     z-index: 2000;
 }
 
-.graph_summary td{
+.details_plot_summary td{
     padding: 0px;
 }
 

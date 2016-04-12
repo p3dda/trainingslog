@@ -119,7 +119,7 @@
 			{% if gpx_url %}
 			<div class="card-panel medium">
 				<div class="card-content">
-					<div class="details_plot_overlay" style="padding: 0px; position: relative;">
+					<div class="details_plot_overlay">
 						<div class="card-panel details_plot_summary details_map_summary" id="details_map_summary" style="visibility: hidden">
 							<div class="card-content" id="details_map_summary_content">
 								Test
@@ -134,7 +134,7 @@
 				{% for graph in plots %}
 					<div class="card-panel" id="details_{{ graph.name }}_div">
 						<div class="card-content">
-							<div class="details_plot_overlay" style="padding: 0px; position: relative;">
+							<div class="details_plot_overlay">
 								<div class="card-panel details_plot_summary" id="details_{{ graph.name }}_summary" style="visibility: hidden">
 									<div class="card-content" id="details_{{ graph.name }}_summary_content">
 										Test
@@ -152,7 +152,7 @@
 	<div id="tab2" class="col s12">
 	{% if laps %}
 		<div class="card-panel">
-			<table id="laps_table" class="striped">
+			<table id="laps_table" class="striped responsive-table">
 				<thead>
 					<tr><th>Zeit</th><th>Distanz</th><th>Max. Geschwindigkeit</th><th>Ø Geschwindigkeit</th><th>Aufstieg</th><th>Abstieg</th><th>Max. HF</th><th>Ø HF</th><th>Kalorien</th></tr>
 				</thead>

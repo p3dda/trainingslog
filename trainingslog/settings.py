@@ -11,12 +11,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-	('Administrator', 'admin@foo.bar.de'),
-)
-
-MANAGERS = ADMINS
-
 DATABASES = {
 	'default': {
 		'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
@@ -41,8 +35,6 @@ USE_TZ = True
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'de-de'
-
-SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -91,12 +83,12 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'xaxg$mctbr!nyzg@(a=n^amnqv1z$mcfm0wp6dwn-!&toofgx&'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-	'django.template.loaders.filesystem.Loader',
-	'django.template.loaders.app_directories.Loader',
-	#  'django.template.loaders.eggs.Loader',
-)
+# # List of callables that know how to import templates from various sources.
+# TEMPLATE_LOADERS = (
+# 	'django.template.loaders.filesystem.Loader',
+# 	'django.template.loaders.app_directories.Loader',
+# 	#  'django.template.loaders.eggs.Loader',
+# )
 
 MIDDLEWARE_CLASSES = (
 	'django.middleware.common.CommonMiddleware',
@@ -120,7 +112,7 @@ INSTALLED_APPS = (
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
 	'django.contrib.sessions',
-	'django.contrib.sites',
+	# 'django.contrib.sites',
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	# Uncomment the next line to enable the admin:

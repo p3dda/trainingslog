@@ -15,23 +15,15 @@
 
 <script type="text/javascript" src="/media/js/common.js"></script>
 
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.22.5/js/extras/jquery.tablesorter.pager.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.10/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.10/js/dataTables.jqueryui.min.js"></script>
+{#<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.10/js/dataTables.jqueryui.min.js"></script>#}
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/jquery.noty.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/layouts/top.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/themes/default.js"></script>
-{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables.css'/>#}
-{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>#}
-{#<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables.css'/>#}
-<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>
+{#<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>#}
 <link rel='stylesheet' type='text/css' href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/cupertino/jquery-ui.css' />
-<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.css'/>
 <link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
 
 <script>
@@ -96,8 +88,7 @@
 		
 		{%  endif %}	
 		$("#activity_add").click(function(){showActivityDialog();});
-		$("#newact_fileform").click(function(){$("#newact_filesubmit").removeAttr("disabled");});
-		
+
 		// Enable tooltip for activities table
 		$("#activities_table").tooltip({
 			content: function(callback) {
@@ -190,8 +181,7 @@
 {% endblock %}
 {% block content %}
 
-
-	<table id="activities_table" class="activities_table">
+	<table id="activities_table" class="datatable_equipment ui compact selectable striped celled table raised segment activities_table">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -204,7 +194,6 @@
 		</tbody>
 	</table>
 	<br/>
-	<hr/>
 
 {##}
 {#<div class="column">#}
@@ -218,6 +207,7 @@
 {#		</form>#}
 {#	</div>#}
 {#</div>#}
+
 
 	<form method="post" enctype="multipart/form-data">
 		<div class="file-field input-field">

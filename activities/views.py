@@ -515,7 +515,7 @@ def add_activity(request):
 		return HttpResponseBadRequest
 
 
-def detail(request, activity_id, version='classic'):
+def detail(request, activity_id):
 	param = request.GET.get('p', False)
 	act = get_object_or_404(Activity, id=activity_id)
 
@@ -605,11 +605,7 @@ def detail(request, activity_id, version='classic'):
 				if lap.speed_avg:
 					lap.speed_avg = speed_to_pace(lap.speed_avg)
 
-		if version == 'modern':
-			django_settings.TEMPLATE_DIRS = django_settings.MODERN_TEMPLATE_DIRS + django_settings.TEMPLATE_DIRS
-
 		if not public:
-
 			if request.GET.get('edit', '0') == '1':
 				edit = 1
 			else:
@@ -883,9 +879,10 @@ class ActivityListJson(BaseDatatableView):
 		# queryset is already paginated here
 		json_data = []
 		for item in qs:
-			if self.request.is_mobile:
-				json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
-			else:
-				json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
+			# if self.request.is_mobile:
+			# 	json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
+			# else:
+			# 	json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
+			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
 
 		return json_data

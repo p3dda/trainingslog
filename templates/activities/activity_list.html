@@ -27,6 +27,7 @@
 <link rel='stylesheet' type='text/css' href='/media/css/tooltip.css'/>
 
 <script>
+	var act_table;
 	var garmincontrol;
 	var sport_data = Array();
 	
@@ -138,7 +139,7 @@
 			tooltipClass: "activitylist_tooltip"
 		});
 		
-		var act_table = $('#activities_table').dataTable({
+		act_table = $('#activities_table').dataTable({
 			"order": [[ 2, "desc" ]],
 			"columnDefs": [
 				{
@@ -180,61 +181,48 @@
 </script>
 {% endblock %}
 {% block content %}
+	<div class="row">
+		<table id="activities_table" class="datatable_equipment ui compact selectable striped celled table raised segment activities_table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Sportart</th>
+					<th>Datum</th>
+					<th>Dauer</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
 
-	<table id="activities_table" class="datatable_equipment ui compact selectable striped celled table raised segment activities_table">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Sportart</th>
-				<th>Datum</th>
-				<th>Dauer</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-	<br/>
-
-{##}
-{#<div class="column">#}
-{#	<div class="ui-widget-content ui-corner-all">#}
-{#		<input type="submit" id="activity_add" value="Neue Aktivit&auml;t...">#}
-{#		<br/><br/>#}
-{#		<!-- Upload form. Note enctype attribute! -->#}
-{#		<form method="post" enctype="multipart/form-data">#}
-{#		    <input id = "newact_fileform" type="file" name="trackfile" />#}
-{#			<input id = "newact_filesubmit" type="submit" value="Upload" disabled="disabled"/>#}
-{#		</form>#}
-{#	</div>#}
-{#</div>#}
-
-
-	<form method="post" enctype="multipart/form-data">
-		<div class="file-field input-field">
-			<div class="btn">
-				<span>File</span>
-				<input type="file">
+	<div class="row">
+		<form class="col s6" method="post" enctype="multipart/form-data">
+			<div class="file-field input-field">
+				<div class="btn">
+					<span>Datei hochladen</span>
+					<input type="file" name="trackfile">
+				</div>
+				<div class="file-path-wrapper">
+					<input class="file-path validate" type="text">
+				</div>
+				<button class="btn waves-effect waves-light col s2" type="submit" name="action">Submit
+					<i class="material-icons right">send</i>
+				</button>
 			</div>
-			<div class="file-path-wrapper">
-				<input class="file-path validate" type="text">
+		</form>
+		{%  if garmin_keys %}
+			<div class="column s6">
+				<div id="garminDisplay" style="display:none;"></div>
 			</div>
-			<button class="btn waves-effect waves-light" type="submit" name="action">Submit
-				<i class="material-icons right">send</i>
-			</button>
-		</div>
-	</form>
+		{%  endif %}
 
-{%  if garmin_keys %}
-<div class="column">
-	<div id="garminDisplay" style="display:none;"></div>
-</div>
-{%  endif %}
-<div style="clear:both"></div>
+	</div>
 
-{% include "activities/includes/activity_dialog.html" %}
+	{% include "activities/includes/activity_dialog.html" %}
 
-<div id="alert_dialog" title="Fehler">
-	<div id="alert_dialog_content"></div>
-</div>
+	<div id="alert_dialog" title="Fehler">
+		<div id="alert_dialog_content"></div>
+	</div>
 
 {% endblock %} 

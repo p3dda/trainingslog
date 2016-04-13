@@ -87,10 +87,17 @@
 	<input type="submit" id="new_act_template_save" value="Als Vorlage speichern"/>
 </div>
 
-<div id="activity_delete_dialog">
-	Aktivit&auml;t wirklich l&ouml;schen?
+<div id="activity_delete_modal" class="modal">
+	<div class="modal-content">
+		<h4 id="activity_delete_modal_head"></h4>
+		<p>Aktivität wirklich löschen?</p>
+	</div>
 	<input id="activity_delete_id_input" type="hidden" />
 	<input id="activity_template_delete_id_input" type="hidden" />
+	<div class="modal-footer">
+		<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat" id="activity_delete_modal_ok">OK</a>
+		<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Abbrechen</a>
+	</div>
 </div>
 
 <script type="application/javascript">
@@ -218,36 +225,23 @@
 		{% for calformula in calformulas %}
 			calformulaData[{{calformula.id}}] = {'weight_dist_factor': {{calformula.weight_dist_factor|stringformat:"f"}}, 'weight_time_factor': {{calformula.weight_time_factor|stringformat:"f"}} };
 		{% endfor %}
-		
-		$("#activity_delete_dialog").dialog({
-			modal: true,
-			autoOpen: false,
-			show: "blind",
-			hide: "explode",
-			buttons: {
-				"Ok": function() {
-					$.post("/activities/delete/", {
-							id: $("#activity_delete_id_input").val(),
-							tmpl_id: $("#activity_template_delete_id_input").val()
-						}, function(data) {
-							if(typeof act_table != 'undefined') {
-								// reload activities list if in list view
-								act_table.fnDraw();
-							} else {
-								// redirect to list view otherwise
-								location.href="/activities/";
-								//window.location.reload();	//FIXME: This can be done a lot more seamless with ajax
-							}
-						}, "json");
-					$( this ).dialog( "close" );
-				},
-				"Abbrechen": function() {
-					$( this ).dialog( "close" );
-				}
-			}
 
-		})
-		
+		$("#activity_delete_modal_ok").click(function(e) {
+			e.preventDefault(); // does not go through with the link.
+			$.post("/activities/delete/", {
+				id: $("#activity_delete_id_input").val(),
+				tmpl_id: $("#activity_template_delete_id_input").val()
+			}, function (data) {
+				if (typeof act_table != 'undefined') {
+					// reload activities list if in list view
+					act_table.fnDraw();
+				} else {
+					// redirect to list view otherwise
+					location.href = "/activities/";
+				}
+			}, "json");
+		});
+
 		now = new Date();
 		$( "#new_act_date" ).datepicker(
 			{ dateFormat: 'dd.mm.yy',
@@ -660,7 +654,7 @@
 				}, "json");
 
 		}
-	}
+	};
 	
 	var validateActData = function(data, isTemplate) {
 		var errors = new Array();
@@ -744,7 +738,7 @@
 		} else {
 			return [true, errors];
 		}
-	}
+	};
 	
 	var parseActData = function(data, isTemplate) {
 		if(data.time==""){
@@ -784,19 +778,19 @@
 		if(data.weather_windspeed=="") data.weather_windspeed = null;
 //		if(data.weather_winddir=="") data.weather_winddir = null;
 		
-	}
+	};
 
-	var showActivityDeleteDialog = function(activity_id) {
+	var showActivityDeleteDialog = function(activity_id, activity_name) {
 		$("#activity_delete_id_input").val(activity_id);
 		$("#activity_template_delete_id_input").val(null);
-		
-		$("#activity_delete_dialog").dialog("open");
+		$("#activity_delete_modal_head").html(activity_name);
+		$('#activity_delete_modal').openModal();
 	};
 	
-	var showActivityTemplateDeleteDialog = function(activity_id) {
-		$("#activity_delete_id_input").val(null);
-		$("#activity_template_delete_id_input").val(activity_id);
-		
-		$("#activity_delete_dialog").dialog("open");
-	}
+{#	var showActivityTemplateDeleteDialog = function(activity_id, activity_name) {#}
+{#		$("#activity_delete_id_input").val(null);#}
+{#		$("#activity_template_delete_id_input").val(activity_id);#}
+{#		$("#activity_delete_modal_head").html(activity_name);#}
+{#		$('#activity_delete_modal').openModal();#}
+{#	}#}
 </script>

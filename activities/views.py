@@ -883,6 +883,6 @@ class ActivityListJson(BaseDatatableView):
 			# 	json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
 			# else:
 			# 	json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
-			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
+			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<i class="material-icons" onclick="showActivityDialog(%s)">mode_edit</i><i class="material-icons" onclick="showActivityDeleteDialog(%s, \'%s\')">delete</i>' % (item.id, item.id, item.name, item.name, item.id, item.id, item.name), item.sport.name, item.date.isoformat(), item.time])
 
 		return json_data

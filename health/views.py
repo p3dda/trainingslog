@@ -5,9 +5,10 @@ import logging
 
 from collections import namedtuple
 
-from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 
@@ -44,7 +45,7 @@ def show_weight(request):
 	desease_form = health.forms.DeseaseForm()
 	pulse_form = health.forms.PulseForm()
 
-	return render_to_response('health/weight.html', {'goal': goal, 'goal_distance': goal_distance, 'ymin': str(int(ymin) - 1), 'ymax': str(int(ymax) + 1), 'username': request.user, 'goal_form': goal_form, 'weight_form': weight_form, 'desease_form': desease_form, 'pulse_form': pulse_form})
+	return render_to_response('health/weight.html', {'goal': goal, 'goal_distance': goal_distance, 'ymin': str(int(ymin) - 1), 'ymax': str(int(ymax) + 1), 'username': request.user, 'goal_form': goal_form, 'weight_form': weight_form, 'desease_form': desease_form, 'pulse_form': pulse_form}, context_instance=RequestContext(request))
 
 
 @login_required
@@ -96,27 +97,14 @@ def add_weightgoal(request):
 	try:
 		if request.method == 'POST':
 			logging.debug("add_weightgoal post request with items %s" % repr(request.POST.items()))
-			datestring = ""
-			try:
-				datestring = request.POST.get('due_date')
-				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
-			except Exception, exc:
-				logging.exception("Exception occured in add_weight: %s" % exc)
-				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
-				return HttpResponse(json.dumps(result))
-			try:
-				weight = str(parsefloat(request.POST.get('target_weight')))
-			except ValueError, exc:
-				logging.exception("Exception occured in add_weight: %s" % exc)
-				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}
-				return HttpResponse(json.dumps(result))
-
-			due_date = datetime.date(year=d.year, month=d.month, day=d.day)
-			date = datetime.date.today()
-			new_goal = Goal(date=date, due_date=due_date, target_weight=weight, user=request.user)
-			new_goal.save()
-			result = {'success': True}
-			return HttpResponse(json.dumps(result))
+			f = health.forms.GoalForm(request.POST)
+			if f.is_valid():
+				new_weightgoal = f.save(commit=False)
+				new_weightgoal.date = datetime.date.today()
+				new_weightgoal.user = request.user
+				new_weightgoal.save()
+				result = {'success': True}
+				return HttpResponseRedirect('/health')
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:

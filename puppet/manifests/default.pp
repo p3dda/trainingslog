@@ -6,10 +6,17 @@ exec { 'apt-get update':
   tries   => 3
 }
 
-package { ['vim', 'python-django', 'python-dateutil']:
+package { ['vim', 'python-django', 'python-dateutil', 'python-pip']:
   ensure  => 'installed',
   require => Exec['apt-get update'],
 }
+
+package { 'django-materializecss-form':
+  ensure   => 'installed',
+  provider => 'pip',
+  require  => Package['python-pip']
+}
+
 
 class {'nginx':
   sendfile => 'off'

@@ -56,14 +56,15 @@
 			grid : {
 				hoverable : true,
 				autoHighlight : false
+			},
+			legend: {
+				position: 'ne',
+				show: true
 			}
 		});
 
 		var legends = plotPlaceHolder.find(".legendLabel");
-		legends.each(function() {
-			// fix the widths so they don't jump around
-			//	$(this).css('width', $(this).width());
-		});
+
 		var updateLegendTimeout = null;
 		var latestPosition = null;
 

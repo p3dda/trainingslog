@@ -5,6 +5,7 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.crosshair.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/jquery.noty.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/layouts/top.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.5/themes/default.js"></script>
@@ -13,64 +14,66 @@
 	var plot = null;
 	var series;
 	var weightData = null;
-	//var weight_avg = False;
+	var weight_avg = false;
 	$(document).ready(function() {
-		$(function() {
-			$("#weight_dialog").dialog({
-				autoOpen : false,
-				show : "blind",
-				hide : "explode",
-				minWidth : 500,
-				minHeight : 300
-			});
-		});
-		$(function() {
-			$("#pulse_dialog").dialog({
-				autoOpen : false,
-				show : "blind",
-				hide : "explode",
-				minWidth : 500,
-				minHeight : 300
-			});
-		});
-		$(function() {
-			$("#weightgoal_dialog").dialog({
-				autoOpen : false,
-				show : "blind",
-				hide : "explode",
-				minWidth : 500,
-				minHeight : 300
-			});
-		});
-		// Initialize datepicker input
-		$(function() {
-			now = new Date();
-			var weightDate = $("#weight_date_input");
-			var weightGoalDate = $("#weightgoal_date");
-			var pulseDate = $("#pulse_date");
-			weightDate.datepicker({
-				dateFormat : 'dd.mm.yy'
-			});
-			weightGoalDate.datepicker({
-				dateFormat : 'dd.mm.yy'
-			});
-			pulseDate.datepicker({
-				dateFormat : 'dd.mm.yy'
-			});
-			weightDate.datepicker("setDate", now);
-			weightGoalDate.datepicker("setDate", now);
-			pulseDate.datepicker("setDate", now);
-		});
-		// attach the click handler to the button
-		$("#weight_send").click(addWeight);
-		$("#pulse_send").click(addPulse);
-		$("#weightgoal_send").click(addWeightgoal);
-		$("#pulse_add").click(showPulseDialog);
-		$("#weight_add").click(showWeightDialog);
-		$("#weightgoal_add").click(showWeightgoalDialog);
+		$('select').material_select();
+		$('.modal-trigger').leanModal();
+{#		$(function() {#}
+{#			$("#weight_dialog").dialog({#}
+{#				autoOpen : false,#}
+{#				show : "blind",#}
+{#				hide : "explode",#}
+{#				minWidth : 500,#}
+{#				minHeight : 300#}
+{#			});#}
+{#		});#}
+{#		$(function() {#}
+{#			$("#pulse_dialog").dialog({#}
+{#				autoOpen : false,#}
+{#				show : "blind",#}
+{#				hide : "explode",#}
+{#				minWidth : 500,#}
+{#				minHeight : 300#}
+{#			});#}
+{#		});#}
+{#		$(function() {#}
+{#			$("#weightgoal_dialog").dialog({#}
+{#				autoOpen : false,#}
+{#				show : "blind",#}
+{#				hide : "explode",#}
+{#				minWidth : 500,#}
+{#				minHeight : 300#}
+{#			});#}
+{#		});#}
+{#		// Initialize datepicker input#}
+{#		$(function() {#}
+{#			now = new Date();#}
+{#			var weightDate = $("#weight_date_input");#}
+{#			var weightGoalDate = $("#weightgoal_date");#}
+{#			var pulseDate = $("#pulse_date");#}
+{#			weightDate.datepicker({#}
+{#				dateFormat : 'dd.mm.yy'#}
+{#			});#}
+{#			weightGoalDate.datepicker({#}
+{#				dateFormat : 'dd.mm.yy'#}
+{#			});#}
+{#			pulseDate.datepicker({#}
+{#				dateFormat : 'dd.mm.yy'#}
+{#			});#}
+{#			weightDate.datepicker("setDate", now);#}
+{#			weightGoalDate.datepicker("setDate", now);#}
+{#			pulseDate.datepicker("setDate", now);#}
+{#		});#}
+{#		// attach the click handler to the button#}
+{#		$("#weight_send").click(addWeight);#}
+{#		$("#pulse_send").click(addPulse);#}
+{#		$("#weightgoal_send").click(addWeightgoal);#}
+{#		$("#pulse_add").click(showPulseDialog);#}
+{#		$("#weight_add").click(showWeightDialog);#}
+{#		$("#weightgoal_add").click(showWeightgoalDialog);#}
 		$("#weight_avg").change(updatePlot);
 		$("#timespan").change(timespanChange);
-		
+{#		#}
 		ajaxDataGetter();
 	});
 
@@ -87,84 +90,84 @@
 		});
 	};
 
-	var addWeight = function() {
-		// retrieve the text entered
-		var fields = ['weight_date', 'weight', 'body_fat', 'body_water', 'bones_weight', 'muscles_weight'];
-		var data = {};
-
-		// store value in data variable
-		var value;
-		for(var field in fields){
-			value =$("#" + fields[field] + "_input").val();
-			if(value != "") {
-				data[fields[field]] = value;
-			}
-		}
-
-		$.post("/health/weights/add/", data, function(data) {
-			if (data["success"]) {
-				noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});
-				$("#weight_dialog").dialog("close");
-				ajaxDataGetter();
-				{% if goal %}
-					var lastWeight = series['data']['weight'][series['data']['weight'].length - 1];
-					var distance = lastWeight[1] - {{goal.target_weight|safe}};
-					$("#td_goal_distance").html(distance.toFixed(1));
-				{% endif %}
-			} else {
-				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
-			}
-		}, "json");
-		return false;
-
-	};
-
-	var addPulse = function() {
-		var date = $("#pulse_date").val();
-
-		var data = {
-			date : date
-		};
-		var pulseRest = $("#pulse_rest").val();
-		var pulseMax = $("#pulse_maximum").val();
-		if(! isNaN(parseInt(pulseRest))) {
-			data["rest"] = parseInt(pulseRest);
-		}
-		if(! isNaN(parseInt(pulseMax))) {
-			data["maximum"] = parseInt(pulseMax);
-		}
-		if((! "rest" in data) && (! "maximum" in data)){
-			noty({text: "Kein gueltiger Puls angegeben", type: 'error', timeout: 5000});
-		}
-		$.post("/health/pulses/add/", data, function(data) {
-			if (data["success"]) {
-				noty({text: "Puls gespeichert", type: 'success', timeout: 5000});
-				$("#pulse_dialog").dialog("close");
-				ajaxDataGetter();
-			} else {
-				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
-			}
-		}, "json");
-	};
-	
-	var addWeightgoal = function() {
-		var date = $("#weightgoal_date").val();
-		var weight = $("#weightgoal_weight").val();
-		var data = {
-			date : date,
-			weight : weight
-		};
-		$.post("/health/weightgoals/add/", data, function(data) {
-			if (data["success"]) {
-				noty({text: "Zielgewicht gespeichert", type: 'success', timeout: 5000});
-				$("#weightgoal_dialog").dialog("close");
-				ajaxDataGetter();
-			} else {
-				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});
-			}
-		}, "json");
-		return false;
-	};
+{#	var addWeight = function() {#}
+{#		// retrieve the text entered#}
+{#		var fields = ['weight_date', 'weight', 'body_fat', 'body_water', 'bones_weight', 'muscles_weight'];#}
+{#		var data = {};#}
+{##}
+{#		// store value in data variable#}
+{#		var value;#}
+{#		for(var field in fields){#}
+{#			value =$("#" + fields[field] + "_input").val();#}
+{#			if(value != "") {#}
+{#				data[fields[field]] = value;#}
+{#			}#}
+{#		}#}
+{##}
+{#		$.post("/health/weights/add/", data, function(data) {#}
+{#			if (data["success"]) {#}
+{#				noty({text: "Gewicht gespeichert", type: 'success', timeout: 5000});#}
+{#				$("#weight_dialog").dialog("close");#}
+{#				ajaxDataGetter();#}
+{#				{% if goal %}#}
+{#					var lastWeight = series['data']['weight'][series['data']['weight'].length - 1];#}
+{#					var distance = lastWeight[1] - {{goal.target_weight|safe}};#}
+{#					$("#td_goal_distance").html(distance.toFixed(1));#}
+{#				{% endif %}#}
+{#			} else {#}
+{#				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});#}
+{#			}#}
+{#		}, "json");#}
+{#		return false;#}
+{##}
+{#	};#}
+{##}
+{#	var addPulse = function() {#}
+{#		var date = $("#pulse_date").val();#}
+{##}
+{#		var data = {#}
+{#			date : date#}
+{#		};#}
+{#		var pulseRest = $("#pulse_rest").val();#}
+{#		var pulseMax = $("#pulse_maximum").val();#}
+{#		if(! isNaN(parseInt(pulseRest))) {#}
+{#			data["rest"] = parseInt(pulseRest);#}
+{#		}#}
+{#		if(! isNaN(parseInt(pulseMax))) {#}
+{#			data["maximum"] = parseInt(pulseMax);#}
+{#		}#}
+{#		if((! "rest" in data) && (! "maximum" in data)){#}
+{#			noty({text: "Kein gueltiger Puls angegeben", type: 'error', timeout: 5000});#}
+{#		}#}
+{#		$.post("/health/pulses/add/", data, function(data) {#}
+{#			if (data["success"]) {#}
+{#				noty({text: "Puls gespeichert", type: 'success', timeout: 5000});#}
+{#				$("#pulse_dialog").dialog("close");#}
+{#				ajaxDataGetter();#}
+{#			} else {#}
+{#				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});#}
+{#			}#}
+{#		}, "json");#}
+{#	};#}
+{#	#}
+{#	var addWeightgoal = function() {#}
+{#		var date = $("#weightgoal_date").val();#}
+{#		var weight = $("#weightgoal_weight").val();#}
+{#		var data = {#}
+{#			date : date,#}
+{#			weight : weight#}
+{#		};#}
+{#		$.post("/health/weightgoals/add/", data, function(data) {#}
+{#			if (data["success"]) {#}
+{#				noty({text: "Zielgewicht gespeichert", type: 'success', timeout: 5000});#}
+{#				$("#weightgoal_dialog").dialog("close");#}
+{#				ajaxDataGetter();#}
+{#			} else {#}
+{#				noty({text: "Fehler aufgetreten: " + data["msg"], type: 'error', timeout: 5000});#}
+{#			}#}
+{#		}, "json");#}
+{#		return false;#}
+{#	};#}
 	
 	var timespanChange = function() {
 		var timespan = $("#timespan").val();
@@ -200,24 +203,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget ui-widget-content ui-corner-all">
-	<h2 class="activity_facts ui-widget-header ui-corner-top ui-state-active">Gesundheit</h2>
 
-	<div id="timespanform" class="activity_facts">
-		<select id="timespan">
-			<option value='-1'>Alle Tage</option>
-			<option value = '{% now "z" %}'>Aktuelles Jahr</option>
-			<option value='7'>Letzte 7 Tage</option>
-			<option value='30'>Letzter Monat</option>
-			<option value='90' selected>Letzte 3 Monate</option>
-			<option value='365'>Letzte 365 Tage</option>
-		</select>
-		<input id="weight_avg" type="checkbox" checked /><label for="weight_avg">Gl&auml;tten</label>
-	</div>
-	<br/>
-	<div id="placeholder" style="width:600px;height:300px;margin:5px;"></div>
-		{% if goal %}
-		<hr/>
+{#	<div class="row">#}
+{#		<div class="col s12">#}
+			<div class="card">
+				<div class="card-content">
+					<span class="card-title">Gesundheit</span>
+					<div class="row">
+						<div id="placeholder" style="height:300px"></div>
+					</div>
+					<div class="row">
+						<form>
+							<div class="row">
+								<div class="input-field col s6">
+									<select id="timespan">
+										<option value='-1'>Alle Daten</option>
+										<option value = '{% now "z" %}'>Aktuelles Jahr</option>
+										<option value='7'>Letzte 7 Tage</option>
+										<option value='30'>Letzter Monat</option>
+										<option value='90' selected>Letzte 3 Monate</option>
+										<option value='365'>Letzte 365 Tage</option>
+									</select>
+									<label>Zeitraum</label>
+								</div>
+								<div class="col s6">
+									<input id="weight_avg" type="checkbox" checked /><label for="weight_avg">Gl&auml;tten</label>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+{#		</div>#}
+{#	</div>#}
+
+	{#	<div id="placeholder" style="width:600px;height:300px;margin:5px;"></div>#}
+	{% if goal %}
+	<div class="card-panel">
 		<table border=1>
 			<tr>
 				<th>Zielgewicht</th><th>Zieldatum</th><th>Distanz</th>
@@ -228,61 +250,121 @@
 				<td id="td_goal_distance">{{goal_distance}}</td>
 			</tr>
 		</table>
-		{%endif%}
 	</div>
-	<br/>
+	{%endif%}
 
-	<div class="ui-widget ui-widget-content ui-corner-all" style="padding:0px 5px 5px 5px">
-	<p>
-		<input type="submit" id="weight_add" value="Neue Gewichtsmessung...">
-		<input type="submit" id="pulse_add" value="Neue Pulsmessung...">
-		<input type="submit" id="desease_add" value="Neue Erkrankung...">
-	</p>
-	<input type="submit" id="weightgoal_add" value="Neues Zielgewicht...">
-	<div id="weight_dialog" title="Neue Gewichtsmessung">
-		<table>
-			<tr>
-				<td>Datum: </td><td><input type="text" id="weight_date_input"/></td>
-			</tr>
-			<tr>
-				<td>Gewicht: </td><td><input type="text" id="weight_input"/></td>
-			</tr>
-			<tr>
-				<td>Körperfett: </td><td><input type="text" id="body_fat_input"/></td>
-			</tr>
-			<tr>
-				<td>Wasseranteil: </td><td><input type="text" id="body_water_input"/></td>
-			</tr>
-			<tr>
-				<td>Knochengewicht: </td><td><input type="text" id="bones_weight_input"/></td>
-			</tr>
-			<tr>
-				<td>Muskelgewicht: </td><td><input type="text" id="muscles_weight_input"/></td>
-			</tr>
-		</table>
-		<input type="submit" id="weight_send" value="Speichern"/>
+	<div class="card-panel">
+		<div class="card-content">
+			<a class="waves-effect waves-light btn modal-trigger" href="#weightgoal_add_modal">Zielgewicht</a>
+			<a class="waves-effect waves-light btn modal-trigger" href="#pulse_add_modal">Puls</a>
+			<a class="waves-effect waves-light btn modal-trigger" href="#weight_add_modal">Gewicht</a>
+			<a class="waves-effect waves-light btn modal-trigger" href="#desease_add_modal">Erkrankung</a>
+
+		</div>
 	</div>
-	<div id="pulse_dialog" title="Neue Pulsmessung">
-		Datum:
-		<input type="text" id="pulse_date"/>
-		<br/>
-		Ruhepuls:
-		<input type="text" id="pulse_rest"/>
-		<br/>
-		Maximalpuls:
-		<input type="text" id="pulse_maximum" />
-		<br/>
-		<input type="submit" id="pulse_send" value="Speichern">
+	<!-- Modal Structure -->
+	<div id="modal1" class="modal">
+		<div class="modal-content">
+			<h4>Modal Header</h4>
+			<p>A bunch of text</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+		</div>
 	</div>
-	<div id="weightgoal_dialog" title="Neues Ziel">
-		Datum:
-		<input type="text" id="weightgoal_date"/>
-		<br/>
-		Gewicht:
-		<input type="text" id="weightgoal_weight"/>
-		<br/>
-		<input type="submit" id="weightgoal_send" value="Speichern"/>
+
+	<div id="weightgoal_add_modal" class="modal">
+		<div class="modal-content">
+			<form action="/health/weightgoals/add/" method="post">
+				{% csrf_token %}
+				{{ goal_form }}
+				<input type="submit" value="Submit" />
+			</form>
+		</div>
 	</div>
-	{% include "health/includes/desease_dialog.html" %}
-</div>
+
+	<div id="desease_add_modal" class="modal">
+		<div class="modal-content">
+			<form action="/health/desease/add/" method="post">
+				{% csrf_token %}
+				{{ desease_form }}
+				<input type="submit" value="Submit" />
+			</form>
+		</div>
+	</div>
+	<div id="weight_add_modal" class="modal">
+		<div class="modal-content">
+			<form action="/health/weight/add/" method="post">
+				{% csrf_token %}
+				{{ weight_form }}
+				<input type="submit" value="Submit" />
+			</form>
+		</div>
+	</div>
+	<div id="pulse_add_modal" class="modal">
+		<div class="modal-content">
+			<form action="/health/pulse/add/" method="post">
+				{% csrf_token %}
+				{{ pulse_form }}
+				<input type="submit" value="Submit" />
+			</form>
+		</div>
+	</div>
+
+
+
+
+	{#	<div class="ui-widget ui-widget-content ui-corner-all" style="padding:0px 5px 5px 5px">#}
+{#	<p>#}
+{#		<input type="submit" id="weight_add" value="Neue Gewichtsmessung...">#}
+{#		<input type="submit" id="pulse_add" value="Neue Pulsmessung...">#}
+{#		<input type="submit" id="desease_add" value="Neue Erkrankung...">#}
+{#	</p>#}
+{#	<input type="submit" id="weightgoal_add" value="Neues Zielgewicht...">#}
+{#	<div id="weight_dialog" title="Neue Gewichtsmessung">#}
+{#		<table>#}
+{#			<tr>#}
+{#				<td>Datum: </td><td><input type="text" id="weight_date_input"/></td>#}
+{#			</tr>#}
+{#			<tr>#}
+{#				<td>Gewicht: </td><td><input type="text" id="weight_input"/></td>#}
+{#			</tr>#}
+{#			<tr>#}
+{#				<td>Körperfett: </td><td><input type="text" id="body_fat_input"/></td>#}
+{#			</tr>#}
+{#			<tr>#}
+{#				<td>Wasseranteil: </td><td><input type="text" id="body_water_input"/></td>#}
+{#			</tr>#}
+{#			<tr>#}
+{#				<td>Knochengewicht: </td><td><input type="text" id="bones_weight_input"/></td>#}
+{#			</tr>#}
+{#			<tr>#}
+{#				<td>Muskelgewicht: </td><td><input type="text" id="muscles_weight_input"/></td>#}
+{#			</tr>#}
+{#		</table>#}
+{#		<input type="submit" id="weight_send" value="Speichern"/>#}
+{#	</div>#}
+{#	<div id="pulse_dialog" title="Neue Pulsmessung">#}
+{#		Datum:#}
+{#		<input type="text" id="pulse_date"/>#}
+{#		<br/>#}
+{#		Ruhepuls:#}
+{#		<input type="text" id="pulse_rest"/>#}
+{#		<br/>#}
+{#		Maximalpuls:#}
+{#		<input type="text" id="pulse_maximum" />#}
+{#		<br/>#}
+{#		<input type="submit" id="pulse_send" value="Speichern">#}
+{#	</div>#}
+{#	<div id="weightgoal_dialog" title="Neues Ziel">#}
+{#		Datum:#}
+{#		<input type="text" id="weightgoal_date"/>#}
+{#		<br/>#}
+{#		Gewicht:#}
+{#		<input type="text" id="weightgoal_weight"/>#}
+{#		<br/>#}
+{#		<input type="submit" id="weightgoal_send" value="Speichern"/>#}
+{#	</div>#}
+{#	{% include "health/includes/desease_dialog.html" %}#}
+{#</div>#}
 {% endblock %} 

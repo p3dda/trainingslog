@@ -13,7 +13,7 @@ from django.core import serializers
 
 from health.models import Desease, Weight, Goal, Pulse
 from health.utils import parsefloat
-
+import health.forms
 
 @login_required
 def show_weight(request):
@@ -39,7 +39,12 @@ def show_weight(request):
 	else:
 		goal_distance = 0
 
-	return render_to_response('health/weight.html', {'goal': goal, 'goal_distance': goal_distance, 'ymin': str(int(ymin) - 1), 'ymax': str(int(ymax) + 1), 'username': request.user})
+	goal_form = health.forms.GoalForm()
+	weight_form = health.forms.WeightForm()
+	desease_form = health.forms.DeseaseForm()
+	pulse_form = health.forms.PulseForm()
+
+	return render_to_response('health/weight.html', {'goal': goal, 'goal_distance': goal_distance, 'ymin': str(int(ymin) - 1), 'ymax': str(int(ymax) + 1), 'username': request.user, 'goal_form': goal_form, 'weight_form': weight_form, 'desease_form': desease_form, 'pulse_form': pulse_form})
 
 
 @login_required
@@ -50,7 +55,7 @@ def add_weight(request):
 	try:
 		if request.method == 'POST':
 			logging.debug("add_weight post request with items %s" % repr(request.POST.items()))
-			datestring = request.POST.get('weight_date')
+			datestring = request.POST.get('date')
 
 			try:
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
@@ -93,14 +98,14 @@ def add_weightgoal(request):
 			logging.debug("add_weightgoal post request with items %s" % repr(request.POST.items()))
 			datestring = ""
 			try:
-				datestring = request.POST.get('date')
+				datestring = request.POST.get('due_date')
 				d = datetime.datetime.strptime(datestring, "%d.%m.%Y")
 			except Exception, exc:
 				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Datum: %s" % datestring}
 				return HttpResponse(json.dumps(result))
 			try:
-				weight = str(parsefloat(request.POST.get('weight')))
+				weight = str(parsefloat(request.POST.get('target_weight')))
 			except ValueError, exc:
 				logging.exception("Exception occured in add_weight: %s" % exc)
 				result = {'success': False, 'msg': "Ungueltiges Gewicht: %s" % request.POST.get('weight')}

@@ -16,6 +16,7 @@ import logging
 
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
 from activities.forms import EquipmentForm
+import activities.forms
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile
 from activities.django_datatables_view.base_datatable_view import BaseDatatableView
@@ -818,6 +819,9 @@ def settings(request):
 	calformulas = CalorieFormula.objects.filter(user=request.user) | CalorieFormula.objects.filter(public=True).order_by('public', 'name')
 	activitytemplates = ActivityTemplate.objects.filter(user=request.user)
 
+	event_form = activities.forms.EventForm()
+	equipment_form = activities.forms.EquipmentForm()
+
 	for equipment in itertools.chain(equipments, equipments_archived):
 		equipment.time = 0
 		activity_distance = Activity.objects.filter(user=request.user, equipment=equipment).aggregate(Sum('distance'))
@@ -843,7 +847,7 @@ def settings(request):
 
 		equipment.distance = str(equipment.distance)
 
-	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user})
+	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user, 'event_form': event_form, 'equipment_form': equipment_form})
 
 
 class ActivityListJson(BaseDatatableView):

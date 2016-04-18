@@ -1,12 +1,12 @@
 {% extends "base.html" %}
+{% load materializecss %}
 
 {% block title %}Sports list{% endblock %}
 {% block head %} 
 <script type="text/javascript" src="/media/js/colorpicker.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
-{#<link rel='stylesheet' type='text/css' href='/media/css/jquery.dataTables_themeroller.css'/>#}
-{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>#}
-<link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
+
+	<link rel="stylesheet" type="text/css" href="/media/css/colorpicker.css" />
 <link rel="stylesheet" type="text/css" href="/media/css/colorpickerlayout.css" />
 
 
@@ -17,7 +17,8 @@
 	var cf_id = null;
 
 	$(document).ready(function(){
-		
+		$('.modal-trigger').leanModal();
+
 		var cp = $('#colorpickerHolder2');
 		cp.ColorPicker({
 			flat: true,
@@ -98,21 +99,6 @@
 			}
 		});
 
-		$("#equipment_dialog").dialog({
-			autoOpen: false,
-			show: "blind",
-			hide: "explode",
-			minWidth: 500,
-			minHeight: 300
-		});
-		$("#event_dialog").dialog({
-			autoOpen: false,
-			show: "blind",
-			hide: "explode"
-//			minWidth: 500,
-//			minHeight: 300,
-		});
-		
 		$( "#sport_dialog" ).dialog({
 			autoOpen: false,
 			show: "blind",
@@ -208,10 +194,10 @@
 			}
 
 		});
-		$("#event_add").click(function(){showEventDialog();});
-		$("#event_send").click(eventSend);
-		$("#equipment_add").click(function(){showEquipmentDialog();});
-		$("#equipment_send").click(equipmentSend);
+{#		$("#event_add").click(function(){showEventDialog();});#}
+{#		$("#event_send").click(eventSend);#}
+{#		$("#equipment_add").click(function(){showEquipmentDialog();});#}
+{#		$("#equipment_send").click(equipmentSend);#}
 		$("#sport_send").click(sportSend);
 		$("#sport_add").click(function(){showSportDialog();});
 		$("#calformula_add").click(function(){showCalformulaDialog();});
@@ -231,33 +217,33 @@
 		});
 	};
 
-	var showEquipmentDialog = function(equipment_id) {
-		function onDataReceived(data) {
-			var fields = data[0].fields;
-			$("#equipment_name_input").val(fields.name);
-			$("#equipment_description_input").val(fields.description);
-			$("#equipment_distance_input").val(fields.distance);
-			$("#equipment_archived_input").attr('checked', fields.archived);
-		}
-		if(typeof(equipment_id) != "undefined") {
-			equ_id = equipment_id;
-			var url = "/equipments/get/?id=" + equipment_id;
-			get_data(url, onDataReceived);
-		}
-		$("#equipment_dialog").dialog("open");
-	};
-	var showEventDialog = function(event_id) {
-		function onDataReceived(data) {
-			var fields = data[0].fields;
-			$("#event_name_input").val(fields.name);
-		}
-		if(typeof(event_id) != "undefined") {
-			ev_id = event_id;
-			var url = "/events/get/?id=" + event_id;
-			get_data(url, onDataReceived);
-		}
-		$("#event_dialog").dialog("open");
-	};
+{#	var showEquipmentDialog = function(equipment_id) {#}
+{#		function onDataReceived(data) {#}
+{#			var fields = data[0].fields;#}
+{#			$("#equipment_name_input").val(fields.name);#}
+{#			$("#equipment_description_input").val(fields.description);#}
+{#			$("#equipment_distance_input").val(fields.distance);#}
+{#			$("#equipment_archived_input").attr('checked', fields.archived);#}
+{#		}#}
+{#		if(typeof(equipment_id) != "undefined") {#}
+{#			equ_id = equipment_id;#}
+{#			var url = "/equipments/get/?id=" + equipment_id;#}
+{#			get_data(url, onDataReceived);#}
+{#		}#}
+{#		$("#equipment_dialog").dialog("open");#}
+{#	};#}
+{#	var showEventDialog = function(event_id) {#}
+{#		function onDataReceived(data) {#}
+{#			var fields = data[0].fields;#}
+{#			$("#event_name_input").val(fields.name);#}
+{#		}#}
+{#		if(typeof(event_id) != "undefined") {#}
+{#			ev_id = event_id;#}
+{#			var url = "/events/get/?id=" + event_id;#}
+{#			get_data(url, onDataReceived);#}
+{#		}#}
+{#		$("#event_dialog").dialog("open");#}
+{#	};#}
 	var showSportDialog = function(sport_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
@@ -301,35 +287,35 @@
 		$("#calformula_dialog").dialog("open");
 	};
 	
-	var equipmentSend = function() {
-		var name = $("#equipment_name_input").val();
-		var description = $("#equipment_description_input").val();
-		var distance = $("#equipment_distance_input").val().replace( /,/,"." );
-		var archived;
-
-		if ($("#equipment_archived_input:checked").val() != undefined){
-			archived = 1;
-		} else {
-			archived = 0;
-		}
-
-		var data = {
-				name: name,
-				description: description,
-				distance: distance,
-				archived: archived
-		};
-		if (equ_id != null){
-			data.update_id = equ_id;
-		}
-
-		$.post("/equipments/add/",
-			data, 
-			function(data) {
-				$("#equipment_dialog").dialog("close");
-				window.location.reload();
-			}, "json");
-	};
+{#	var equipmentSend = function() {#}
+{#		var name = $("#equipment_name_input").val();#}
+{#		var description = $("#equipment_description_input").val();#}
+{#		var distance = $("#equipment_distance_input").val().replace( /,/,"." );#}
+{#		var archived;#}
+{##}
+{#		if ($("#equipment_archived_input:checked").val() != undefined){#}
+{#			archived = 1;#}
+{#		} else {#}
+{#			archived = 0;#}
+{#		}#}
+{##}
+{#		var data = {#}
+{#				name: name,#}
+{#				description: description,#}
+{#				distance: distance,#}
+{#				archived: archived#}
+{#		};#}
+{#		if (equ_id != null){#}
+{#			data.update_id = equ_id;#}
+{#		}#}
+{##}
+{#		$.post("/equipments/add/",#}
+{#			data, #}
+{#			function(data) {#}
+{#				$("#equipment_dialog").dialog("close");#}
+{#				window.location.reload();#}
+{#			}, "json");#}
+{#	};#}
 
 	var calformulaSend = function() {
 		var name = $("#calformula_name_input").val();
@@ -351,24 +337,24 @@
 				window.location.reload();
 			}, "json");
 	};
-		
-	var eventSend = function() {
-		var name = $("#event_name_input").val();
-
-		var data = {
-				name: name
-			};
-		if (ev_id != null) {
-			data.update_id = ev_id;
-		}
-		$.post("/events/add/",
-			data, 
-			function(data) {
-				$("#event_dialog").dialog("close");
-				window.location.reload();
-			}, "json");
-	}
-;
+{#		#}
+{#	var eventSend = function() {#}
+{#		var name = $("#event_name_input").val();#}
+{##}
+{#		var data = {#}
+{#				name: name#}
+{#			};#}
+{#		if (ev_id != null) {#}
+{#			data.update_id = ev_id;#}
+{#		}#}
+{#		$.post("/events/add/",#}
+{#			data, #}
+{#			function(data) {#}
+{#				$("#event_dialog").dialog("close");#}
+{#				window.location.reload();#}
+{#			}, "json");#}
+{#	}#}
+{#;#}
 	var sportSend = function() {
 		// retrieve the text entered
 		var name = $("#sport_name_input").val();
@@ -437,29 +423,26 @@
 				<li class="tab col s3"><a href="#tabs-calformula">Kalorienformeln</a></li>
 			</ul>
 		</div>
-{#		<div id="inbox" class="col s12">Inbox</div>#}
-{#		<div id="unread" class="col s12">Unread</div>#}
-{#		<div id="outbox" class="col s12">Outbox (Disabled)</div>#}
-{#		<div id="sent" class="col s12">Sent</div>#}
 
 		<div id="tabs-equipment" class="col s12">
 			{% if equipments %}
-{#				<table id="equipment_table" class="datatable_equipment">#}
 				<table id="equipment_table" class="datatable_equipment ui compact selectable striped celled table raised segment">
 					<thead>
-					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
+					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th><th></th></tr>
 					</thead>
 					<tbody>
 					{% for equ in equipments %}
 						<tr>
 							<td>
 								{{equ.name}}&nbsp;&nbsp;
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
 							</td>
 							<td>{{equ.distance}}</td>
 							<td>{{equ.time}}</td>
 							<td>{{equ.speed}}</td>
+							<td>
+								<i class="material-icons" onclick="showEquipmentDialog({{equ.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showEquipmentDeleteDialog({{equ.id}})">delete</i>
+							</td>
 						</tr>
 					{%endfor %}
 					</tbody>
@@ -467,25 +450,27 @@
 			{% else %}
 				<p>No equipments are available</p>
 			{%endif%}
-			<input type="submit" id="equipment_add" value="Neues Equipment...">
+			<a class="waves-effect waves-light btn modal-trigger" href="#equipment_add_modal"><i class="material-icons left">add</i></a>
 
 			{% if equipments_archived %}
 				<h2>Archiv</h2>
 				<table id="equipment_archived_table" class="datatable_equipment">
 					<thead>
-					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th></tr>
+					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th><th></th></tr>
 					</thead>
 					<tbody>
 					{% for equ in equipments_archived %}
 						<tr>
 							<td>
 								{{equ.name}}&nbsp;&nbsp;
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEquipmentDialog({{equ.id}})"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEquipmentDeleteDialog({{equ.id}})"/>
 							</td>
 							<td>{{equ.distance}}</td>
 							<td>{{equ.time}}</td>
 							<td>{{equ.speed}}</td>
+							<td>
+								<i class="material-icons" onclick="showEquipmentDialog({{equ.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showEquipmentDeleteDialog({{equ.id}})">delete</i>
+							</td>
 						</tr>
 					{%endfor %}
 					</tbody>
@@ -498,7 +483,7 @@
 				<table id="event_table" class="datatable">
 					<thead>
 					<tr>
-						<th>Name</th>
+						<th>Name</th><th></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -506,8 +491,10 @@
 						<tr>
 							<td>
 								{{event.name}}
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showEventDialog({{event.id}})"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showEventDeleteDialog({{event.id}})"/>
+							</td>
+							<td>
+								<i class="material-icons" onclick="showEventDialog({{event.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showEventDeleteDialog({{event.id}})">delete</i>
 							</td>
 						</tr>
 					{%endfor %}
@@ -517,7 +504,7 @@
 			{% else %}
 				<p>No events are available</p>
 			{%endif%}
-			<input type="submit" id="event_add" value="Neues Event...">
+			<a class="waves-effect waves-light btn modal-trigger" href="#event_add_modal"><i class="material-icons left">add</i></a>
 		</div>
 
 		<div id="tabs-templates" class="col s12">
@@ -525,7 +512,7 @@
 				<table id="activitytemplates_table" class="datatable">
 					<thead>
 					<tr>
-						<th>Name</th>
+						<th>Name</th><th></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -533,8 +520,10 @@
 						<tr>
 							<td>
 								{{acttmp.name}}
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityTemplateDialog({{acttmp.id}}, onlytemplate = true)"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityTemplateDelete_dialog({{acttmp.id}})"/>
+							</td>
+							<td>
+								<i class="material-icons" onclick="showActivityTemplateDialog({{acttmp.id}}, onlytemplate = true)">mode_edit</i>
+								<i class="material-icons" onclick="showActivityTemplateDelete_dialog({{acttmp.id}})">delete</i>
 							</td>
 						</tr>
 					{%endfor %}
@@ -555,6 +544,7 @@
 						<th>Name</th>
 						<th>Kalorienberechnung</th>
 						<th>Farbe</th>
+						<th></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -562,8 +552,6 @@
 						<tr>
 							<td>
 								{{sport.name}}
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showSportDialog({{sport.id}})"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showSportDeleteDialog({{sport.id}})"/>
 							</td>
 							<td>
 								{% if sport.calorie_formula %}
@@ -576,6 +564,10 @@
 								<div class="colordisplay">
 									<div style="background-color: {{sport.color}}"></div>
 								</div>
+							</td>
+							<td>
+								<i class="material-icons" onclick="showSportDialog({{sport.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showSportDeleteDialog({{sport.id}})">delete</i>
 							</td>
 						</tr>
 					{%endfor %}
@@ -595,6 +587,7 @@
 					<tr>
 						<th>Name</th>
 						<th>Formel</th>
+						<th></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -602,8 +595,8 @@
 						<tr>
 							<td>
 								{{calformula.name}}
-								<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showCalformulaDialog({{calformula.id}})"/>
-								<img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showCalformulaDeleteDialog({{calformula.id}})"/>
+								<i class="material-icons" onclick="showCalformulaDialog({{calformula.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showCalformulaDeleteDialog({{calformula.id}})">delete</i>
 							</td>
 							<td>
 								kcal =
@@ -614,6 +607,10 @@
 								{% if calformula.weight_time_factor != 0 %}
 									Zeit x Gewicht x {{calformula.weight_time_factor}}
 								{% endif %}
+							</td>
+							<td>
+								<i class="material-icons" onclick="showCalformulaDialog({{calformula.id}})">mode_edit</i>
+								<i class="material-icons" onclick="showCalformulaDeleteDialog({{calformula.id}})">delete</i>
 							</td>
 						</tr>
 					{% endfor %}
@@ -673,17 +670,24 @@
 	<input type="submit" id="sport_send" value="OK">
 </div>
 
-<div id="equipment_dialog" title="Neues Equipment">
-	<label for="equipment_name_input">Name: </label><input type="text" id="equipment_name_input"/><br/>
-	<label for="equipment_description_input">Beschreibung: </label><textarea rows=3 cols=30 id="equipment_description_input"></textarea><br/>
-	<label for="equipment_distance_input">Distanz-Offset: </label><input type="text" id="equipment_distance_input"/><br/>
-	<label for="equipment_archived_input">Archiviert: </label><input type="checkbox" id="equipment_archived_input"/><br/>
-	<input type="submit" id="equipment_send" value="Speichern"/>
+<div id="equipment_add_modal" class="modal">
+	<div class="modal-content">
+		<form action="/settings/" method="post">
+			{% csrf_token %}
+			{{ equipment_form|materializecss}}
+			<input type="submit" value="Submit" />
+		</form>
+	</div>
 </div>
 
-<div id="event_dialog" title="Neues Event">
-	<label for="event_name_input">Name: </label><input type="text" id="event_name_input"/><br/>
-	<input type="submit" id="event_send" value="Speichern"/>
+<div id="event_add_modal" class="modal">
+	<div class="modal-content">
+		<form action="/settings/" method="post">
+			{% csrf_token %}
+			{{ event_form|materializecss}}
+			<input type="submit" value="Submit" />
+		</form>
+	</div>
 </div>
 
 <div id="calformula_dialog" title="Neue Kalorienformel">
@@ -712,6 +716,6 @@
 	<input id="calformula_delete_id_input" type="hidden" />
 </div>
 
-{% include "activities/includes/activity_dialog.html" %}
+{#{% include "activities/includes/activity_dialog.html" %}#}
 
 {% endblock %}

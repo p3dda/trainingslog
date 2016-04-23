@@ -217,33 +217,6 @@
 		});
 	};
 
-{#	var showEquipmentDialog = function(equipment_id) {#}
-{#		function onDataReceived(data) {#}
-{#			var fields = data[0].fields;#}
-{#			$("#equipment_name_input").val(fields.name);#}
-{#			$("#equipment_description_input").val(fields.description);#}
-{#			$("#equipment_distance_input").val(fields.distance);#}
-{#			$("#equipment_archived_input").attr('checked', fields.archived);#}
-{#		}#}
-{#		if(typeof(equipment_id) != "undefined") {#}
-{#			equ_id = equipment_id;#}
-{#			var url = "/equipments/get/?id=" + equipment_id;#}
-{#			get_data(url, onDataReceived);#}
-{#		}#}
-{#		$("#equipment_dialog").dialog("open");#}
-{#	};#}
-{#	var showEventDialog = function(event_id) {#}
-{#		function onDataReceived(data) {#}
-{#			var fields = data[0].fields;#}
-{#			$("#event_name_input").val(fields.name);#}
-{#		}#}
-{#		if(typeof(event_id) != "undefined") {#}
-{#			ev_id = event_id;#}
-{#			var url = "/events/get/?id=" + event_id;#}
-{#			get_data(url, onDataReceived);#}
-{#		}#}
-{#		$("#event_dialog").dialog("open");#}
-{#	};#}
 	var showSportDialog = function(sport_id) {
 		function onDataReceived(data) {
 			var fields = data[0].fields;
@@ -424,7 +397,7 @@
 			</ul>
 		</div>
 
-		<div id="tabs-equipment" class="col s12">
+		<div id="tabs-equipment" class="col s12 card material-table">
 			{% if equipments %}
 				<table id="equipment_table" class="datatable_equipment ui compact selectable striped celled table raised segment">
 					<thead>
@@ -454,7 +427,7 @@
 
 			{% if equipments_archived %}
 				<h2>Archiv</h2>
-				<table id="equipment_archived_table" class="datatable_equipment">
+				<table id="equipment_archived_table" class="datatable_equipment ui compact selectable striped celled table raised segment">
 					<thead>
 					<tr><th>Name</th><th>Distanz</th><th>Zeit</th><th>Geschwindigkeit</th><th></th></tr>
 					</thead>
@@ -478,9 +451,9 @@
 			{%endif%}
 		</div>
 
-		<div id="tabs-events" class="col s12">
+		<div id="tabs-events" class="col s12 card material-table">
 			{% if events %}
-				<table id="event_table" class="datatable">
+				<table id="event_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
 					<tr>
 						<th>Name</th><th></th>
@@ -507,9 +480,9 @@
 			<a class="waves-effect waves-light btn modal-trigger" href="#event_add_modal"><i class="material-icons left">add</i></a>
 		</div>
 
-		<div id="tabs-templates" class="col s12">
+		<div id="tabs-templates" class="col s12 card material-table">
 			{% if activitytemplates %}
-				<table id="activitytemplates_table" class="datatable">
+				<table id="activitytemplates_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
 					<tr>
 						<th>Name</th><th></th>
@@ -536,9 +509,9 @@
 			<input type="submit" id="acttmp_add" value="Neue Vorlage...">
 		</div>
 
-		<div id="tabs-sports" class="col s12">
+		<div id="tabs-sports" class="col s12 card material-table">
 			{% if sports %}
-				<table id="sport_table" class="datatable">
+				<table id="sport_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
 					<tr>
 						<th>Name</th>
@@ -580,9 +553,9 @@
 			<input type="submit" id="sport_add" value="Neue Sportart...">
 		</div>
 
-		<div id="tabs-calformula" class="col s12">
+		<div id="tabs-calformula" class="col s12 card material-table">
 			{% if calformulas %}
-				<table id="calories_table" class="datatable">
+				<table id="calories_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
 					<tr>
 						<th>Name</th>
@@ -718,4 +691,5 @@
 
 {#{% include "activities/includes/activity_dialog.html" %}#}
 
+	{% include "activities/includes/materialize_table_js.html" %}
 {% endblock %}

@@ -30,7 +30,9 @@
 	var act_table;
 	var garmincontrol;
 	var sport_data = Array();
-	
+
+
+
 	$(document).ready(function() {
 		{%  if garmin_keys %}
 		try {
@@ -163,7 +165,19 @@
 			"serverSide": true,
 			"processing": true,
 			"oLanguage": {
-				"sUrl":   "/media/lang/dataTables.de_DE.txt"
+				"sUrl":   "/media/lang/dataTables.de_DE.txt",
+				"sStripClasses": "",
+				"sSearch": "",
+				"sSearchPlaceholder": "Enter Keywords Here",
+				"sInfo": "_START_ -_END_ of _TOTAL_",
+				"sLengthMenu": '<span>Rows per page:</span><select class="browser-default">' +
+				'<option value="10">10</option>' +
+				'<option value="20">20</option>' +
+				'<option value="30">30</option>' +
+				'<option value="40">40</option>' +
+				'<option value="50">50</option>' +
+				'<option value="-1">All</option>' +
+				'</select></div>'
 			},
 			"pagingType": "simple",
 			"ajax": "/activities/get"
@@ -182,18 +196,29 @@
 {% endblock %}
 {% block content %}
 	<div class="row">
-		<table id="activities_table" class="datatable_equipment ui compact selectable striped celled table raised segment activities_table">
-			<thead>
-				<tr>
-					<th>Name</th>
-					<th>Sportart</th>
-					<th>Datum</th>
-					<th>Dauer</th>
-				</tr>
-			</thead>
-			<tbody>
-			</tbody>
-		</table>
+		<div class="col s12">
+			<div class="card material-table">
+				<div class="table-header">
+					<span class="table-title">Aktivitäten</span>
+					<div class="actions">
+{#						<a href="#add_users" class="modal-trigger waves-effect btn-flat nopadding"><i class="material-icons">person_add</i></a>#}
+						<a href="#" class="search-toggle waves-effect btn-flat nopadding"><i class="material-icons">search</i></a>
+					</div>
+				</div>
+				<table id="activities_table" class="datatable_equipment ui compact selectable striped celled table raised segment activities_table">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Sportart</th>
+							<th>Datum</th>
+							<th>Dauer</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
 	</div>
 
 	<div class="row">
@@ -225,4 +250,5 @@
 		<div id="alert_dialog_content"></div>
 	</div>
 
+	{% include "activities/includes/materialize_table_js.html" %}
 {% endblock %} 

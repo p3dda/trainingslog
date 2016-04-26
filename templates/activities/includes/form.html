@@ -1,6 +1,11 @@
 {% load materializecss %}
-<form action="{{ url }}" method="post">
+<form class="col s12" action="{{ url }}" method="post">
 	{% csrf_token %}
 	{{ form | materializecss}}
-	<input type="submit" value="Submit" />
+	<button class="btn waves-effect waves-light" type="submit" name="action">Submit
+		<i class="material-icons right">send</i>
+	</button>
 </form>
+<script>
+	$('select').material_select();
+</script>

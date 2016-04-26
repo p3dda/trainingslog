@@ -18,11 +18,11 @@
 
 	var openModal = function(modelName, id){
 		if(id != null){
-			$("#equipment_add_modal_content").load('/settings/forms/'+modelName+'/' + id);
+			$("#settings_form_modal_content").load('/settings/forms/'+modelName+'/' + id);
 		} else {
-			$("#equipment_add_modal_content").load('/settings/forms/'+modelName);
+			$("#settings_form_modal_content").load('/settings/forms/'+modelName);
 		}
-		$('#equipment_add_modal').openModal();
+		$('#settings_form_modal').openModal();
 	};
 
 	$(document).ready(function(){
@@ -33,7 +33,6 @@
 			var modelName = this.id.split('.')[3];
 			openModal(modelName, null);
 		});
-
 
 		var cp = $('#colorpickerHolder2');
 		cp.ColorPicker({
@@ -53,8 +52,6 @@
 			$('#colorpickerHolder2').stop().animate({height: widt ? 0 : 173}, 500);
 			widt = !widt;
 		});
-
-{#		$( "#tabs" ).tabs();#}
 
 		$( ".datatable").dataTable({
  			"bJQueryUI": true,
@@ -129,19 +126,8 @@
 			minWidth: 600,
 			minHeight: 400
 		});
-
-{#		$("#event_add").click(function(){showEventDialog();});#}
-{#		$("#event_send").click(eventSend);#}
-{#		$("#equipment_add").click(function(){showEquipmentDialog();});#}
-{#		$("#equipment_send").click(equipmentSend);#}
-{#		$("#sport_send").click(sportSend);#}
-{#		$("#sport_add").click(function(){showSportDialog();});#}
-{#		$("#calformula_add").click(function(){showCalformulaDialog();});#}
-{#		$("#calformula_send").click(calformulaSend);#}
-{#		#}
-{#		$("#acttmp_add").click(function(){showActivityTemplateDialog(null, true);});#}
 	});
-	
+
 	var get_data = function(url, onDataReceived) {
 		$.ajax({
 		// have to use synchronous here, else the function
@@ -152,171 +138,6 @@
 		success: onDataReceived
 		});
 	};
-
-{#	var showSportDialog = function(sport_id) {#}
-{#		function onDataReceived(data) {#}
-{#			var fields = data[0].fields;#}
-{#			$("#sport_name_input").val(fields.name);#}
-{#			if( fields.calorie_formula != null ) {#}
-{#				$("#sport_calformula_input").val(fields.calorie_formula);#}
-{#			} else {#}
-{#				$("#sport_calformula_input").val(-1);#}
-{#			}#}
-{#			$("#sport_color_input").val(fields.color);#}
-{#			$("#sport_speed_as_pace_input").attr('checked', fields.speed_as_pace);#}
-{#			$('#colorpickerHolder2').ColorPickerSetColor(fields.color);#}
-{#			$('#colorSelector2').find('div').css('backgroundColor', fields.color);#}
-{#		}#}
-{#		if(typeof(sport_id) != "undefined") {#}
-{#			sp_id = sport_id;#}
-{#			var url = "/sports/get/?id=" + sport_id;#}
-{#			get_data(url, onDataReceived);#}
-{#		} else {#}
-{#			sp_id = null;#}
-{#		}#}
-{#		#}
-{#		$("#sport_dialog").dialog("open");#}
-{#	};#}
-{#	#}
-{#	var showCalformulaDialog = function(calformula_id){#}
-{#		function onDataReceived(data) {#}
-{#			var fields = data[0].fields;#}
-{#			$("#calformula_name_input").val(fields.name);#}
-{#			$("#calformula_wd_input").val(fields.weight_dist_factor);#}
-{#			$("#calformula_wt_input").val(fields.weight_time_factor);#}
-{#		}#}
-{#		if(typeof(calformula_id) != "undefined") {#}
-{#			cf_id = calformula_id;#}
-{#			var url = "/calformula/get/?id=" + calformula_id;#}
-{#			get_data(url, onDataReceived);#}
-{#		} else {#}
-{#			cf_id = null;#}
-{#		}#}
-{#		#}
-{#		$("#calformula_dialog").dialog("open");#}
-{#	};#}
-{#	#}
-{#	var equipmentSend = function() {#}
-{#		var name = $("#equipment_name_input").val();#}
-{#		var description = $("#equipment_description_input").val();#}
-{#		var distance = $("#equipment_distance_input").val().replace( /,/,"." );#}
-{#		var archived;#}
-{##}
-{#		if ($("#equipment_archived_input:checked").val() != undefined){#}
-{#			archived = 1;#}
-{#		} else {#}
-{#			archived = 0;#}
-{#		}#}
-{##}
-{#		var data = {#}
-{#				name: name,#}
-{#				description: description,#}
-{#				distance: distance,#}
-{#				archived: archived#}
-{#		};#}
-{#		if (equ_id != null){#}
-{#			data.update_id = equ_id;#}
-{#		}#}
-{##}
-{#		$.post("/equipments/add/",#}
-{#			data, #}
-{#			function(data) {#}
-{#				$("#equipment_dialog").dialog("close");#}
-{#				window.location.reload();#}
-{#			}, "json");#}
-{#	};#}
-
-{#	var calformulaSend = function() {#}
-{#		var name = $("#calformula_name_input").val();#}
-{#		var weightDistFactor = $("#calformula_wd_input").val().replace( /,/,"." );#}
-{#		var weightTimeFactor = $("#calformula_wt_input").val().replace( /,/,"." );#}
-{#		#}
-{#		var data = {#}
-{#				name: name,#}
-{#				weight_dist_factor: weightDistFactor,#}
-{#				weight_time_factor: weightTimeFactor#}
-{#			};#}
-{#		if (cf_id != null) {#}
-{#			data.update_id = cf_id;#}
-{#		}#}
-{#		$.post("/calformula/add/",#}
-{#			data, #}
-{#			function(data) {#}
-{#				$("#event_dialog").dialog("close");#}
-{#				window.location.reload();#}
-{#			}, "json");#}
-{#	};#}
-{#		#}
-{#	var eventSend = function() {#}
-{#		var name = $("#event_name_input").val();#}
-{##}
-{#		var data = {#}
-{#				name: name#}
-{#			};#}
-{#		if (ev_id != null) {#}
-{#			data.update_id = ev_id;#}
-{#		}#}
-{#		$.post("/events/add/",#}
-{#			data, #}
-{#			function(data) {#}
-{#				$("#event_dialog").dialog("close");#}
-{#				window.location.reload();#}
-{#			}, "json");#}
-{#	}#}
-{#;#}
-{#	var sportSend = function() {#}
-{#		// retrieve the text entered#}
-{#		var name = $("#sport_name_input").val();#}
-{#		var calformula = $("#sport_calformula_input").val();#}
-{#		var color = $("#sport_color_input").val();#}
-{#		var speed_as_pace;#}
-{##}
-{#		if ($("#sport_speed_as_pace_input:checked").val() != undefined){#}
-{#			speed_as_pace = 1;#}
-{#		} else {#}
-{#			speed_as_pace = 0;#}
-{#		}#}
-{##}
-{#		if(name != "") {#}
-{#			// store value in data variable#}
-{#			var data = {#}
-{#				name: name,#}
-{#				calformula: calformula,#}
-{#				color: color,#}
-{#				speed_as_pace: speed_as_pace#}
-{#			};#}
-{#			if (sp_id != null){#}
-{#				data.update_id = sp_id;#}
-{#			}#}
-{#			$.post("/sports/add/", #}
-{#					data, #}
-{#					function(data) {#}
-{#						$("#sport_dialog").dialog("close");#}
-{#						window.location.reload();#}
-{#					}, "json");#}
-{#		} else {#}
-{#			//alert("Enter some text silly!");#}
-{#		}#}
-{#	};#}
-
-{#	var showCalformulaDeleteDialog = function(calformula_id) {#}
-{#		$("#calformula_delete_id_input").val(calformula_id);#}
-{#		$("#calformula_delete_dialog").dialog("open");#}
-{#	};#}
-{#	var showEquipmentDeleteDialog = function(equipment_id) {#}
-{#		$("#equipment_delete_id_input").val(equipment_id);#}
-{#		$("#equipment_delete_dialog").dialog("open");#}
-{#	};#}
-{#	var showEventDeleteDialog = function(event_id) {#}
-{#		$("#event_delete_id_input").val(event_id);#}
-{#		$("#event_delete_dialog").dialog("open");#}
-{#	};#}
-{#	var showSportDeleteDialog = function(sport_id) {#}
-{#		$("#sport_delete_id_input").val(sport_id);#}
-{#		$("#sport_delete_dialog").dialog("open");#}
-{#	};#}
-
-
 </script>
 {% endblock %}
 
@@ -333,7 +154,7 @@
 			</ul>
 		</div>
 
-		<div id="tabs-equipment" class="col s12 card material-table">
+		<div id="tabs-equipment" class="col s12 material-table">
 			{% if equipments %}
 				<table id="equipment_table" class="datatable_equipment ui compact selectable striped celled table raised segment">
 					<thead>
@@ -359,7 +180,6 @@
 				<p>No equipments are available</p>
 			{%endif%}
 			<a id="modal.trainingslog.settings.equipment.add" class="waves-effect waves-light btn modal-trigger"><i class="material-icons left">add</i></a>
-{#			<a class="waves-effect waves-light btn modal-trigger" href="#equipment_add_modal"><i class="material-icons left">add</i></a>#}
 
 			{% if equipments_archived %}
 				<h2>Archiv</h2>
@@ -386,7 +206,7 @@
 			{%endif%}
 		</div>
 
-		<div id="tabs-events" class="col s12 card material-table">
+		<div id="tabs-events" class="col s12 material-table">
 			{% if events %}
 				<table id="event_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
@@ -411,10 +231,10 @@
 			{% else %}
 				<p>No events are available</p>
 			{%endif%}
-			<a id="modal.trainingslog.settings.event.add" class="waves-effect waves-light btn modal-trigger" href="#event_add_modal"><i class="material-icons left">add</i></a>
+			<a id="modal.trainingslog.settings.event.add" class="waves-effect waves-light btn modal-trigger"><i class="material-icons left">add</i></a>
 		</div>
 
-		<div id="tabs-templates" class="col s12 card material-table">
+		<div id="tabs-templates" class="col s12 material-table">
 			{% if activitytemplates %}
 				<table id="activitytemplates_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
@@ -442,7 +262,7 @@
 			<input type="submit" id="acttmp_add" value="Neue Vorlage...">
 		</div>
 
-		<div id="tabs-sports" class="col s12 card material-table">
+		<div id="tabs-sports" class="col s12 material-table">
 			{% if sports %}
 				<table id="sport_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
@@ -472,7 +292,7 @@
 								</div>
 							</td>
 							<td>
-								<i class="material-icons" onclick="showSportDialog({{sport.id}})">mode_edit</i>
+								<i class="material-icons" onclick="openModal('sport', {{sport.id}})">mode_edit</i>
 							</td>
 						</tr>
 					{%endfor %}
@@ -482,10 +302,10 @@
 			{% else %}
 				<p>Keine Sportarten festgelegt</p>
 			{% endif %}
-			<input type="submit" id="sport_add" value="Neue Sportart...">
+			<a id="modal.trainingslog.settings.sport.add" class="waves-effect waves-light btn modal-trigger"><i class="material-icons left">add</i></a>
 		</div>
 
-		<div id="tabs-calformula" class="col s12 card material-table">
+		<div id="tabs-calformula" class="col s12 material-table">
 			{% if calformulas %}
 				<table id="calories_table" class="datatable ui compact selectable striped celled table raised segment">
 					<thead>
@@ -500,7 +320,6 @@
 						<tr>
 							<td>
 								{{calformula.name}}
-{#								<i class="material-icons" onclick="showCalformulaDialog({{calformula.id}})">mode_edit</i>#}
 							</td>
 							<td>
 								kcal =
@@ -513,102 +332,18 @@
 								{% endif %}
 							</td>
 							<td>
-{#								<i class="material-icons" onclick="showCalformulaDialog({{calformula.id}})">mode_edit</i>#}
 							</td>
 						</tr>
 					{% endfor %}
 					</tbody>
 				</table>
 			{% endif %}
-			<input type="submit" id="calformula_add" value="Neue Kalorienformel...">
 		</div>
-
+	</div>
+	<div id="settings_form_modal" class="modal">
+		<div id="settings_form_modal_content" class="modal-content">
+		</div>
 	</div>
 
-	<div id="sport_dialog" title="Neue Sportart">
-	<table>
-		<tr>
-			<td><label for="sport_name_input">Name: </label></td><td><input type="text" id="sport_name_input"/></td>
-		</tr>
-		<tr>
-			<td><label for="sport_calformula_input">Kalorienformel</label></td>
-			<td>
-				<select id="sport_calformula_input">
-					<option value = -1> - </option>
-					{% for calformula in calformulas %}
-						<option value={{calformula.id}}>{{calformula.name}}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<td>Farbe</td>
-			<td>
-				<p id="colorpickerHolder"></p>
-				<div id="customWidget">
-					<div id="colorSelector2">
-						<div style="background-color: #00ff00"></div>
-					</div>
-					<div id="colorpickerHolder2"></div>
-				</div>
-			</td>	
-		</tr>
-		<tr>
-			<td><label for="sport_speed_as_pace_input">Geschwindigkeit als Pace</label></td>
-			<td><input type="checkbox" id="sport_speed_as_pace_input"/></td>
-		</tr>
-	</table>
-	<input type="hidden" id="sport_color_input" value = "#00ff00"/>
-	<input type="submit" id="sport_send" value="OK">
-</div>
-
-<div id="equipment_add_modal" class="modal">
-	<div id="equipment_add_modal_content" class="modal-content">
-{#		<form action="/settings/" method="post">#}
-{#			{% csrf_token %}#}
-{#			{{ equipment_form|materializecss}}#}
-{#			<input type="submit" value="Submit" />#}
-{#		</form>#}
-	</div>
-</div>
-
-{#<div id="event_add_modal" class="modal">#}
-{#	<div class="modal-content">#}
-{#		<form action="/settings/" method="post">#}
-{#			{% csrf_token %}#}
-{#			{{ event_form|materializecss}}#}
-{#			<input type="submit" value="Submit" />#}
-{#		</form>#}
-{#	</div>#}
-{#</div>#}
-
-{#<div id="calformula_dialog" title="Neue Kalorienformel">#}
-{#	<label for="calformula_name_input">Name: </label><input type="text" id="calformula_name_input"/><br/>#}
-{#	<label for="calformula_wd_input">kcal = Distanz x Gewicht x </label><input type="text" id="calformula_wd_input"/> <label for="calformula_wt_input"> + Zeit x Gewicht x </label><input type="text" id="calformula_wt_input"/><br/>#}
-{#	<input type="submit" id="calformula_send" value="Speichern"/>#}
-{#</div>#}
-{##}
-{#<div id="equipment_delete_dialog">#}
-{#	Equipment wirklich l&ouml;schen?#}
-{#	<input id="equipment_delete_id_input" type="hidden" />#}
-{#</div>#}
-{##}
-{#<div id="event_delete_dialog">#}
-{#	Event wirklich l&ouml;schen?#}
-{#	<input id="event_delete_id_input" type="hidden" />#}
-{#</div>#}
-{##}
-{#<div id="sport_delete_dialog">#}
-{#	Sportart wirklich l&ouml;schen?#}
-{#	<input id="sport_delete_id_input" type="hidden" />#}
-{#</div>#}
-{##}
-{#<div id="calformula_delete_dialog">#}
-{#	Kalorienformel wirklich l&ouml;schen?#}
-{#	<input id="calformula_delete_id_input" type="hidden" />#}
-{#</div>#}
-
-{#{% include "activities/includes/activity_dialog.html" %}#}
-
-	{% include "activities/includes/materialize_table_js.html" %}
+{% include "activities/includes/materialize_table_js.html" %}
 {% endblock %}

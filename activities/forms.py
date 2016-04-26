@@ -1,6 +1,6 @@
 # encoding: utf-8
 from django import forms
-from activities.models import Activity, Equipment, Event
+from activities.models import Activity, Equipment, Event, Sport
 
 
 class ActivityForm(forms.ModelForm):
@@ -31,3 +31,10 @@ class EventForm(forms.ModelForm):
 
 		model = Event
 		fields = ('name', )
+
+class SportForm(forms.ModelForm):
+	class Meta:
+		def __init__(self):
+			pass
+		model = Sport
+		fields = ('name', 'color', 'speed_as_pace', 'calorie_formula',)

@@ -852,7 +852,7 @@ def settings(request):
 
 @login_required
 def settings_form(request, model, id=None):
-	assert model in ['equipment', 'event']
+	assert model in ['equipment', 'event', 'sport']
 	modelclass = apps.get_model('activities', model.capitalize())
 
 	if id is not None:
@@ -865,6 +865,8 @@ def settings_form(request, model, id=None):
 			form = activities.forms.EquipmentForm(request.POST, instance=instance)
 		elif model == 'event':
 			form = activities.forms.EventForm(request.POST, instance=instance)
+		elif model == 'sport':
+			form = activities.forms.SportForm(request.POST, instance=instance)
 		else:
 			raise RuntimeError("Unsupported model")
 		if form.is_valid():
@@ -877,6 +879,8 @@ def settings_form(request, model, id=None):
 		form = activities.forms.EquipmentForm(instance=instance)
 	elif model == 'event':
 		form = activities.forms.EventForm(instance=instance)
+	elif model == 'sport':
+		form = activities.forms.SportForm(instance=instance)
 	else:
 		raise RuntimeError("Unsupported model")
 	return render_to_response('activities/includes/form.html', {'form': form, 'url': request.path})

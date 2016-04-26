@@ -58,7 +58,7 @@ url(r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", conte
 
 urlpatterns += patterns('',
 	url(r'^admin/', include(admin.site.urls)),
-	url(r'^accounts/login/$', 'django.contrib.auth.views.login'),
+	url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='login'),
 	url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': "/activities/"}),
 	url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 	url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),

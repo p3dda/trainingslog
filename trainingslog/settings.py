@@ -46,6 +46,7 @@ USE_L10N = True
 
 # WUNDERGROUND_KEY = '8424e446a37c8faf'
 
+LOGIN_REDIRECT_URL = '/'
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')

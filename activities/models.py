@@ -23,7 +23,7 @@ class CalorieFormula(models.Model):
 class Equipment(models.Model):
 	name = models.CharField(max_length=200)
 	description = models.TextField(blank=True)
-	distance = models.IntegerField(default=0, blank=True, null=False)
+	distance = models.IntegerField("Distance offset", default=0, blank=True, null=False)
 	archived = models.BooleanField(default=False)
 
 	user = models.ForeignKey(User, null=True, blank=True)

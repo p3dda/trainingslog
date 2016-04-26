@@ -1,0 +1,6 @@
+{% load materializecss %}
+<form action="{{ url }}" method="post">
+	{% csrf_token %}
+	{{ form | materializecss}}
+	<input type="submit" value="Submit" />
+</form>

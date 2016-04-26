@@ -21,7 +21,7 @@ class EquipmentForm(forms.ModelForm):
 			pass
 
 		model = Equipment
-		fields = ('name', 'description')
+		fields = ('name', 'description', 'distance')
 
 
 class EventForm(forms.ModelForm):

@@ -23,6 +23,7 @@ from activities.django_datatables_view.base_datatable_view import BaseDatatableV
 
 from health.models import Desease, Weight, Goal
 
+from django.apps import apps
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -849,6 +850,36 @@ def settings(request):
 
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user, 'event_form': event_form, 'equipment_form': equipment_form})
 
+@login_required
+def settings_form(request, model, id=None):
+	assert model in ['equipment', 'event']
+	modelclass = apps.get_model('activities', model.capitalize())
+
+	if id is not None:
+		instance = get_object_or_404(modelclass, pk=id)
+	else:
+		instance = None
+
+	if request.method == 'POST':
+		if model == 'equipment':
+			form = activities.forms.EquipmentForm(request.POST, instance=instance)
+		elif model == 'event':
+			form = activities.forms.EventForm(request.POST, instance=instance)
+		else:
+			raise RuntimeError("Unsupported model")
+		if form.is_valid():
+			instance = form.save(commit=False)
+			instance.user = request.user
+			instance.save()
+			return HttpResponseRedirect('/settings/')
+
+	if model == 'equipment':
+		form = activities.forms.EquipmentForm(instance=instance)
+	elif model == 'event':
+		form = activities.forms.EventForm(instance=instance)
+	else:
+		raise RuntimeError("Unsupported model")
+	return render_to_response('activities/includes/form.html', {'form': form, 'url': request.path})
 
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting

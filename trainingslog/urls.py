@@ -39,6 +39,7 @@ urlpatterns = patterns('activities.views',
 	url(r'^calendar/$', 'calendar'),
 	url(r'^calendar/events/$', 'calendar_get_events'),
 	url(r'^settings/$', 'settings'),
+	url(r'^settings/forms/(?P<model>[a-z]+)(?:/(?P<id>\d+)/)?$', 'settings_form'),
 )
 
 urlpatterns += patterns('health.views',

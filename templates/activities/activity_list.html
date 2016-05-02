@@ -31,8 +31,6 @@
 	var garmincontrol;
 	var sport_data = Array();
 
-
-
 	$(document).ready(function() {
 		{%  if garmin_keys %}
 		try {
@@ -86,61 +84,12 @@
 			$('#garminDisplay').show();
 
 		} catch (e) {
-			$('#garminDisplay').hide();			
+			$('#garminDisplay').hide();
 		}
-		
-		{%  endif %}	
+
+		{%  endif %}
 		$("#activity_add").click(function(){showActivityDialog();});
 
-		// Enable tooltip for activities table
-		$("#activities_table").tooltip({
-			content: function(callback) {
-				var activity_id = $(this).attr('rel');
-				callback(activity_id);
-				$.get("/activities/get_json/", {id: activity_id}).done(function(data) {
-					act = eval(data.activity);
-					var fields = act[0].fields;
-
-					var text = "<b>" + fields.name + "</b><table><tr>";
-					if(data.hasOwnProperty('preview_img')){
-						text = text + '<td><img width=150 src="' + data.preview_img + '" /></td>';
-					}
-
-					if( fields.distance ){
-						var distance = parseFloat(fields.distance).toFixed(2).replace(/\./,",") + " km";
-					} else {
-						var distance = "-";
-					}
-					if( fields.time ) {
-						var time = secondsToTime(fields.time);
-					} else {
-						var time = "-";
-					}
-					if( fields.speed_avg ){
-						var speed_avg = parseFloat(fields.speed_avg);
-						if(sport_data[fields.sport]["pace"]){
-							speed_avg = speedToPace(speed_avg) + " min/km";
-						} else {
-							speed_avg = speed_avg.toFixed(2).replace( /\./,"," ) + " km/h";
-						}
-
-
-					} else {
-						var speed_avg = "-"
-					}
-					text = text + "<td> " 
-						+ "<table><tr><td>Distanz</td><td>" + distance +"</td></tr>" 
-						+ "<tr><td>Dauer</td><td>" + time + "</td></tr>"
-						+ "<tr><td>Ø Geschwindigkeit</td><td>" + speed_avg + "</td></tr>"
-						+ "</table>"
-						+ "</td></tr></table>";
-					callback(text);
-				})
-			},
-			position: { my: "left+30 top", at: "right top", collision: "flipfit" },
-			tooltipClass: "activitylist_tooltip"
-		});
-		
 		act_table = $('#activities_table').dataTable({
 			"order": [[ 2, "desc" ]],
 			"columnDefs": [
@@ -182,6 +131,9 @@
 			"pagingType": "simple",
 			"ajax": "/activities/get"
 		});
+		act_table.on('draw.dt', function() {
+			$('.tooltipped').tooltip({delay: 50});
+		})
 	});
 	
 	// Initialize sport_data array with speed / pace unit information
@@ -212,6 +164,7 @@
 							<th>Sportart</th>
 							<th>Datum</th>
 							<th>Dauer</th>
+							<th></th>
 						</tr>
 					</thead>
 					<tbody>

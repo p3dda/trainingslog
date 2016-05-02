@@ -893,8 +893,8 @@ class ActivityListJson(BaseDatatableView):
 	# order is important and should be same as order of columns
 	# displayed by datatables. For non sortable columns use empty
 	# value like ''
-	columns = ['name', 'sport', 'date', 'time']
-	order_columns = ['name', 'sport', 'date', 'time']
+	columns = ['name', 'sport', 'date', 'time', '']
+	order_columns = ['name', 'sport', 'date', 'time', '']
 
 	# set max limit of records returned, this is used to protect our site if someone tries to attack our site
 	# and make it return huge amount of data
@@ -925,6 +925,6 @@ class ActivityListJson(BaseDatatableView):
 			# 	json_data.append(['<a href="/activities/%s/" data-ajax="false">%s</a>' % (item.id, item.name), item.date.isoformat(), item.time])
 			# else:
 			# 	json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<img src="/media/img/edit-icon.png" alt="Bearbeiten" onclick="showActivityDialog(%s)"/><img src="/media/img/delete-icon.png" alt="L&ouml;schen" onclick="showActivityDeleteDialog(%s)"/>' % (item.id, item.id, item.name, item.name, item.id, item.id), item.sport.name, item.date.isoformat(), item.time])
-			json_data.append(['<a class="activityPopupTrigger" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;<i class="material-icons" onclick="showActivityDialog(%s)">mode_edit</i><i class="material-icons" onclick="showActivityDeleteDialog(%s, \'%s\')">delete</i>' % (item.id, item.id, item.name, item.name, item.id, item.id, item.name), item.sport.name, item.date.isoformat(), item.time])
+			json_data.append(['<a class="tooltipped" data-position="right" data-tooltip="%s" href="/activities/%s/" rel="%s" title="%s">%s</a>&nbsp;&nbsp;&nbsp;' % (item.name, item.id, item.id, item.name, item.name), item.sport.name, item.date.isoformat(), item.time, '<i class="material-icons" onclick="showActivityDialog(%s)">mode_edit</i><i class="material-icons" onclick="showActivityDeleteDialog(%s, \'%s\')">delete</i>' % (item.id, item.id, item.name)])
 
 		return json_data

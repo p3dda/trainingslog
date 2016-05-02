@@ -583,7 +583,8 @@ def detail(request, activity_id):
 				{"name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "color": "#FFBF00", "rounding": 0, "unit": "/ Minute", "unit_short": "/ min."},
 				{"name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "Millisekunden", "unit_short": "ms"},
 				{"name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "mm", "unit_short": "mm"},
-				{"name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "C", "unit_short": "C"}
+				{"name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "C", "unit_short": "C"},
+				{"name": "power", "dataname": "power", "label": "Leistung", "label_short": "Leistung", "color": "#FF0000", "rounding": 1, "unit": "Watt", "unit_short": "W"}
 			]
 
 		else:

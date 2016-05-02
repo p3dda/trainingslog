@@ -618,7 +618,7 @@ def detail(request, activity_id, version='classic'):
 			return render_to_response('activities/detail.html', {'activity': act, 'username': request.user, 'speed_unit': speed_unit, 'equipments': equipments, 'events': events, 'sports': sports, 'calformulas': calformulas, 'activitytemplates': activitytemplates, 'weight': weight, 'laps': laps, 'edit': edit, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public, 'full_url': request.build_absolute_uri(), 'preview_img': preview_img, 'fb_app_id': fb_app_id})
 		else:
 			return render_to_response('activities/detail.html', {'activity': act, 'speed_unit': speed_unit, 'laps': laps, 'tcx': trackfile, 'gpx_url': gpx_url, 'public': public})
-	if param == 'plots':
+	elif param == 'plots':
 		if act.track:
 			track = ActivityFile.ActivityFile(act.track)
 
@@ -626,6 +626,7 @@ def detail(request, activity_id, version='classic'):
 					'cadence': track.get_cad(),
 					'hf': track.get_hf(),
 					'pos': track.get_pos(),
+					'power': track.get_power(),
 					'speed': track.get_speed(act.sport.speed_as_pace),
 					'speed_foot': track.get_speed_foot(act.sport.speed_as_pace),
 					'stance_time': track.get_stance_time(),
@@ -635,7 +636,8 @@ def detail(request, activity_id, version='classic'):
 			details_data = track.get_detail_entries()
 
 			return HttpResponse(json.dumps({"plot_data": data, "details_data": details_data}, sort_keys=True, indent=4), content_type="text/plain")
-
+	else:
+		return HttpResponseBadRequest("Invalid request parameter: %s" % param)
 	# last resort
 	return Http404()
 

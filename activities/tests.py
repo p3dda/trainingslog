@@ -191,6 +191,59 @@ class ActivityTest(TestCase):
 		self.assertEqual(act.time_elapsed, 7723)
 		self.assertEqual(act.time, 4857)
 
+	def test_fit_bike(self):
+		"""
+		Tests fit file import and parsing with gps and cadence
+		"""
+		url = "/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike_powermeter.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+		act = Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		laps = Lap.objects.filter(activity=act)
+		self.assertEqual(len(laps), 5)
+		self.assertEqual(act.distance, Decimal('77.248'))
+		self.assertEqual(act.time, 9309)
+		self.assertEqual(act.time_elapsed, 10895)
+
+		act_track = ActivityFile.ActivityFile(act.track)
+		self.assertEqual(len(act_track.track_data["hf"]), 9327)
+		self.assertEqual(len(act_track.track_data["cad"]), 9214)
+		self.assertEqual(len(act_track.track_data["power"]), 9335)
+		self.assertEqual(len(act_track.track_by_distance), 9271)
+
+		self.assertEqual(act.elevation_min, 52)
+		self.assertEqual(act.elevation_max, 237)
+		self.assertEqual(act.cadence_avg, 91)
+		self.assertEqual(act.cadence_max, 123)
+
+		url = "/activities/1/"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+
+		url = "/activities/1/?p=plots"
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		jsondata = json.loads(response.content)
+
+		self.assertIsInstance(jsondata, dict)
+		pdata = jsondata["plot_data"]
+		ddata = jsondata["details_data"]
+		self.assertTrue('altitude' in pdata)
+		self.assertEqual(len(pdata['altitude']), 9343)
+		self.assertTrue('cadence' in pdata)
+		self.assertNotEqual(pdata['cadence'], [])
+		self.assertTrue('speed' in pdata)
+		self.assertTrue('power' in pdata)
+		self.assertNotEqual(pdata['power'], [])
+		self.assertIsInstance(ddata, dict)
+		self.assertEqual(ddata["training_stress_score"], 123.7)
+		self.assertEqual(ddata["normalized_power"], 208)
+
 	def test_fit_run(self):
 		"""
 		Tests fit file import and parsing with gps and cadence
@@ -431,6 +484,11 @@ class ActivityViewsTest(TestCase):
 		url = "/activities/5/"
 		resp = self.client.get(url)
 		self.assertEqual(resp.status_code, 404)
+
+		# bad get request
+		url = "/activities/2/?p=foobar"
+		resp = self.client.get(url)
+		self.assertEqual(resp.status_code, 400)
 
 	def test_get_calendar(self):
 		self.client.login(username='test1', password='test1')

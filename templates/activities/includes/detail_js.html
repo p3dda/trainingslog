@@ -57,7 +57,8 @@
 		{ "name": "cad", "dataname": "cadence", "label": "Trittfrequenz", "label_short": "Trittfreq.", "color": "#FFBF00", "rounding": 0, "unit": "/ Minute","unit_short": "/ min."},
 		{ "name": "stance_time", "dataname": "stance_time", "label": "Bodenkontaktzeit", "label_short": "Bodenkontaktzeit", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "Millisekunden","unit_short": "ms"},
 		{ "name": "vertical_oscillation", "dataname": "vertical_oscillation", "label": "Vertikale Bewegung", "label_short": "Vert. Bewegung", "color": "rgb(152, 117, 178)", "rounding": 0, "unit": "mm","unit_short": "mm"},
-		{ "name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "°C","unit_short": "°C"}
+		{ "name": "temperature", "dataname": "temperature", "label": "Temperatur", "label_short": "Temperatur", "color": "#FFBF00", "rounding": 1, "unit": "°C","unit_short": "°C"},
+		{ "name": "power", "dataname": "power", "label": "Leistung", "label_short": "Leistung", "color": "#FF0000", "rounding": 0, "unit": "Watt", "unit_short": "W"}
 	];
 {% else %}
 	var graphs = [];
@@ -67,7 +68,9 @@
 		"avg_stance_time": {"label": "Ø Bodenkontaktzeit", "unit": "ms", "rounding": 0},
 		"avg_stride_len": {"label": "Ø Schrittlaenge", "unit": "m", "rounding": 2},
 		"avg_vertical_oscillation": {"label": "Ø vert. Bewegung", "unit": "mm", "rounding": 0},
-		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 1}
+		"total_training_effect": {"label": "Trainingseffekt", "unit": "", "rounding": 1},
+		"normalized_power": {"label": "NP", "unit": "W", "rounding": 0},
+		"training_stress_score": {"label": "TSS", "unit": "", "rounding": 1}
 	};
 
 {%  if gpx_url %}

@@ -17,7 +17,6 @@ package { 'django-materializecss-form':
   require  => Package['python-pip']
 }
 
-
 class {'nginx':
   sendfile => 'off'
 }

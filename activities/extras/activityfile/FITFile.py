@@ -100,10 +100,12 @@ class FITFile(ActivityFile):
 				self.laps.append(lap)
 
 	def parse_trackpoints(self):
+		detail_entry_list = ["avg_stance_time", "avg_vertical_oscillation", "total_training_effect", "normalized_power", "training_stress_score", "left_right_balance"]
 		alt_data = []
 		cad_data = []
 		hf_data = []
 		pos_data = []
+		power_data = []
 		speed_gps_data = []
 		speed_foot_data = []
 		stance_time_data = []
@@ -124,12 +126,9 @@ class FITFile(ActivityFile):
 			if total_distance is not None and total_distance is not None and total_strides > 0:
 				self.detail_entries["avg_stride_len"] = total_distance / total_strides
 
-			if message.get_value("avg_stance_time") is not None:
-				self.detail_entries["avg_stance_time"] = message.get_value("avg_stance_time")
-			if message.get_value("avg_vertical_oscillation") is not None:
-				self.detail_entries["avg_vertical_oscillation"] = message.get_value("avg_vertical_oscillation")
-			if message.get_value("total_training_effect") is not None:
-				self.detail_entries["total_training_effect"] = message.get_value("total_training_effect")
+			for detail_entry in detail_entry_list:
+				if message.get_value(detail_entry) is not None:
+					self.detail_entries[detail_entry] = message.get_value(detail_entry)
 
 		for message in self.fitfile.get_messages(name='record'):
 			distance = message.get_value("distance")
@@ -207,11 +206,18 @@ class FITFile(ActivityFile):
 				if distance is not None:
 					self.track_by_distance[distance]["vertical_oscillation"] = vertical_oscillation
 
+			power = message.get_value("power")
+			if power is not None:
+				power_data.append((distance, trackpoint_time, power))
+				if distance is not None:
+					self.track_by_distance[distance]["power"] = power
+
 		# logging.debug("Found a total time of %s seconds without movement (speed < 0.5m/s)" % offset_time)
 		self.track_data["alt"] = alt_data
 		self.track_data["cad"] = cad_data
 		self.track_data["hf"] = hf_data
 		self.track_data["pos"] = pos_data
+		self.track_data["power"] = power_data
 		self.track_data["speed_gps"] = speed_gps_data
 		self.track_data["speed_foot"] = speed_foot_data
 		self.track_data["stance_time"] = stance_time_data

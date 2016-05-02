@@ -52,7 +52,7 @@ class ActivityFile(ActivityFileMetaclass):
 		self.activity = None
 		self.date = None
 		self.laps = None
-		self.track_data = {'alt': [], 'cad': [], 'hf': [], 'pos': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
+		self.track_data = {'alt': [], 'cad': [], 'hf': [], 'pos': [], 'power': [], 'speed_gps': [], 'speed_foot': [], 'stance_time': [], 'temperature': [], 'vertical_oscillation': []}
 		self.track_by_distance = {}
 		self.detail_entries = {}
 		self.position_start = None
@@ -360,6 +360,13 @@ class ActivityFile(ActivityFileMetaclass):
 		@rtype: list
 		"""
 		return self.track_data["temperature"]
+
+	def get_power(self):
+		"""Returns list of (distance, power) tuples with optional given max length
+		@returns (distance, power) tuples
+		@rtype: list
+		"""
+		return self.track_data["power"]
 
 	def get_pos(self, samples=-1):
 		"""Returns list of (lat, lon) tuples with trackpoint gps coordinates

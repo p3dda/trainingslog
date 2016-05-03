@@ -1,298 +1,280 @@
 {% extends "base.html" %}
 {% block title %}Berichte{% endblock %}
 {% block head %} 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.pie.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.stack.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.pie.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.stack.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
 
-
-<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>
+{#<link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.7/css/jquery.dataTables_themeroller.css'/>#}
 
 <script>
-	$(document).ready(function() {
-		$( ".datatable").dataTable({
-			"aoColumnDefs": [
-				{
-					"mRender": function ( data, type, full ) {
-						if(type=="display"){
-							return secondsToTime(data, with_hours=true, with_days=true);
-						} else {
-							return data;
-						}
-					},
-					"aTargets": [3]
-				},
-				{
-					"mRender": function ( data, type, full ) {
-						if(type=="display"){
-							if (data != ""){
-								return parseFloat(data).toFixed(2).replace( /\./,"," ) + " km";
+		$(document).ready(function() {
+			$( ".datatable").dataTable({
+				"aoColumnDefs": [
+					{
+						"mRender": function ( data, type, full ) {
+							if(type=="display"){
+								return secondsToTime(data, with_hours=true, with_days=true);
 							} else {
-								return "-";
+								return data;
 							}
-						} else {
-							return data;
-						}
+						},
+						"aTargets": [3]
 					},
-					"aTargets": [2]
-				}
-			],
-			"bJQueryUI": true,
-			"bFilter": false,
-			"bInfo": false,
-			"bPaginate": false
-		});
-
-		now = new Date();
-		$( "#custom_start_date" ).datepicker(
-			{ dateFormat: 'dd.mm.yy',
-			  firstDay: 1,
-			  monthNames: monthNames,
-			  dayNamesMin: dayNamesMin
-			}
-		);
-		$( "#custom_end_date" ).datepicker(
-			{ dateFormat: 'dd.mm.yy',
-			  firstDay: 1,
-			  monthNames: monthNames,
-			  dayNamesMin: dayNamesMin
-			}
-		);
-		
-		$("#timespan").change(function() {
-			if($("#timespan option:selected").val() != -2) {
-				if ($("#custom_timespan").is(':visible')) {
-					$("#custom_timespan").hide("slow");
-				}
-				ajaxDataGetter();
-			} else {
-				$("#custom_timespan").show("slow");
-			}
-		});
-		$(':checkbox').change(function() {
-			ajaxDataGetter();
-		});
-		$('#custom_date_submit').click(function() {
-			ajaxDataGetter();
-		});
-		$( "#report_filter" ).accordion({collapsible: true, active: false});
-		
-		$( "#reports_tabs" ).tabs();
-		
-		ajaxDataGetter();
-	});
-
-
-	var ajaxDataGetter = function(){
-		events = new Array();
-		sports = new Array();
-		$(".event_cb:checked").each(function () {
-			events.push($(this).val());
-		});
-		$(".sport_cb:checked").each(function () {
-			sports.push($(this).val());
-		});
-		param = {"sports": sports, "events": events}
-		var param_b64 = base64Encode(JSON.stringify(param));
-		
-		if($("#timespan option:selected").val() == -2 ){
-			// evaluate custom date fields
-			var tmpdate;
-			tmpdate = $("#custom_start_date").datepicker("getDate");
-			// Convert the date entered by the user in his local timezone into a UTC timestamp 
-			var start_date =  Date.UTC(tmpdate.getFullYear(), tmpdate.getMonth(), tmpdate.getDate());
-			tmpdate = $("#custom_end_date").datepicker("getDate");
-			var end_date =  Date.UTC(tmpdate.getFullYear(), tmpdate.getMonth(), tmpdate.getDate());
-		} else {
-			// enddate is today
-			var now = new Date();
-			var end_date = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-
-			if($("#timespan option:selected").val() == -1 ){
-				start_date = 0;
-			} else {
-				// calculate offset (86400000 = milliseconds per day)
-				start_date = end_date - ($("#timespan option:selected").val() * 86400000)
-			}
-		}
-		
-		var bysport_url = "/reports/get/?mode=sports&startdate=" + start_date + "&enddate="+ end_date + "&param=" + param_b64;
-		var byweek_url = "/reports/get/?mode=weeks&startdate=" + start_date + "&enddate="+ end_date + "&param=" + param_b64;
-		
-		function onPieDataReceived(data) {
-			update_table(data);
-			
-			var pie_data = new Array();
-			
-			for(var key in data) {
-				if(data[key]['num_activities'] > 0) {
-					var pie_series = Object();
-					pie_series["label"] = key;
-					pie_series["data"] = data[key]['total_time'];
-					pie_series["color"] = data[key]['color'];
-					pie_data.push(pie_series);
-				}
-			}
-			$.plot($("#pie1"), pie_data,
-				{
-					series: {
-						pie: { 
-							show: true,
-							radius: 1,
-							label: {
-								show: true,
-								radius: 3/4,
-								formatter: function(label, series){
-									return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
-								},
-								background: { 
-									opacity: 0.5,
-									color: '#000'
+					{
+						"mRender": function ( data, type, full ) {
+							if(type=="display"){
+								if (data != ""){
+									return parseFloat(data).toFixed(2).replace( /\./,"," ) + " km";
+								} else {
+									return "-";
 								}
+							} else {
+								return data;
 							}
+						},
+						"aTargets": [2]
+					}
+				],
+				"bJQueryUI": true,
+				"bFilter": false,
+				"bInfo": false,
+				"bPaginate": false
+			});
+
+			$("#timespan").change(function() {
+				updateDatePicker();
+				ajaxDataGetter();
+			});
+
+			$(':checkbox').change(function() {
+				ajaxDataGetter();
+			});
+
+			$('select').material_select();
+
+			$('.datepicker').pickadate({
+				onClose: function () {
+					ajaxDataGetter();
+				}
+			});
+
+			updateDatePicker();
+			ajaxDataGetter();
+		});
+
+		function updateDatePicker() {
+			$('.datepicker').pickadate({
+				selectMonths: true, // Creates a dropdown to control month
+				selectYears: 15 // Creates a dropdown of 15 years to control year
+			});
+			var now=new Date();
+			var end_date_picker = $("#custom_end_date").pickadate('picker');
+			var start_date_picker = $("#custom_start_date").pickadate('picker');
+			end_date_picker.set('select', now);
+			var delta = $("#timespan").val();
+			now.setDate(now.getDate() - delta);
+			start_date_picker.set('select', now);
+		}
+
+		var ajaxDataGetter = function(){
+			var events = new Array();
+			var sports = new Array();
+
+			$(".event_cb:checked").each(function () {
+				events.push($(this).val());
+			});
+			$(".sport_cb:checked").each(function () {
+				sports.push($(this).val());
+			});
+			var param = {"sports": sports, "events": events};
+			var param_b64 = base64Encode(JSON.stringify(param));
+
+			var end_date_picker = $("#custom_end_date").pickadate('picker');
+			var start_date_picker = $("#custom_start_date").pickadate('picker');
+			var tmpdate = end_date_picker.get('select');
+			var end_date =  Date.UTC(tmpdate.year, tmpdate.month, tmpdate.date);
+			var tmpdate = start_date_picker.get('select');
+			var start_date =  Date.UTC(tmpdate.year, tmpdate.month, tmpdate.date);
+
+			var bysport_url = "/reports/get/?mode=sports&startdate=" + start_date + "&enddate="+ end_date + "&param=" + param_b64;
+			var byweek_url = "/reports/get/?mode=weeks&startdate=" + start_date + "&enddate="+ end_date + "&param=" + param_b64;
+
+			function onPieDataReceived(data) {
+				update_table(data);
+
+				var pie_data = new Array();
+
+				for(var key in data) {
+					if(data[key]['num_activities'] > 0) {
+						var pie_series = Object();
+						pie_series["label"] = key;
+						pie_series["data"] = data[key]['total_time'];
+						pie_series["color"] = data[key]['color'];
+						pie_data.push(pie_series);
+					}
+				}
+				$.plot($("#pie1"), pie_data,
+						{
+							series: {
+								pie: {
+									show: true,
+									radius: 1,
+									label: {
+										show: true,
+										radius: 3/4,
+										formatter: function(label, series){
+											return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
+										},
+										background: {
+											opacity: 0.5,
+											color: '#000'
+										}
+									}
+								}
+							},
+							legend: {
+								show: false
+							}
+
 						}
+				);
+
+			}
+
+			function timeTickFormatter(val, axis) {
+				var hours = Math.floor(val/60);
+				var minutes = val % 60;
+
+				return hours+":"+minutes;
+			}
+
+			function weekTickFormatter(val, axis) {
+				var date = new Date();
+				date.setTime(val);
+				return date.getWeek();
+			}
+
+			function onBarDataReceived(data) {
+				$.plot($("#bar_weeks_time"), data.time, {
+					xaxis : {
+						mode : "time",
+						minTickSize : [7, "day"],
+						tickFormatter:weekTickFormatter
+					},
+					yaxis: {
+						tickFormatter:timeTickFormatter
+					},
+					series: {
+						stack: true,
+						bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+					},
+					grid: {
+						show: true
 					},
 					legend: {
 						show: false
 					}
-					
-				}
-			);
-			
-		}
-		
-		function timeTickFormatter(val, axis) {
-			var hours = Math.floor(val/60);
-			var minutes = val % 60;
-			
-			return hours+":"+minutes;
-		}
-		
-		function weekTickFormatter(val, axis) {
-			var date = new Date();
-			date.setTime(val);
-			return date.getWeek();
-		}
-		
-		function onBarDataReceived(data) {
-			$.plot($("#bar_weeks_time"), data.time, {
-				xaxis : {
-					mode : "time",
-					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter
-				},
-				yaxis: {
-					tickFormatter:timeTickFormatter
-				},
-				series: {
-					stack: true,
-					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
-				},
-				grid: {
-					show: true
-				},
-				legend: {
-					show: false
-				}
-			});
+				});
 
-			$.plot($("#bar_weeks_distance"), data.distance, {
-				xaxis : {
-					mode : "time",
-					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter
-				},
-				series: {
-					stack: true,
-					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
-				},
-				grid: {
-					show: true
-				},
-				legend: {
-					show: false
-				}
-			});
+				$.plot($("#bar_weeks_distance"), data.distance, {
+					xaxis : {
+						mode : "time",
+						minTickSize : [7, "day"],
+						tickFormatter:weekTickFormatter
+					},
+					series: {
+						stack: true,
+						bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+					},
+					grid: {
+						show: true
+					},
+					legend: {
+						show: false
+					}
+				});
 
-			$.plot($("#bar_weeks_calories"), data.calories, {
-				xaxis : {
-					mode : "time",
-					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter
-				},
-				series: {
-					stack: true,
-					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
-				},
-				grid: {
-					show: true
-				},
-				legend: {
-					show: false
-				}
-			});
-			
-			$.plot($("#bar_weeks_count"), data.count, {
-				xaxis : {
-					mode : "time",
-					minTickSize : [7, "day"],
-					tickFormatter:weekTickFormatter
-				},
-				series: {
-					stack: true,
-					bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
-				},
-				grid: {
-					show: true
-				},
-				legend: {
-					show: false
-				}
-			});
+				$.plot($("#bar_weeks_calories"), data.calories, {
+					xaxis : {
+						mode : "time",
+						minTickSize : [7, "day"],
+						tickFormatter:weekTickFormatter
+					},
+					series: {
+						stack: true,
+						bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+					},
+					grid: {
+						show: true
+					},
+					legend: {
+						show: false
+					}
+				});
 
-		}
-		
-		$.ajax({
-			// have to use synchronous here, else the function
-			// will return before the data is fetched
-			async:false,
-			url: bysport_url,
-			dataType:"json",
-			success: onPieDataReceived
-		});
-		
-		$.ajax({
-			async: false,
-			url: byweek_url,
-			dataType:"json",
-			success: onBarDataReceived
-		});
-	};
+				$.plot($("#bar_weeks_count"), data.count, {
+					xaxis : {
+						mode : "time",
+						minTickSize : [7, "day"],
+						tickFormatter:weekTickFormatter
+					},
+					series: {
+						stack: true,
+						bars: { show: true, lineWidth: 0, barWidth: 604800000.0 * 0.8 }	// 604800000 is 7 days in timestamp notation
+					},
+					grid: {
+						show: true
+					},
+					legend: {
+						show: false
+					}
+				});
 
-
-	function update_table(data) {
-		// update report table with new data
-		$('#table_report').dataTable().fnClearTable();
-		for(var key in data) {
-			var item = data[key];
-			if(item['num_activities'] > 0) {
-		//		var time = secondsToTime(item['total_seconds']);
-				$('#table_report').dataTable().fnAddData( [
-						key,
-						item['num_activities'],
-						item['total_distance'],
-						item['total_time'],
-						item['total_elev_gain'],
-						item['total_calories']
-					]
-				);
 			}
-		}
 
-	}
-</script>
+			$.ajax({
+				// have to use synchronous here, else the function
+				// will return before the data is fetched
+				async:false,
+				url: bysport_url,
+				dataType:"json",
+				success: onPieDataReceived
+			});
+
+			$.ajax({
+				async: false,
+				url: byweek_url,
+				dataType:"json",
+				success: onBarDataReceived
+			});
+		};
+
+		function update_table(data) {
+			// update report table with new data
+			$('#table_report').dataTable().fnClearTable();
+			for(var key in data) {
+				var item = data[key];
+				if(item['num_activities'] > 0) {
+					//		var time = secondsToTime(item['total_seconds']);
+					$('#table_report').dataTable().fnAddData( [
+								key,
+								item['num_activities'],
+								item['total_distance'],
+								item['total_time'],
+								item['total_elev_gain'],
+								item['total_calories']
+							]
+					);
+				}
+			}
+
+		}
+	</script>
+
 {% endblock %}
 {% block subnavi %} 
 <!--
@@ -301,79 +283,63 @@
 {% endblock %}
 
 {% block content %}
-<div class="ui-widget ui-widget-content ui-corner-all">
-	<h2 class="activity_facts ui-widget-header ui-corner-top ui-state-active">Berichte</h2>
-	
-	<div id="report_filter" class="inner_div">
-		<h3><a href="#">Filter</a></h3>
-
-		<div id="timespanform" class="activity_facts">
-			<p>
-				<select id="timespan">
-					<option value='-1'>Alle Tage</option>
-					<option value = '{% now "z" %}' selected>Aktuelles Jahr</option>
-					<option value='7'>Letzte 7 Tage</option>
-					<option value='30'>Letzter Monat</option>
-					<option value='90'>Letzte 3 Monate</option>
-					<option value='365'>Letzte 365 Tage</option>
-					<option value='-2'>Benutzerdefiniert</option>
-				</select>
-			</p>
-			<div id="custom_timespan" style="display: none">
-				<input type="text" id="custom_start_date" /> - <input type="text" id="custom_end_date" />
-				<input type="button" id="custom_date_submit" value="Ok"/>
-			</div>
-			<table>
-				<tr>
-					<td valign="top">
-						{%  if events %}
-						<p>
-							{% for event in events %}
-								<input type="checkbox" class="event_cb" value="{{ event.pk }}" checked>{{ event.name }}<br/>
-							{% endfor %}
-						</p>
-						{%  endif %}
-					</td>
-					<td valign="top">
-						{%  if sports %}
-						<p>
-							{% for sport in sports %}
-								<input type="checkbox" class="sport_cb" value="{{ sport.pk }}" checked>{{ sport.name }}<br/>
-							{% endfor %}
-						</p>
-						{%  endif %}
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
-	<br/>
-	<div class="inner_div">
-		<div id="reports_tabs">
-			<ul>
-				<li><a href="#tabs-overview">&Uuml;bersicht</a></li>
-				<li><a href="#tabs-graphen">Graphen</a></li>
-				<li><a href="#tabs-details">Details</a></li>
+	<div class="row">
+		<div class="col s12">
+			<ul class="tabs">
+				<li class="tab col s4"><a class="active" href="#tabs-overview">Übersicht</a></li>
+				<li class="tab col s4"><a href="#tabs-plots">Graphen</a></li>
+				<li class="tab col s4"><a href="#tabs-details">Details</a></li>
 			</ul>
-	
-			<div id="tabs-overview" >
-				<div class="plot_container"><h2>Zeit (Gesamt)</h2><div id="pie1" style="width: 400px; height: 300px"></div></div>
+		</div>
+		<div id="tabs-overview" class="col s12" >
+			<div class="card">
+				<div class="card-content">
+					<div class="card-title">
+						Zeit (Gesamt)
+					</div>
+					<div id="pie1" style="width: 100%; height: 300px"></div>
+				</div>
 			</div>
-			<div id="tabs-graphen">
-				<table>
-					<tr>
-						<td><div class="plot_container"><h2>Zeit / Woche</h2><div id="bar_weeks_time" style="width:400px; height: 300px"></div></div></td>
-						<td><div class="plot_container"><h2>Kalorien / Woche</h2><div id="bar_weeks_calories" style="width: 400px; height: 300px"></div></div></td>
-					</tr>
-					<tr>
-						<td><div class="plot_container"><h2>Distanz / Woche (km)</h2><div id="bar_weeks_distance" style="width: 400px; height: 300px"></div></div></td>
-						<td><div class="plot_container"><h2>Aktivit&auml;ten / Woche</h2><div id="bar_weeks_count" style="width: 400px; height: 300px"></div></div></td>
-					</tr>
-				</table>
+		</div>
+		<div id="tabs-plots" class="col s12">
+			<div class="col s12 m6">
+				<div class="card">
+					<div class="card-content">
+						<div class="card-title">Zeit / Woche</div>
+						<div id="bar_weeks_time" style="width: 100%; height: 300px"></div>
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-content">
+						<div class="card-title">Kalorien / Woche</div>
+						<div id="bar_weeks_calories" style="width: 100%; height: 300px"></div>
+					</div>
+				</div>
 			</div>
-			<div id="tabs-details">
-				<table id="table_report" class="datatable">
-					<thead>
+			<div class="col s12 m6">
+				<div class="card">
+					<div class="card-content">
+						<div class="card-title">Distanz / Woche</div>
+						<div id="bar_weeks_distance" style="width: 100%; height: 300px"></div>
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-content">
+						<div class="card-title">Aktivit&auml;ten / Woche</div>
+						<div id="bar_weeks_count" style="width: 100%; height: 300px"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="tabs-details" class="col s12">
+			<div class="card material-table">
+				<div class="card-content">
+					<div class="table-header">
+						<span class="table-title">Details</span>
+					</div>
+					<table id="table_report" class="datatable ui compact selectable striped celled table raised segment">
+		{#			<table id="table_report" class="datatable">#}
+						<thead>
 						<tr>
 							<th>Sportart</th>
 							<th>Anzahl</th>
@@ -382,11 +348,72 @@
 							<th>H&ouml;hengewinn</th>
 							<th>Kalorien</th>
 						</tr>
-					</thead>
-					<tbody></tbody>
-				</table>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
+
+	<div class="row">
+		<div class="col s12">
+			<ul class="collapsible" data-collapsible="accordion">
+				<li>
+					<div class="collapsible-header"><i class="material-icons">subtitles</i>Zeitraum</div>
+					<div class="collapsible-body">
+{#						<div class="row">#}
+							<div class="input-field col s12">
+								<select id="timespan">
+									<option value='-1'>Alle Tage</option>
+									<option value = '{% now "z" %}' selected>Aktuelles Jahr</option>
+									<option value='7'>Letzte 7 Tage</option>
+									<option value='30'>Letzter Monat</option>
+									<option value='90'>Letzte 3 Monate</option>
+									<option value='365'>Letzte 365 Tage</option>
+									<option value='-2'>Benutzerdefiniert</option>
+								</select>
+								<label>Zeitraum</label>
+							</div>
+							<div class="input-field col s12 m6">
+								<input type="date" class="datepicker custom_date" id="custom_start_date" />
+								<label class="active" for="custom_start_date">Von</label>
+							</div>
+							<div class="input-field col s12 m6">
+								<input type="date" class="datepicker custom_date" id="custom_end_date" />
+								<label class="active" for="custom_end_date">Bis</label>
+							</div>
+{#						</div>#}
+					</div>
+				</li>
+				<li>
+					<div class="collapsible-header"><i class="material-icons">subtitles</i>Event</div>
+					<div class="collapsible-body">
+						<div class="row">
+							{% for event in events %}
+								<div class="input-field col s6">
+									<input type="checkbox" class="event_cb" id="event_cb_{{ event.pk }}" value="{{ event.pk }}" checked />
+									<label for="event_cb_{{ event.pk }}">{{ event.name }}</label>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="collapsible-header"><i class="material-icons">subtitles</i>Sportarten</div>
+					<div class="collapsible-body">
+						<div class="row">
+							{% for sport in sports %}
+								<div class="input-field col s6">
+									<input type="checkbox" class="sport_cb" id="sport_cb_{{ sport.pk }}" value="{{ sport.pk }}" checked />
+									<label for="sport_cb_{{ sport.pk }}">{{ sport.name }}</label>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				</li>
+			</ul>
+
+		</div>
+	</div>
 {% endblock %}

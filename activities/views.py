@@ -854,8 +854,11 @@ def settings(request):
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user, 'event_form': event_form, 'equipment_form': equipment_form})
 
 @login_required
-def settings_form(request, model, id=None):
-	assert model in ['equipment', 'event', 'sport']
+def generic_form(request, model, id=None):
+	assert model in ['equipment', 'event', 'sport', 'activity']
+	template = 'activities/includes/genericform.html'
+	redirect = '/settings'
+
 	modelclass = apps.get_model('activities', model.capitalize())
 
 	if id is not None:
@@ -870,13 +873,16 @@ def settings_form(request, model, id=None):
 			form = activities.forms.EventForm(request.POST, instance=instance)
 		elif model == 'sport':
 			form = activities.forms.SportForm(request.POST, instance=instance)
+		elif model == 'activity':
+			form = activities.forms.ActivityForm(request.POST, instance=instance, user=request.user)
+			redirect = '/activities'
 		else:
 			raise RuntimeError("Unsupported model")
 		if form.is_valid():
 			instance = form.save(commit=False)
 			instance.user = request.user
 			instance.save()
-			return HttpResponseRedirect('/settings/')
+			return HttpResponseRedirect(redirect)
 
 	if model == 'equipment':
 		form = activities.forms.EquipmentForm(instance=instance)
@@ -884,9 +890,12 @@ def settings_form(request, model, id=None):
 		form = activities.forms.EventForm(instance=instance)
 	elif model == 'sport':
 		form = activities.forms.SportForm(instance=instance)
+	elif model == 'activity':
+		form = activities.forms.ActivityForm(instance=instance, user=request.user)
+		template = 'activities/includes/activityform.html'
 	else:
 		raise RuntimeError("Unsupported model")
-	return render_to_response('activities/includes/form.html', {'form': form, 'url': request.path})
+	return render_to_response(template, {'form': form, 'url': request.path})
 
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting

@@ -16,9 +16,9 @@
 
 	var openModal = function(modelName, id){
 		if(id != null){
-			$("#settings_form_modal_content").load('/settings/forms/'+modelName+'/' + id + '/');
+			$("#settings_form_modal_content").load('/forms/'+modelName+'/' + id + '/');
 		} else {
-			$("#settings_form_modal_content").load('/settings/forms/'+modelName);
+			$("#settings_form_modal_content").load('/forms/'+modelName);
 		}
 		$('#id_color').colorpicker();
 		$('#settings_form_modal').openModal({

@@ -1,0 +1,76 @@
+{% load materializecss %}
+<div class="row">
+	<form class="col s12" action="{{ url }}" method="post">
+		{% csrf_token %}
+		<div class="col s12">
+			<ul class="tabs">
+				<li class="tab col s3">
+					<a class="active" href="#t1">1</a>
+				</li>
+				<li class="tab col s3">
+					<a href="#t2">2</a>
+				</li>
+				<li class="tab col s3">
+					<a href="#t3">Wetter</a>
+				</li>
+			</ul>
+		</div>
+		<div id="t1">
+			<div class="row">
+				{{ form.name | materializecss}}
+				{{ form.comment | materializecss }}
+				{{ form.date | materializecss:'s12 m6'}}
+				{{ form.time | materializecss:'s12 m6'}}
+				{{ form.sport | materializecss:'s12 m6' }}
+				{{ form.calorie_formula | materializecss:'s12 m6' }}
+				{{ form.time_movement | materializecss:'s12 m6' }}
+				{{ form.distance | materializecss:'s12 m6' }}
+				{{ form.calories | materializecss:'s12 m6' }}
+				{{ form.hf_max | materializecss:'s12 m6' }}
+				{{ form.hf_avg | materializecss:'s12 m6' }}
+				{{ form.event | materializecss:'s12 m6' }}
+			</div>
+		</div>
+		<div id="t2">
+			<div class="row">
+				{{ form.equipment | materializecss:'s12 m6'}}
+				{{ form.cadence_avg | materializecss:'s12 m6'}}
+				{{ form.cadence_max | materializecss:'s12 m6'}}
+				{{ form.elevation_gain | materializecss:'s12 m6'}}
+				{{ form.elevation_loss | materializecss:'s12 m6' }}
+				{{ form.elevation_min | materializecss:'s12 m6' }}
+				{{ form.elevation_max | materializecss:'s12 m6' }}
+				{{ form.speed_max | materializecss:'s12 m6' }}
+				{{ form.time_elapsed | materializecss:'s12 m6' }}
+				{{ form.time_movement | materializecss:'s12 m6' }}
+				{{ form.speed_max | materializecss:'s12 m6' }}
+				{{ form.speed_avg | materializecss:'s12 m6' }}
+				{{ form.speed_avg_movement | materializecss:'s12 m6' }}
+				{{ form.public | materializecss:'s12 m6' }}
+				{{ form.event | materializecss:'s12 m6' }}
+			</div>
+		</div>
+		<div id="t3">
+			<div class="row">
+				{{ form.weather_stationname | materializecss:'s12 m6'}}
+				{{ form.weather_temp | materializecss:'s12 m6'}}
+				{{ form.weather_rain | materializecss:'s12 m6'}}
+				{{ form.weather_hum | materializecss:'s12 m6'}}
+				{{ form.weather_windspeed | materializecss:'s12 m6' }}
+				{{ form.weather_winddir | materializecss:'s12 m6' }}
+			</div>
+		</div>
+		<div class="row">
+			<button class="btn waves-effect waves-light" type="submit" name="action">Submit
+				<i class="material-icons right">send</i>
+			</button>
+		</div>
+	</form>
+</div>
+
+<script>
+	$('select').material_select();
+	$('ul.tabs').tabs();
+	Materialize.updateTextFields();
+</script>
+

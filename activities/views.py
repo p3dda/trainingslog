@@ -401,121 +401,121 @@ def delete_activity(request):
 		else:
 			return HttpResponse(json.dumps({'success': False, 'msg': "Permission denied"}))
 
-
-@login_required
-def add_activity(request):
-	if request.method == 'POST':
-		logging.debug("In add_activity post request with parameters %s" % repr(request.POST.items()))
-		is_template = request.POST.get('is_template')
-		if is_template == 'true':
-			if 'update_id' in request.POST:
-				act = ActivityTemplate.objects.get(pk=int(request.POST.get('update_id')))
-				# If selected_by_id activityTemplate does not belong to current user, create new activityTemplate
-				if act.user != request.user:
-					act = ActivityTemplate(user=request.user)
-			else:
-				act = ActivityTemplate(user=request.user)
-		else:
-			if 'update_id' in request.POST:
-				act = Activity.objects.get(pk=int(request.POST.get('update_id')))
-				# If selected_by_id activity does not belong to current user, create new activity
-				if act.user != request.user:
-					act = Activity(user=request.user)
-			else:
-				act = Activity(user=request.user)
-
-		try:
-			act.name = request.POST.get('name')
-			act.comment = request.POST.get('comment')
-			act.cadence_avg = int_or_none(request.POST.get('cadence_avg'))
-			act.cadence_max = int_or_none(request.POST.get('cadence_max'))
-			act.calories = int_or_none(request.POST.get('calories'))
-			act.distance = str_float_or_none(request.POST.get('distance'))
-
-			act.elevation_gain = int_or_none(request.POST.get('elevation_gain'))
-			act.elevation_loss = int_or_none(request.POST.get('elevation_loss'))
-			act.elevation_min = int_or_none(request.POST.get('elevation_min'))
-			act.elevation_max = int_or_none(request.POST.get('elevation_max'))
-			act.hf_max = int_or_none(request.POST.get('hr_max'))
-			act.hf_avg = int_or_none(request.POST.get('hr_avg'))
-			act.time = int_or_none(request.POST.get('time'))
-			act.time_elapsed = int_or_none(request.POST.get('time_elapsed'))
-			act.time_movement = int_or_none(request.POST.get('time_movement'))
-
-			event = Event.objects.get(pk=int(request.POST.get('event')))
-			sport = Sport.objects.get(pk=int(request.POST.get('sport')))
-			act.event = event
-			act.sport = sport
-
-			if sport.speed_as_pace:
-				if request.POST.get('speed_max') != u'':
-					act.speed_max = str(pace_to_speed(request.POST.get('speed_max')))
-				if request.POST.get('speed_avg') != u'':
-					act.speed_avg = str(pace_to_speed(request.POST.get('speed_avg')))
-				if request.POST.get('speed_avg_movement') != u'':
-					act.speed_avg_movement = str(pace_to_speed(request.POST.get('speed_avg_movement')))
-			else:
-				if request.POST.get('speed_max') != u'':
-					act.speed_max = str_float_or_none(request.POST.get('speed_max'))
-				if request.POST.get('speed_avg') != u'':
-					act.speed_avg = str_float_or_none(request.POST.get('speed_avg'))
-				if request.POST.get('speed_avg_movement') != u'':
-					act.speed_avg_movement = str_float_or_none(request.POST.get('speed_avg_movement'))
-
-			equipment_list = request.POST.get('equipment').split(" ")
-
-			datestring = request.POST.get('date') + " " + request.POST.get('datetime')
-			try:
-				date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M")
-			except ValueError:
-				try:
-					date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M:%S")
-				except ValueError:
-					try:
-						date = datetime.datetime.strptime(datestring, "%Y-%m-%d %H:%M")
-					except ValueError:
-						if request.POST.get('is_template'):
-							date = None
-						else:
-							return HttpResponse(json.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
-
-			act.date = date
-
-			if request.POST.get('public') == '0':
-				act.public = False
-			else:
-				act.public = True
-
-			calorie_formula_id = int(request.POST.get('calformula'))
-			if calorie_formula_id != -1:
-				act.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
-			else:
-				act.calorie_formula = None
-
-			act.weather_stationname = request.POST.get('weather_stationname')
-			act.weather_temp = str_float_or_none(request.POST.get('weather_temp'))
-			act.weather_rain = str_float_or_none(request.POST.get('weather_rain'))
-			act.weather_hum = int_or_none(request.POST.get('weather_hum'))
-			act.weather_windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
-			act.weather_winddir = request.POST.get('weather_winddir')
-			if act.weather_winddir == "":
-				act.weather_winddir = None
-			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
-
-		except Exception, exc:
-			logging.exception("Exception occured in add_activits")
-			return HttpResponse(json.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
-
-		act.save()
-
-		eq_list = [Equipment.objects.get(pk=int(eq)) for eq in equipment_list if eq]
-		act.equipment = eq_list
-
-		act.save()
-		return HttpResponse(json.dumps({'success': True}))
-	else:
-		return HttpResponseBadRequest
-
+#
+# @login_required
+# def add_activity(request):
+# 	if request.method == 'POST':
+# 		logging.debug("In add_activity post request with parameters %s" % repr(request.POST.items()))
+# 		is_template = request.POST.get('is_template')
+# 		if is_template == 'true':
+# 			if 'update_id' in request.POST:
+# 				act = ActivityTemplate.objects.get(pk=int(request.POST.get('update_id')))
+# 				# If selected_by_id activityTemplate does not belong to current user, create new activityTemplate
+# 				if act.user != request.user:
+# 					act = ActivityTemplate(user=request.user)
+# 			else:
+# 				act = ActivityTemplate(user=request.user)
+# 		else:
+# 			if 'update_id' in request.POST:
+# 				act = Activity.objects.get(pk=int(request.POST.get('update_id')))
+# 				# If selected_by_id activity does not belong to current user, create new activity
+# 				if act.user != request.user:
+# 					act = Activity(user=request.user)
+# 			else:
+# 				act = Activity(user=request.user)
+#
+# 		try:
+# 			act.name = request.POST.get('name')
+# 			act.comment = request.POST.get('comment')
+# 			act.cadence_avg = int_or_none(request.POST.get('cadence_avg'))
+# 			act.cadence_max = int_or_none(request.POST.get('cadence_max'))
+# 			act.calories = int_or_none(request.POST.get('calories'))
+# 			act.distance = str_float_or_none(request.POST.get('distance'))
+#
+# 			act.elevation_gain = int_or_none(request.POST.get('elevation_gain'))
+# 			act.elevation_loss = int_or_none(request.POST.get('elevation_loss'))
+# 			act.elevation_min = int_or_none(request.POST.get('elevation_min'))
+# 			act.elevation_max = int_or_none(request.POST.get('elevation_max'))
+# 			act.hf_max = int_or_none(request.POST.get('hr_max'))
+# 			act.hf_avg = int_or_none(request.POST.get('hr_avg'))
+# 			act.time = int_or_none(request.POST.get('time'))
+# 			act.time_elapsed = int_or_none(request.POST.get('time_elapsed'))
+# 			act.time_movement = int_or_none(request.POST.get('time_movement'))
+#
+# 			event = Event.objects.get(pk=int(request.POST.get('event')))
+# 			sport = Sport.objects.get(pk=int(request.POST.get('sport')))
+# 			act.event = event
+# 			act.sport = sport
+#
+# 			if sport.speed_as_pace:
+# 				if request.POST.get('speed_max') != u'':
+# 					act.speed_max = str(pace_to_speed(request.POST.get('speed_max')))
+# 				if request.POST.get('speed_avg') != u'':
+# 					act.speed_avg = str(pace_to_speed(request.POST.get('speed_avg')))
+# 				if request.POST.get('speed_avg_movement') != u'':
+# 					act.speed_avg_movement = str(pace_to_speed(request.POST.get('speed_avg_movement')))
+# 			else:
+# 				if request.POST.get('speed_max') != u'':
+# 					act.speed_max = str_float_or_none(request.POST.get('speed_max'))
+# 				if request.POST.get('speed_avg') != u'':
+# 					act.speed_avg = str_float_or_none(request.POST.get('speed_avg'))
+# 				if request.POST.get('speed_avg_movement') != u'':
+# 					act.speed_avg_movement = str_float_or_none(request.POST.get('speed_avg_movement'))
+#
+# 			equipment_list = request.POST.get('equipment').split(" ")
+#
+# 			datestring = request.POST.get('date') + " " + request.POST.get('datetime')
+# 			try:
+# 				date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M")
+# 			except ValueError:
+# 				try:
+# 					date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M:%S")
+# 				except ValueError:
+# 					try:
+# 						date = datetime.datetime.strptime(datestring, "%Y-%m-%d %H:%M")
+# 					except ValueError:
+# 						if request.POST.get('is_template'):
+# 							date = None
+# 						else:
+# 							return HttpResponse(json.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
+#
+# 			act.date = date
+#
+# 			if request.POST.get('public') == '0':
+# 				act.public = False
+# 			else:
+# 				act.public = True
+#
+# 			calorie_formula_id = int(request.POST.get('calformula'))
+# 			if calorie_formula_id != -1:
+# 				act.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
+# 			else:
+# 				act.calorie_formula = None
+#
+# 			act.weather_stationname = request.POST.get('weather_stationname')
+# 			act.weather_temp = str_float_or_none(request.POST.get('weather_temp'))
+# 			act.weather_rain = str_float_or_none(request.POST.get('weather_rain'))
+# 			act.weather_hum = int_or_none(request.POST.get('weather_hum'))
+# 			act.weather_windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
+# 			act.weather_winddir = request.POST.get('weather_winddir')
+# 			if act.weather_winddir == "":
+# 				act.weather_winddir = None
+# 			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
+#
+# 		except Exception, exc:
+# 			logging.exception("Exception occured in add_activits")
+# 			return HttpResponse(json.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
+#
+# 		act.save()
+#
+# 		eq_list = [Equipment.objects.get(pk=int(eq)) for eq in equipment_list if eq]
+# 		act.equipment = eq_list
+#
+# 		act.save()
+# 		return HttpResponse(json.dumps({'success': True}))
+# 	else:
+# 		return HttpResponseBadRequest
+#
 
 def detail(request, activity_id):
 	param = request.GET.get('p', False)

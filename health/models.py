@@ -19,7 +19,7 @@ class Goal(models.Model):
 	date = models.DateField()
 	user = models.ForeignKey(User, null=True, blank=True)
 	due_date = models.DateField(verbose_name='Zieldatum')
-	target_weight = models.DecimalField(max_digits=4, decimal_places=1,verbose_name='Zielgewicht')
+	target_weight = models.DecimalField(max_digits=4, decimal_places=1, verbose_name='Zielgewicht')
 
 
 class Pulse(models.Model):

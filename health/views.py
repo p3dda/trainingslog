@@ -16,6 +16,7 @@ from health.models import Desease, Weight, Goal, Pulse
 from health.utils import parsefloat
 import health.forms
 
+
 @login_required
 def show_weight(request):
 	today = datetime.date.today()

@@ -3,7 +3,6 @@
 
 # Create your views here.
 from base64 import b64decode
-import json
 import copy
 import datetime
 import itertools
@@ -17,7 +16,7 @@ import logging
 from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
 from activities.forms import EquipmentForm
 import activities.forms
-from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
+from activities.utils import activities_summary, int_or_none, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile
 from activities.django_datatables_view.base_datatable_view import BaseDatatableView
 
@@ -269,7 +268,7 @@ def list_activities(request):
 				activity.save()
 			except Exception as msg:
 				logging.error("Exception occured in import with message %s" % msg)
-				raise
+				# raise
 				if is_saved:
 					newtrack.delete()
 				for line in traceback.format_exc().splitlines():
@@ -401,121 +400,6 @@ def delete_activity(request):
 		else:
 			return HttpResponse(json.dumps({'success': False, 'msg': "Permission denied"}))
 
-#
-# @login_required
-# def add_activity(request):
-# 	if request.method == 'POST':
-# 		logging.debug("In add_activity post request with parameters %s" % repr(request.POST.items()))
-# 		is_template = request.POST.get('is_template')
-# 		if is_template == 'true':
-# 			if 'update_id' in request.POST:
-# 				act = ActivityTemplate.objects.get(pk=int(request.POST.get('update_id')))
-# 				# If selected_by_id activityTemplate does not belong to current user, create new activityTemplate
-# 				if act.user != request.user:
-# 					act = ActivityTemplate(user=request.user)
-# 			else:
-# 				act = ActivityTemplate(user=request.user)
-# 		else:
-# 			if 'update_id' in request.POST:
-# 				act = Activity.objects.get(pk=int(request.POST.get('update_id')))
-# 				# If selected_by_id activity does not belong to current user, create new activity
-# 				if act.user != request.user:
-# 					act = Activity(user=request.user)
-# 			else:
-# 				act = Activity(user=request.user)
-#
-# 		try:
-# 			act.name = request.POST.get('name')
-# 			act.comment = request.POST.get('comment')
-# 			act.cadence_avg = int_or_none(request.POST.get('cadence_avg'))
-# 			act.cadence_max = int_or_none(request.POST.get('cadence_max'))
-# 			act.calories = int_or_none(request.POST.get('calories'))
-# 			act.distance = str_float_or_none(request.POST.get('distance'))
-#
-# 			act.elevation_gain = int_or_none(request.POST.get('elevation_gain'))
-# 			act.elevation_loss = int_or_none(request.POST.get('elevation_loss'))
-# 			act.elevation_min = int_or_none(request.POST.get('elevation_min'))
-# 			act.elevation_max = int_or_none(request.POST.get('elevation_max'))
-# 			act.hf_max = int_or_none(request.POST.get('hr_max'))
-# 			act.hf_avg = int_or_none(request.POST.get('hr_avg'))
-# 			act.time = int_or_none(request.POST.get('time'))
-# 			act.time_elapsed = int_or_none(request.POST.get('time_elapsed'))
-# 			act.time_movement = int_or_none(request.POST.get('time_movement'))
-#
-# 			event = Event.objects.get(pk=int(request.POST.get('event')))
-# 			sport = Sport.objects.get(pk=int(request.POST.get('sport')))
-# 			act.event = event
-# 			act.sport = sport
-#
-# 			if sport.speed_as_pace:
-# 				if request.POST.get('speed_max') != u'':
-# 					act.speed_max = str(pace_to_speed(request.POST.get('speed_max')))
-# 				if request.POST.get('speed_avg') != u'':
-# 					act.speed_avg = str(pace_to_speed(request.POST.get('speed_avg')))
-# 				if request.POST.get('speed_avg_movement') != u'':
-# 					act.speed_avg_movement = str(pace_to_speed(request.POST.get('speed_avg_movement')))
-# 			else:
-# 				if request.POST.get('speed_max') != u'':
-# 					act.speed_max = str_float_or_none(request.POST.get('speed_max'))
-# 				if request.POST.get('speed_avg') != u'':
-# 					act.speed_avg = str_float_or_none(request.POST.get('speed_avg'))
-# 				if request.POST.get('speed_avg_movement') != u'':
-# 					act.speed_avg_movement = str_float_or_none(request.POST.get('speed_avg_movement'))
-#
-# 			equipment_list = request.POST.get('equipment').split(" ")
-#
-# 			datestring = request.POST.get('date') + " " + request.POST.get('datetime')
-# 			try:
-# 				date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M")
-# 			except ValueError:
-# 				try:
-# 					date = datetime.datetime.strptime(datestring, "%d.%m.%Y %H:%M:%S")
-# 				except ValueError:
-# 					try:
-# 						date = datetime.datetime.strptime(datestring, "%Y-%m-%d %H:%M")
-# 					except ValueError:
-# 						if request.POST.get('is_template'):
-# 							date = None
-# 						else:
-# 							return HttpResponse(json.dumps(dict(success=False, msg="Fehler aufgetreten: Ungueltiges Datum %s" % str(datestring))))
-#
-# 			act.date = date
-#
-# 			if request.POST.get('public') == '0':
-# 				act.public = False
-# 			else:
-# 				act.public = True
-#
-# 			calorie_formula_id = int(request.POST.get('calformula'))
-# 			if calorie_formula_id != -1:
-# 				act.calorie_formula = CalorieFormula.objects.get(pk=int(request.POST.get('calformula')))
-# 			else:
-# 				act.calorie_formula = None
-#
-# 			act.weather_stationname = request.POST.get('weather_stationname')
-# 			act.weather_temp = str_float_or_none(request.POST.get('weather_temp'))
-# 			act.weather_rain = str_float_or_none(request.POST.get('weather_rain'))
-# 			act.weather_hum = int_or_none(request.POST.get('weather_hum'))
-# 			act.weather_windspeed = str_float_or_none(request.POST.get('weather_windspeed'))
-# 			act.weather_winddir = request.POST.get('weather_winddir')
-# 			if act.weather_winddir == "":
-# 				act.weather_winddir = None
-# 			logging.debug("Saving weather data as stationname: %s, temp: %s, rain: %s, hum: %s, windspeed: %s, winddir: %s" % (act.weather_stationname, act.weather_temp, act.weather_rain, act.weather_hum, act.weather_windspeed, act.weather_winddir))
-#
-# 		except Exception, exc:
-# 			logging.exception("Exception occured in add_activits")
-# 			return HttpResponse(json.dumps({'success': False, 'msg': "Fehler aufgetreten: %s" % str(exc)}))
-#
-# 		act.save()
-#
-# 		eq_list = [Equipment.objects.get(pk=int(eq)) for eq in equipment_list if eq]
-# 		act.equipment = eq_list
-#
-# 		act.save()
-# 		return HttpResponse(json.dumps({'success': True}))
-# 	else:
-# 		return HttpResponseBadRequest
-#
 
 def detail(request, activity_id):
 	param = request.GET.get('p', False)
@@ -710,10 +594,10 @@ def get_report_data(request):
 	if mode == "sports":
 		sports = Sport.objects.filter(user=request.user)
 		for sport in sports:
-			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter)
-			activities = activities.filter(date__gte=start_date, date__lte=end_date)
+			act = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter)
+			act = act.filter(date__gte=start_date, date__lte=end_date)
 
-			data[sport.name] = activities_summary(activities)
+			data[sport.name] = activities_summary(act)
 			data[sport.name]['color'] = sport.color
 
 	elif mode == "weeks":
@@ -731,16 +615,16 @@ def get_report_data(request):
 			sport_calories = copy.deepcopy(sport_data)
 			sport_count = copy.deepcopy(sport_data)
 
-			activities = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter).order_by('date')
-			if len(activities) > 0:
-				activities = activities.filter(date__gte=start_date, date__lte=end_date)
+			act = Activity.objects.filter(sport=sport, user=request.user, event__in=events_filter, sport__in=sports_filter).order_by('date')
+			if len(act) > 0:
+				act = act.filter(date__gte=start_date, date__lte=end_date)
 
 				# days ago to last monday
 				delta = datetime.timedelta(days=start_date.timetuple().tm_wday % 7)
 				week_start = timezone.make_aware(datetime.datetime(year=start_date.year, month=start_date.month, day=start_date.day) - delta, timezone.get_default_timezone())
 
 				while week_start <= end_date:
-					week_activities = activities.filter(date__gte=week_start, date__lt=(week_start + datetime.timedelta(days=7)))
+					week_activities = act.filter(date__gte=week_start, date__lt=(week_start + datetime.timedelta(days=7)))
 					summary = activities_summary(week_activities)
 					sport_time['data'].append([time.mktime(week_start.timetuple()) * 1000, summary['total_time'] / 60])
 					sport_distance['data'].append([time.mktime(week_start.timetuple()) * 1000, summary['total_distance']])
@@ -853,16 +737,17 @@ def settings(request):
 
 	return render_to_response('activities/settings.html', {'activitytemplates': activitytemplates, 'calformulas': calformulas, 'events': events, 'equipments': equipments, 'equipments_archived': equipments_archived, 'sports': sports, 'username': request.user, 'event_form': event_form, 'equipment_form': equipment_form})
 
+
 @login_required
-def generic_form(request, model, id=None):
+def generic_form(request, model, itemid=None):
 	assert model in ['equipment', 'event', 'sport', 'activity']
 	template = 'activities/includes/genericform.html'
 	redirect = '/settings'
 
 	modelclass = apps.get_model('activities', model.capitalize())
 
-	if id is not None:
-		instance = get_object_or_404(modelclass, pk=id)
+	if itemid is not None:
+		instance = get_object_or_404(modelclass, pk=itemid)
 	else:
 		instance = None
 
@@ -896,6 +781,7 @@ def generic_form(request, model, id=None):
 	else:
 		raise RuntimeError("Unsupported model")
 	return render_to_response(template, {'form': form, 'url': request.path})
+
 
 class ActivityListJson(BaseDatatableView):
 	# define column names that will be used in sorting

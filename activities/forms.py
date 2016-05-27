@@ -39,6 +39,7 @@ class EventForm(forms.ModelForm):
 		model = Event
 		fields = ('name', )
 
+
 class SportForm(forms.ModelForm):
 	class Meta:
 		def __init__(self):

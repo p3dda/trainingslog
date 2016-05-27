@@ -31,7 +31,8 @@
 {% if not public %}
 	<!-- Dropdown Structure -->
 	<ul id="dropdown1" class="dropdown-content">
-		<li><a href="/admin/password_change">Profil</a></li>
+{#		<li><a href="/admin/password_change">Profil</a></li>#}
+		<li><a href="/admin/password_change">Passwort</a></li>
 		<li class="divider"></li>
 		<li><a href="/accounts/logout">Abmelden</a></li>
 	</ul>
@@ -52,11 +53,9 @@
 				<li><a href="/health/">Gesundheit</a></li>
 				<li><a href="/settings/">Einstellungen</a></li>
 			</ul>
-			{% if username %}
 			<ul id="nav-mobile" class="right">
-				<li><a class="dropdown-button" href="#!" data-activates="dropdown1">{{ username }}<i class="material-icons right">arrow_drop_down</i></a></li>
+				<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Profil<i class="material-icons right">arrow_drop_down</i></a></li>
 			</ul>
-			{% endif %}
 		</div>
 	</nav>
 

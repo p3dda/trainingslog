@@ -7,6 +7,10 @@
  Using this hosted file will make sure we are kept up
  to date with any necessary changes -->
 <script src="https://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-omnivore/0.3.2/leaflet-omnivore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.4.2/Control.FullScreen.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
 
 <script type="text/javascript">
 	// Global variables for plot selection states
@@ -75,47 +79,45 @@
 
 {%  if gpx_url %}
 	function showMapSelection() {
-		if(layerMarkers) {
-			var size = new OpenLayers.Size(21,25);
-			var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-			var startIcon = new OpenLayers.Icon('/media/img/marker-green.png', size, offset);
-			var endIcon = new OpenLayers.Icon('/media/img/marker-red.png', size.clone(), offset.clone());
-			var startLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][1], plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][0]).transform(new OpenLayers.Projection("EPSG:4326"),detailsMap.getProjectionObject());
-			var endLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][1], plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][0]).transform(new OpenLayers.Projection("EPSG:4326"), detailsMap.getProjectionObject());
+		var startLonLat =[plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][0], plotDataRaw["pos"][plotselectionRange["edge_samples"][0]][1]];
+		var endLonLat = [plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][0], plotDataRaw["pos"][plotselectionRange["edge_samples"][1]][1]];
 
-			// Remove markers from previous selection
-			if(startMarker){
-				layerMarkers.removeMarker(startMarker);
-			}
-			if(endMarker){
-				layerMarkers.removeMarker(endMarker);
-			}
-			startMarker = new OpenLayers.Marker(startLonLat,startIcon);
-			endMarker = new OpenLayers.Marker(endLonLat,endIcon);
-			layerMarkers.addMarker(startMarker);
-			layerMarkers.addMarker(endMarker);
-		}
-		if(layerSelection) {
-			// Remove previous selection features
-			layerSelection.removeAllFeatures();
+{##}
+{#			// Remove markers from previous selection#}
+{#			if(startMarker){#}
+{#				layerMarkers.removeMarker(startMarker);#}
+{#			}#}
+{#			if(endMarker){#}
+{#				layerMarkers.removeMarker(endMarker);#}
+{#			}#}
+		var startMarker = L.marker(startLonLat, {icon: L.AwesomeMarkers.icon({icon: 'play', markerColor: 'green', prefix: 'fa'}) }).addTo(detailsMap);
+		var endMarker = L.marker(endLonLat, {icon: L.AwesomeMarkers.icon({icon: 'stop', markerColor: 'read', prefix: 'fa'}) }).addTo(detailsMap);
 
-			var selectionPoints = plotDataRaw["pos"].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]);
-			var points = [];
-			for(var i in selectionPoints){
-				if(selectionPoints.hasOwnProperty(i)){
-				var curPoint = new OpenLayers.Geometry.Point(selectionPoints[i][1], selectionPoints[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), detailsMap.getProjectionObject());
-				points.push(curPoint);
-			}}
+		layerSelection = L.layerGroup([startMarker, endMarker]);
+		L.control.layers(layerSelection).addTo(detailsMap);
 
-			var line = new OpenLayers.Geometry.LineString(points);
-			var style = {
-				strokeColor: '#0000ff',
-				strokeOpacity: 0.5,
-				strokeWidth: 10
-			};
-			var lineFeature = new OpenLayers.Feature.Vector(line, null, style);
-			layerSelection.addFeatures([lineFeature]);
-		}
+
+{#		if(layerSelection) {#}
+{#			// Remove previous selection features#}
+{#			layerSelection.removeAllFeatures();#}
+{##}
+{#			var selectionPoints = plotDataRaw["pos"].slice(plotselectionRange["edge_samples"][0], plotselectionRange["edge_samples"][1]);#}
+{#			var points = [];#}
+{#			for(var i in selectionPoints){#}
+{#				if(selectionPoints.hasOwnProperty(i)){#}
+{#				var curPoint = new OpenLayers.Geometry.Point(selectionPoints[i][1], selectionPoints[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), detailsMap.getProjectionObject());#}
+{#				points.push(curPoint);#}
+{#			}}#}
+{##}
+{#			var line = new OpenLayers.Geometry.LineString(points);#}
+{#			var style = {#}
+{#				strokeColor: '#0000ff',#}
+{#				strokeOpacity: 0.5,#}
+{#				strokeWidth: 10#}
+{#			};#}
+{#			var lineFeature = new OpenLayers.Feature.Vector(line, null, style);#}
+{#			layerSelection.addFeatures([lineFeature]);#}
+{#		}#}
 	}
 {% endif %}
 
@@ -142,15 +144,17 @@
 {%  if gpx_url %}
 	function hideMapSelection() {
 		// Remove markers from map
-		if(startMarker){
-			layerMarkers.removeMarker(startMarker);
-			startMarker = null;
-		}
-		if(endMarker){
-			layerMarkers.removeMarker(endMarker);
-			endMarker = null;
-		}
-		layerSelection.removeAllFeatures();
+		console.debug("hideMapSelection called");
+		layerSelection.clearLayers();
+		{#		if(startMarker){#}
+{#			layerMarkers.removeMarker(startMarker);#}
+{#			startMarker = null;#}
+{#		}#}
+{#		if(endMarker){#}
+{#			layerMarkers.removeMarker(endMarker);#}
+{#			endMarker = null;#}
+{#		}#}
+{#		layerSelection.removeAllFeatures();#}
 	}
 {% endif %}
 
@@ -611,9 +615,9 @@
 					var size = new OpenLayers.Size(21,25);
 					var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
 					var cursorIcon = new OpenLayers.Icon('/media/img/marker-blue.png', size, offset);
-					var cursorLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][sample][1], plotDataRaw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),detailsMap.getProjectionObject());
-					cursorMarker = new OpenLayers.Marker(cursorLonLat,cursorIcon);
-					layerCursor.addMarker(cursorMarker);
+{#					var cursorLonLat = new OpenLayers.LonLat(plotDataRaw["pos"][sample][1], plotDataRaw["pos"][sample][0]).transform(new OpenLayers.Projection("EPSG:4326"),detailsMap.getProjectionObject());#}
+{#					cursorMarker = new OpenLayers.Marker(cursorLonLat,cursorIcon);#}
+{#					layerCursor.addMarker(cursorMarker);#}
 				}
 				{% endif %} //gpx_url
 				for (graph in graphs) {
@@ -699,65 +703,37 @@
 
 	var initMap = function () {
 		console.debug("initMap");
-		detailsMap = new OpenLayers.Map ("details_map_container", {
-			controls:[
-				new OpenLayers.Control.Navigation(),
-				new OpenLayers.Control.PanZoomBar(),
-				new OpenLayers.Control.LayerSwitcher(),
-				new OpenLayers.Control.Attribution()],
-			maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-			maxResolution: 156543.0399,
-			numZoomLevels: 19,
-			units: 'm',
-			projection: new OpenLayers.Projection("EPSG:900913"),
-			displayProjection: new OpenLayers.Projection("EPSG:4326")
-		} );
-
+		detailsMap = L.map('details_map_container', {
+			fullscreenControl: true,
+			fullscreenControlOptions: {
+				position: 'topleft'
+			}
+		});
 		populateMap(detailsMap);
 	};
 
 	var populateMap = function(map) {
-		// Define the map layer
-		// Here we use a predefined layer that will be kept up to date with URL changes
-		var layerMapnik = new OpenLayers.Layer.OSM("Mapnik");
-		var layerCycleMap = new OpenLayers.Layer.OSM("OpenCycleMap",
-				  ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
-				   "http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
-				    "http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"]);
-		layerMarkers = new OpenLayers.Layer.Markers("Markers");
-		layerCursor = new OpenLayers.Layer.Markers("Cursor");
-		layerSelection = new OpenLayers.Layer.Vector("Selection");
-		map.addLayer(layerMapnik);
-		map.addLayer(layerCycleMap);
+		// create the tile layer with correct attribution
+		var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+		var osm = new L.TileLayer(osmUrl, {minZoom: 4, maxZoom: 17, attribution: osmAttrib});
+
+		osm.addTo(map);
+		var track = omnivore.gpx('{{ gpx_url }}').on('ready', function() {
+			// http://leafletjs.com/reference.html#map-fitbounds
+			map.fitBounds(track.getBounds());
+		}).addTo(map);
 
 		startMarker = null;
 		endMarker = null;
 		cursorMarker = null;
-
-		// Add the Layer with the GPX Track
-		var layerGPX = new OpenLayers.Layer.Vector("Track", {
-			protocol: new OpenLayers.Protocol.HTTP({
-				url: "{{ gpx_url }}",
-				format: new OpenLayers.Format.GPX({extractWaypoints: true, extractRoutes: true, extractAttributes:true})
-			}),
-			strategies: [ new OpenLayers.Strategy.Fixed()],
-			style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
-			projection: new OpenLayers.Projection("EPSG:4326")
-		});
-		map.addLayer(layerGPX);
-
-		map.addLayer(layerSelection);
-		map.addLayer(layerMarkers);
-		map.addLayer(layerCursor);
-
-		layerGPX.events.register('loadend', detailsMap, function(){
-			this.zoomToExtent(layerGPX.getDataExtent())
-		});
-		map.setCenter(null, null);
-
-		// show map
-		$("#details_map_container").css('visibility', 'visible');
+{##}
+{#		map.addLayer(layerSelection);#}
+{#		map.addLayer(layerMarkers);#}
+{#		map.addLayer(layerCursor);#}
+{##}
 	};
+
 	{% endif %} // gpx_url
 
 {% endif %}

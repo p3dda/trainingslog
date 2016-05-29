@@ -104,8 +104,10 @@ def add_weightgoal(request):
 				new_weightgoal.date = datetime.date.today()
 				new_weightgoal.user = request.user
 				new_weightgoal.save()
-				result = {'success': True}
-				return HttpResponseRedirect('/health')
+				return HttpResponseRedirect('/health/')
+			else:
+				result = {'success': False, 'msg': f.errors}
+				return HttpResponse(json.dumps(result))
 		else:
 			return HttpResponseBadRequest()
 	except Exception, exc:

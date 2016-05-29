@@ -108,33 +108,6 @@
         }
     }, 
     {
-        "pk": 55, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "add_lap", 
-            "name": "Can add lap", 
-            "content_type": 19
-        }
-    }, 
-    {
-        "pk": 56, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "change_lap", 
-            "name": "Can change lap", 
-            "content_type": 19
-        }
-    }, 
-    {
-        "pk": 57, 
-        "model": "auth.permission", 
-        "fields": {
-            "codename": "delete_lap", 
-            "name": "Can delete lap", 
-            "content_type": 19
-        }
-    }, 
-    {
         "pk": 31, 
         "model": "auth.permission", 
         "fields": {

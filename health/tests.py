@@ -102,21 +102,21 @@ class HealthTest(TestCase):
 		datestring = "01.01.2014"
 		weight = "71"
 
-		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertTrue(response["success"])
 
 		datestring = "01.2014"
 		weight = "71"
-		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])
 
 		datestring = "01.01.2014"
 		weight = "71c"
-		resp = self.c.post(url, data={'weight_date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])
@@ -129,21 +129,25 @@ class HealthTest(TestCase):
 
 		datestring = "01.02.2014"
 		weight = "70"
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
-		self.assertEqual(resp.status_code, 200)
-		response = json.loads(resp.content)
-		self.assertTrue(response["success"])
+		response = self.c.post(url, data={'due_date': datestring, 'target_weight': weight})
+		self.assertRedirects(response, '/health/')
 
 		datestring = "02.2014"
 		weight = "71"
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'due_date': datestring, 'target_weight': weight})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])
 
 		datestring = "01.01.2014"
 		weight = "71c"
-		resp = self.c.post(url, data={'date': datestring, 'weight': weight})
+		resp = self.c.post(url, data={'due_date': datestring, 'target_weight': weight})
+		self.assertEqual(resp.status_code, 200)
+		response = json.loads(resp.content)
+		self.assertFalse(response["success"])
+
+		datestring = "01.01.2014"
+		resp = self.c.post(url, data={'due_date': datestring})
 		self.assertEqual(resp.status_code, 200)
 		response = json.loads(resp.content)
 		self.assertFalse(response["success"])

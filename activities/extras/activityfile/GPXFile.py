@@ -26,8 +26,6 @@ class GPXFile(ActivityFile):
 		self.position_start = None
 
 		if len(self.gpxfile.tracks) == 0:
-		# 	track = self.gpxfile.tracks[0]
-		# else:
 			raise RuntimeError("No track found in gpx file")
 
 		# this is start of activity, get timestamp and all other activity related data
@@ -73,8 +71,6 @@ class GPXFile(ActivityFile):
 
 		trackpoints = []
 		if len(self.gpxfile.tracks) == 0:
-		# 	track = self.gpxfile.tracks[0]
-		# else:
 			raise RuntimeError("No track found in gpx file")
 		for track in self.gpxfile.tracks:
 			for segment in track.segments:

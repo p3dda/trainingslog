@@ -25,34 +25,35 @@ class GPXFile(ActivityFile):
 		self.time_end = None
 		self.position_start = None
 
-		if len(self.gpxfile.tracks) >= 1:
-			track = self.gpxfile.tracks[0]
-		else:
+		if len(self.gpxfile.tracks) == 0:
 			raise RuntimeError("No track found in gpx file")
 
 		# this is start of activity, get timestamp and all other activity related data
-		for segment in track.segments:
-			# start of a lap
-			lap = Lap()
-			time_bounds = segment.get_time_bounds()
-			moving_data = segment.get_moving_data(stopped_speed_threshold=0.5)
-			up_down = segment.get_uphill_downhill()
-			elev_min_max = segment.get_elevation_extremes()
+		for track in self.gpxfile.tracks:
+			for segment in track.segments:
+				# start of a lap
+				lap = Lap()
+				time_bounds = segment.get_time_bounds()
+				moving_data = segment.get_moving_data(stopped_speed_threshold=0.5)
+				up_down = segment.get_uphill_downhill()
+				elev_min_max = segment.get_elevation_extremes()
 
-			lap.date = time_bounds.start_time.replace(tzinfo=utc)
-			lap.time = int(moving_data.moving_time)
-			lap.distance = round(moving_data.moving_distance / 1000, 3)
-			lap.elevation_gain = int(up_down.uphill)
-			lap.elevation_loss = int(up_down.downhill)
-			lap.elevation_min = int(elev_min_max.minimum)
-			lap.elevation_max = int(elev_min_max.maximum)
-			lap.speed_max = moving_data.max_speed
-			if lap.time > 0:
-				lap.speed_avg = lap.distance / lap.time
-			lap.speed_avg = round(lap.speed_avg * 3.6, 1)
-			lap.speed_max = round(lap.speed_max * 3.6, 1)
-
-			self.laps.append(lap)
+				lap.date = time_bounds.start_time.replace(tzinfo=utc)
+				lap.time = int(moving_data.moving_time)
+				lap.distance = round(moving_data.moving_distance / 1000, 3)
+				lap.elevation_gain = int(up_down.uphill)
+				lap.elevation_loss = int(up_down.downhill)
+				lap.elevation_min = int(elev_min_max.minimum)
+				lap.elevation_max = int(elev_min_max.maximum)
+				if moving_data.max_speed:
+					lap.speed_max = round(moving_data.max_speed * 3.6, 1)
+				else:
+					lap.speed_max = 0.0
+				if lap.time > 0:
+					lap.speed_avg = round((lap.distance / lap.time) * 3.6, 1)
+				else:
+					lap.speed_avg = 0.0
+				self.laps.append(lap)
 
 		self.time_start = track.segments[0].points[0].time
 		self.time_end = track.segments[-1].points[-1].time
@@ -69,12 +70,11 @@ class GPXFile(ActivityFile):
 		last_distance = None
 
 		trackpoints = []
-		if len(self.gpxfile.tracks) >= 1:
-			track = self.gpxfile.tracks[0]
-		else:
+		if len(self.gpxfile.tracks) == 0:
 			raise RuntimeError("No track found in gpx file")
-		for segment in track.segments:
-			trackpoints += segment.points
+		for track in self.gpxfile.tracks:
+			for segment in track.segments:
+				trackpoints += segment.points
 
 		start_time = trackpoints[0].time
 		last_point = None

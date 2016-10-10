@@ -107,7 +107,7 @@ def time_to_seconds(t_string):
 	elif len(fields) == 2:
 		seconds = int(fields[0]) * 60 + int(fields[1])
 	else:
-		seconds = 0
+		raise ValueError
 	return seconds
 
 
@@ -119,6 +119,10 @@ def seconds_to_time(seconds, force_hour=False):
 	@type force_hour: boolean
 	@return time_string
 	"""
+	try:
+		assert isinstance(seconds, int)
+	except:
+		raise ValueError
 	hours = int(seconds / 3600)
 	minutes = int((seconds % 3600) / 60)
 	seconds = (seconds % 60)
@@ -147,4 +151,4 @@ def speed_to_pace(speed):
 	"""Converts speed (km/h) float to pace [min/km] (mm:ss)
 	"""
 	seconds = 3600 / speed
-	return seconds_to_time(seconds)
+	return seconds_to_time(int(seconds))

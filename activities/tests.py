@@ -409,9 +409,14 @@ class ActivityTest(TestCase):
 
 		self.assertEqual(activities.utils.time_to_seconds("1:30:25"), 5425)
 		self.assertEqual(activities.utils.time_to_seconds("1:30"), 90)
+		self.assertEqual(activities.utils.time_to_seconds("1:3:25"), 3805)
+		self.assertRaises(ValueError, activities.utils.time_to_seconds, "1")
+		self.assertRaises(ValueError, activities.utils.time_to_seconds, "1:2:3:4")
 
 		self.assertEqual(activities.utils.seconds_to_time(1825), "30:25")
 		self.assertEqual(activities.utils.seconds_to_time(1825, force_hour=True), "0:30:25")
+		self.assertRaises(ValueError, activities.utils.seconds_to_time, "123")
+
 
 
 class ActivityViewsTest(TestCase):

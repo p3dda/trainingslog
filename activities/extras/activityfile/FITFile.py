@@ -116,11 +116,18 @@ class FITFile(ActivityFile):
 		offset_time = 0  # used to remove track sequences from plot where no movement has occured
 		last_distance = None
 
+		is_wahoo = False
+
+		for message in self.fitfile.get_messages(name="device_info"):
+			manufacturer = message.get_value("manufacturer")
+			if manufacturer == 'wahoo_fitness':
+				is_wahoo = True
+
 		for message in self.fitfile.get_messages(name="session"):
 			start_time = message.get_value("start_time")
 			total_strides = message.get_value("total_strides")
 			if total_strides is not None:
-				total_strides *= 2 				# TODO: At least when running with FR620, check with cycling
+				total_strides *= 2  # TODO: At least when running with FR620, check with cycling
 			total_distance = message.get_value("total_distance")
 
 			if total_distance is not None and total_distance is not None and total_strides > 0:
@@ -136,7 +143,10 @@ class FITFile(ActivityFile):
 				distance *= 1000 	# convert from km -> m
 				# check if distance is less than from last trackpoint (new lap starting with distance 0 when merging fit files)
 				if (distance + offset_distance) < last_distance:
-					offset_distance = last_distance
+					if is_wahoo:
+						# skip wahoo out-of-order distance records
+						continue
+					offset_distance = last_distance - distance
 				distance += offset_distance
 
 			delta = message.get_value('timestamp') - start_time

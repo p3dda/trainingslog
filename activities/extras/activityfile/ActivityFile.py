@@ -33,7 +33,7 @@ class ActivityFileMeta(type):
 		filetype = os.path.splitext(track.trackfile.name)[1][1:].lower()
 
 		if filetype in cls.registry:
-			# # select correct subclass for switch vendor
+			# # select correct subclass for vendor
 			sw_cls = cls.registry[filetype]
 		else:
 			raise NotImplementedError('Filetype %s is not supported' % filetype)

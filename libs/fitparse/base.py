@@ -1,66 +1,70 @@
+import io
+import os
 import struct
 
+# Python 2 compat
 try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+    num_types = (int, float, long)
+    str = basestring
+except NameError:
+    num_types = (int, float)
 
-from libs.fitparse.fitparse.processors import FitFileDataProcessor
-from libs.fitparse.fitparse.profile import FIELD_TYPE_TIMESTAMP, MESSAGE_TYPES
-from libs.fitparse.fitparse.records import (
-    DataMessage, FieldData, FieldDefinition, DefinitionMessage, MessageHeader,
-    BASE_TYPES, BASE_TYPE_BYTE
+from libs.fitparse.processors import FitFileDataProcessor
+from libs.fitparse.profile import FIELD_TYPE_TIMESTAMP, MESSAGE_TYPES
+from libs.fitparse.records import (
+    DataMessage, FieldData, FieldDefinition, DevFieldDefinition, DefinitionMessage, MessageHeader,
+    BASE_TYPES, BASE_TYPE_BYTE, DevField,
+    add_dev_data_id, add_dev_field_description, get_dev_type
 )
-from libs.fitparse.fitparse.utils import calc_crc
-
-
-class FitParseError(Exception):
-    pass
-
+from libs.fitparse.utils import calc_crc, FitParseError, FitEOFError, FitCRCError, FitHeaderError
 
 class FitFile(object):
-    # TODO: unit test to make sure that all units in profile.py convert to
-    #       sane function names after applying replacements (and there are no
-    #       no regressions)
-    UNIT_NAME_TO_FUNC_REPLACEMENTS = (
-        ('/', 'per'),
-        ('%', 'percent'),
-    )
-
     def __init__(self, fileish, check_crc=True, data_processor=None):
         if hasattr(fileish, 'read'):
+            # BytesIO-like object
             self._file = fileish
-        else:
+        elif isinstance(fileish, str):
+            # Python2 - file path, file contents in the case of a TypeError
+            # Python3 - file path
             try:
                 self._file = open(fileish, 'rb')
-            except:
-                # If the header smells like a string containing a fit file's
-                # data, we wrap it with StringIO
-                if isinstance(fileish, basestring) and fileish[8:12] == '.FIT':
-                    self._file = StringIO.StringIO(fileish)
-                else:
-                    raise
+            except TypeError:
+                self._file = io.BytesIO(fileish)
+        else:
+            # Python 3 - file contents
+            self._file = io.BytesIO(fileish)
 
         self.check_crc = check_crc
-
-        self._accumulators = {}
-        self._bytes_left = -1  # Not valid until after _parse_file_header()
-        self._complete = False
-        self._compressed_ts_accumulator = 0
-        self._crc = 0
-        self._local_mesgs = {}
-        self._messages = []
         self._processor = data_processor or FitFileDataProcessor()
 
-        # Start off by parsing the file header (makes self._bytes_left valid)
+        # Get total filesize
+        self._file.seek(0, os.SEEK_END)
+        self._filesize = self._file.tell()
+        self._file.seek(0, os.SEEK_SET)
+
+        # Start off by parsing the file header (sets initial attribute values)
         self._parse_file_header()
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if hasattr(self, "_file") and self._file and hasattr(self._file, "close"):
+            self._file.close()
+            self._file = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
 
     ##########
     # Private low-level utility methods for reading of fit file
 
     def _read(self, size):
         if size <= 0:
-            return ''
+            return None
         data = self._file.read(size)
         self._crc = calc_crc(data, self._crc)
         self._bytes_left -= len(data)
@@ -69,11 +73,14 @@ class FitFile(object):
     def _read_struct(self, fmt, endian='<', data=None, always_tuple=False):
         fmt_with_endian = "%s%s" % (endian, fmt)
         size = struct.calcsize(fmt_with_endian)
+        if size <= 0:
+            raise FitParseError("Invalid struct format: %s" % fmt_with_endian)
+
         if data is None:
             data = self._read(size)
 
         if size != len(data):
-            raise FitParseError("Tried to read %d bytes from .FIT file but got %d" % (size, len(data)))
+            raise FitEOFError("Tried to read %d bytes from .FIT file but got %d" % (size, len(data)))
 
         unpacked = struct.unpack(fmt_with_endian, data)
         # Flatten tuple if it's got only one value
@@ -85,16 +92,26 @@ class FitFile(object):
 
         if (crc_actual != crc_expected) and not (allow_zero and (crc_actual == 0)):
             if self.check_crc:
-                raise FitParseError('CRC Mismatch [expected = 0x%04X, actual = 0x%04X]' % (
+                raise FitCRCError('CRC Mismatch [expected = 0x%04X, actual = 0x%04X]' % (
                     crc_expected, crc_actual))
 
     ##########
     # Private Data Parsing Methods
 
     def _parse_file_header(self):
+
+        # Initialize data
+        self._accumulators = {}
+        self._bytes_left = -1
+        self._complete = False
+        self._compressed_ts_accumulator = 0
+        self._crc = 0
+        self._local_mesgs = {}
+        self._messages = []
+
         header_data = self._read(12)
-        if header_data[8:12] != '.FIT':
-            raise FitParseError("Invalid .FIT File Header")
+        if header_data[8:12] != b'.FIT':
+            raise FitHeaderError("Invalid .FIT File Header")
 
         # Larger fields are explicitly little endian from SDK
         header_size, protocol_ver_enc, profile_ver_enc, data_size = self._read_struct('2BHI4x', data=header_data)
@@ -108,7 +125,7 @@ class FitFile(object):
         if extra_header_size > 0:
             # Make sure extra field in header is at least 2 bytes to calculate CRC
             if extra_header_size < 2:
-                raise FitParseError('Irregular File Header Size')
+                raise FitHeaderError('Irregular File Header Size')
 
             # Consume extra two bytes of header and check CRC
             self._read_and_assert_crc(allow_zero=True)
@@ -126,11 +143,14 @@ class FitFile(object):
             if not self._complete:
                 self._read_and_assert_crc()
 
-                if hasattr(self._file, 'close'):
-                    self._file.close()
+            if self._file.tell() >= self._filesize:
                 self._complete = True
+                self.close()
+                return None
 
-            return None
+            # Still have data left in the file - assuming chained fit files
+            self._parse_file_header()
+            return self._parse_message()
 
         header = self._parse_message_header()
 
@@ -138,6 +158,11 @@ class FitFile(object):
             message = self._parse_definition_message(header)
         else:
             message = self._parse_data_message(header)
+            if message.mesg_type is not None:
+                if message.mesg_type.name == 'developer_data_id':
+                    add_dev_data_id(message)
+                elif message.mesg_type.name == 'field_description':
+                    add_dev_field_description(message)
 
         self._messages.append(message)
         return message
@@ -148,12 +173,14 @@ class FitFile(object):
         if header & 0x80:  # bit 7: Is this record a compressed timestamp?
             return MessageHeader(
                 is_definition=False,
+                is_developer_data=False,
                 local_mesg_num=(header >> 5) & 0x3,  # bits 5-6
                 time_offset=header & 0x1F,  # bits 0-4
             )
         else:
             return MessageHeader(
                 is_definition=bool(header & 0x40),  # bit 6
+                is_developer_data=bool(header & 0x20), # bit 5
                 local_mesg_num=header & 0xF,  # bits 0-3
                 time_offset=None,
             )
@@ -193,12 +220,26 @@ class FitFile(object):
                 size=field_size,
             ))
 
+        dev_field_defs = []
+        if header.is_developer_data:
+            num_dev_fields = self._read_struct('B', endian=endian)
+            for n in range(num_dev_fields):
+                field_def_num, field_size, dev_data_index = self._read_struct('3B', endian=endian)
+                field = get_dev_type(dev_data_index, field_def_num)
+                dev_field_defs.append(DevFieldDefinition(
+                    field=field,
+                    dev_data_index=dev_data_index,
+                    def_num=field_def_num,
+                    size=field_size
+                  ))
+
         def_mesg = DefinitionMessage(
             header=header,
             endian=endian,
             mesg_type=mesg_type,
             mesg_num=global_mesg_num,
             field_defs=field_defs,
+            dev_field_defs=dev_field_defs,
         )
         self._local_mesgs[header.local_mesg_num] = def_mesg
         return def_mesg
@@ -206,7 +247,7 @@ class FitFile(object):
     def _parse_raw_values_from_data_message(self, def_mesg):
         # Go through mesg's field defs and read them
         raw_values = []
-        for field_def in def_mesg.field_defs:
+        for field_def in def_mesg.field_defs + def_mesg.dev_field_defs:
             base_type = field_def.base_type
             is_byte = base_type.name == 'byte'
             # Struct to read n base types (field def size / base type size)
@@ -247,10 +288,12 @@ class FitFile(object):
                             return sub_field, field
         return field, None
 
-    @staticmethod
-    def _apply_scale_offset(field, raw_value):
+    def _apply_scale_offset(self, field, raw_value):
         # Apply numeric transformations (scale+offset)
-        if isinstance(raw_value, (int, long, float)):
+        if isinstance(raw_value, tuple):
+            # Contains multiple values, apply transformations to all of them
+            return tuple(self._apply_scale_offset(field, x) for x in raw_value)
+        elif isinstance(raw_value, num_types):
             if field.scale:
                 raw_value = float(raw_value) / field.scale
             if field.offset:
@@ -279,14 +322,18 @@ class FitFile(object):
 
         # TODO: Maybe refactor this and make it simpler (or at least broken
         #       up into sub-functions)
-        for field_def, raw_value in zip(def_mesg.field_defs, raw_values):
+        for field_def, raw_value in zip(def_mesg.field_defs + def_mesg.dev_field_defs, raw_values):
             field, parent_field = field_def.field, None
             if field:
+                field, parent_field = self._resolve_subfield(field, def_mesg, raw_values)
+
+                # Resolve component fields
                 if field.components:
                     for component in field.components:
-                        # Render it's raw value
+                        # Render its raw value
                         cmp_raw_value = component.render(raw_value)
 
+                        # Apply accumulated value
                         if component.accumulate:
                             accumulator = self._accumulators[def_mesg.mesg_num]
                             cmp_raw_value = self._apply_compressed_accumulation(
@@ -300,6 +347,7 @@ class FitFile(object):
 
                         # Extract the component's dynamic field from def_mesg
                         cmp_field = def_mesg.mesg_type.fields[component.def_num]
+
                         # Resolve a possible subfield
                         cmp_field, cmp_parent_field = self._resolve_subfield(cmp_field, def_mesg, raw_values)
                         cmp_value = cmp_field.render(cmp_raw_value)
@@ -314,10 +362,6 @@ class FitFile(object):
                                 raw_value=cmp_raw_value,
                             )
                         )
-
-                else:
-                    # Component fields shouldn't also have subfields
-                    field, parent_field = self._resolve_subfield(field, def_mesg, raw_values)
 
                 # TODO: Do we care about a base_type and a resolved field mismatch?
                 # My hunch is we don't
@@ -357,59 +401,43 @@ class FitFile(object):
         # Apply data processors
         for field_data in field_datas:
             # Apply type name processor
-            type_processor = getattr(self._processor, 'process_type_%s' % field_data.type.name, None)
-            if type_processor:
-                type_processor(field_data)
-
-            # Apply field name processor
-            field_processor = getattr(self._processor, 'process_field_%s' % field_data.name, None)
-            if field_processor:
-                field_processor(field_data)
-
-            # Apply units name processor
-            if field_data.units:
-                process_func_name = 'process_units_%s' % field_data.units
-                # Do unit name replacements padded with spaces
-                for replace_from, replace_to in self.UNIT_NAME_TO_FUNC_REPLACEMENTS:
-                    process_func_name = process_func_name.replace(
-                        replace_from, ' %s ' % replace_to,
-                    )
-                # Then strip and convert spaces to underscores
-                process_func_name = process_func_name.strip().replace(' ', '_')
-                units_processor = getattr(self._processor, process_func_name, None)
-                if units_processor:
-                    units_processor(field_data)
+            self._processor.run_type_processor(field_data)
+            self._processor.run_field_processor(field_data)
+            self._processor.run_unit_processor(field_data)
 
         data_message = DataMessage(header=header, def_mesg=def_mesg, fields=field_datas)
-
-        mesg_processor = getattr(self._processor, 'process_message_%s' % def_mesg.name, None)
-        if mesg_processor:
-            mesg_processor(data_message)
+        self._processor.run_message_processor(data_message)
 
         return data_message
 
     ##########
     # Public API
 
-    def get_messages(
-        self, name=None, mesg_num=None, has_field=None,
-        with_definitions=False, as_dict=False,
-    ):
-        # TODO: Implement the query arguments, also let them be tuples, ie name=('record', 'event')
-        # TODO: maybe remove mesg_num since fields are predictably named "unknown_NN"
-
+    def get_messages(self, name=None, with_definitions=False, as_dict=False):
         if with_definitions:  # with_definitions implies as_dict=False
             as_dict = False
 
+        if name is not None:
+            if isinstance(name, (tuple, list)):
+                names = name
+            else:
+                names = [name]
+
+            # Convert any string numbers in names to ints
+            # TODO: Revisit Python2/3 str/bytes typecheck issues
+            names = set([
+                int(n) if (isinstance(n, str) and n.isdigit()) else n
+                for n in names
+            ])
+
         def should_yield(message):
             if with_definitions or message.type == 'data':
-                # If both args are None, then we return all
-                if (name is None) and (mesg_num is None):
+                # name arg is None we return all
+                if name is None:
                     return True
-                if (name is not None) and name in (message.name, message.mesg_num):
-                    return True
-                if (mesg_num is not None) and mesg_num == message.mesg_num:
-                    return True
+                else:
+                    if (message.name in names) or (message.mesg_num in names):
+                        return True
             return False
 
         # Yield all parsed messages first
@@ -431,14 +459,6 @@ class FitFile(object):
     def parse(self):
         while self._parse_message():
             pass
-
-    def possible_field_names(self, name):
-        # XXX unused, only use me if fitdump/csv requires it
-        field_names = set()
-        for message in self.get_messages(name):
-            for record in message:
-                field_names.add(record.name)
-        return sorted(field_names)
 
     def __iter__(self):
         return self.get_messages()

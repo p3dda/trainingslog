@@ -2,8 +2,7 @@ import logging
 from django.utils.timezone import utc
 
 from activities.models import Lap
-from libs.fitparse import fitparse
-
+from libs import fitparse
 
 from ActivityFile import ActivityFile
 

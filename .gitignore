@@ -13,3 +13,4 @@ media/uploads
 .vagrant
 .coverage
 .DS_Store
+.venv

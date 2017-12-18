@@ -402,36 +402,31 @@ class ActivityTest(TestCase):
 
 		laps = Lap.objects.filter(activity=act)
 		self.assertEqual(len(laps), 2)
-		# self.assertEqual(act.distance, Decimal('60.768'))
-		# self.assertEqual(act.time, 7600)
-		# self.assertEqual(act.time_elapsed, 9940)
-		#
-		# act_track = ActivityFile.ActivityFile(act.track)
-		# self.assertEqual(len(act_track.track_data["hf"]), 7532)
-		# self.assertEqual(len(act_track.track_data["cad"]), 7433)
-		# self.assertEqual(len(act_track.track_data["power"]), 7533)
-		# self.assertEqual(len(act_track.track_by_distance), 7448)
-		# self.assertLess(max(act_track.track_by_distance.keys()), act.distance * 1000)
-		#
-		# self.assertEqual(act.elevation_min, 38)
-		# self.assertEqual(act.elevation_max, 261)
-		# self.assertEqual(act.cadence_avg, 72)
-		# self.assertEqual(act.cadence_max, 130)
-		#
-		# url = "/activities/1/"
-		# response = self.client.get(url)
-		# self.assertEqual(response.status_code, 200)
-		#
-		# url = "/activities/1/?p=plots"
-		# response = self.client.get(url)
-		# self.assertEqual(response.status_code, 200)
-		# jsondata = json.loads(response.content)
-		#
-		# self.assertIsInstance(jsondata, dict)
-		# ddata = jsondata["details_data"]
-		# self.assertIsInstance(ddata, dict)
-		# self.assertEqual(ddata["training_stress_score"], 115.3)
-		# self.assertEqual(ddata["normalized_power"], 216)
+
+	def test_zwift_bike(self):
+		"""
+		Tests wahoo fit file parsing
+		"""
+		url = "/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'zwift_bike.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+		act = Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		laps = Lap.objects.filter(activity=act)
+		self.assertEqual(len(laps), 1)
+
+		self.assertEqual(act.distance, Decimal('25.964'))
+		self.assertEqual(act.speed_avg, Decimal('30.9'))
+		act_track = ActivityFile.ActivityFile(act.track)
+		self.assertEqual(len(act_track.track_data["hf"]), 3023)
+		self.assertEqual(len(act_track.track_data["cad"]), 3023)
+		self.assertEqual(len(act_track.track_data["power"]), 3023)
+		self.assertEqual(len(act_track.track_by_distance), 3021)
+		self.assertLess(max(act_track.track_by_distance.keys()), act.distance * 1000)
 
 	def test_vivofit_upload(self):
 		"""

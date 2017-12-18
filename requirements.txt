@@ -1,3 +1,4 @@
 Django>=1.7,<1.7.99
 python-dateutil
 wsgiref
+fitparse>=1.0.1

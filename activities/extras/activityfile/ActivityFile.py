@@ -13,8 +13,8 @@ from django.core.files.base import File
 from django.conf import settings as django_settings
 from django.utils.timezone import utc
 
-import libs.gpxpy.gpxpy
-import libs.gpxpy.gpxpy.gpx
+import gpxpy
+import gpxpy.gpx
 from activities.models import Activity, Event, Sport, Lap
 
 

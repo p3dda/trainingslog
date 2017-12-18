@@ -1,7 +1,7 @@
 import shutil
+import gpxpy
 from django.utils.timezone import utc
 
-from libs.gpxpy import gpxpy
 from activities.models import Lap
 from ActivityFile import ActivityFile
 

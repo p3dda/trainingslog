@@ -405,7 +405,7 @@ class ActivityTest(TestCase):
 
 	def test_zwift_bike(self):
 		"""
-		Tests wahoo fit file parsing
+		Tests zwift fit file parsing
 		"""
 		url = "/activities/"
 		self.client.login(username='test1', password='test1')
@@ -430,6 +430,24 @@ class ActivityTest(TestCase):
 
 	def test_vivofit_upload(self):
 		"""
+		Tests AppleWatch tcx file upload and parsing
+		"""
+		url = "/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'vivofit.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+		act = Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		laps = Lap.objects.filter(activity=act)
+		self.assertEqual(len(laps), 1)
+
+		act_track = ActivityFile.ActivityFile(act.track)
+
+	def test_apple_watch(self):
+		"""
 		Tests tcx file upload and parsing without gps
 		"""
 		url = "/activities/"
@@ -439,14 +457,16 @@ class ActivityTest(TestCase):
 		resp = self.client.get(url, {"id": 1})
 		self.assertEqual(resp.status_code, 200)
 
-		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'vivofit.fit'), 'r')
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'AppleWatch_indoor.fit'), 'r')
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 
 		act = Activity.objects.get(pk=1)
 		self.assertEqual(act.time_elapsed, 4090)
-
-		act.delete()
+		self.assertEqual(act.calories, 73)
+		self.assertEqual(act.hf_max, 102)
+		self.assertEqual(act.time, 1106)
+		self.assertEqual(act.time_elapsed, 1106)
 
 	def test_gpx(self):
 		"""

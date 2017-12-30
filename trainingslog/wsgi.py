@@ -22,6 +22,9 @@ sys.path.append(PROJECT_ROOT)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "trainingslog.settings")
 
+activate_env = os.path.join(PROJECT_ROOT, '.venv/bin/activate_this.py')
+execfile(activate_env, dict(__file__=activate_env))
+
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.

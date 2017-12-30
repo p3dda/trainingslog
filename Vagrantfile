@@ -75,7 +75,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install --yes puppet puppet-common libssl1.0.0 openssl
+    apt-get install --yes puppet puppet-common libssl1.0.0 openssl python-pip
   SHELL
 
   config.vm.provision "puppet" do |puppet|
@@ -84,6 +84,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     puppet.manifest_file  = "default.pp"
   end
 
+  config.vm.provision "shell", inline: <<-SHELL
+    pip install -r /vagrant/requirements.txt
+  SHELL
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
   # path, and data_bags path (all relative to this Vagrantfile), and adding
   # some recipes and/or roles.

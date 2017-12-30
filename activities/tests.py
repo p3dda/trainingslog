@@ -444,30 +444,6 @@ class ActivityTest(TestCase):
 		laps = Lap.objects.filter(activity=act)
 		self.assertEqual(len(laps), 1)
 
-		act_track = ActivityFile.ActivityFile(act.track)
-
-	#def test_apple_watch(self):
-	#	"""
-	#	Tests tcx file upload and parsing without gps
-	#	"""
-	#	url = "/activities/"
-	#
-	#	self.client.login(username='test1', password='test1')
-	#
-	#	resp = self.client.get(url, {"id": 1})
-	#	self.assertEqual(resp.status_code, 200)
-	#
-	#	testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'AppleWatch_indoor.fit'), 'r')
-	#	response = self.client.post(url, {'trackfile': testfile})
-	#	self.assertEqual(response.status_code, 302)
-	#
-	#	act = Activity.objects.get(pk=1)
-	#	self.assertEqual(act.time_elapsed, 4090)
-	#	self.assertEqual(act.calories, 73)
-	#	self.assertEqual(act.hf_max, 102)
-	#	self.assertEqual(act.time, 1106)
-	#	self.assertEqual(act.time_elapsed, 1106)
-
 	def test_gpx(self):
 		"""
 		Tests gpx file import and parsing with gps

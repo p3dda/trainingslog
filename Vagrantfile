@@ -73,7 +73,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # # }
   #
 
-  config.vm.provision "shell", inline: "apt-get update && apt-get install --yes puppet"
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install --yes puppet puppet-common libssl1.0.0 openssl
+  SHELL
 
   config.vm.provision "puppet" do |puppet|
     puppet.manifests_path = "puppet/manifests"

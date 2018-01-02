@@ -71,10 +71,10 @@ class ActivityFile(ActivityFileMetaclass):
 		try:
 			with open(self.track.trackfile.path + ".gpx", 'w') as gpx_file:
 				logging.debug("Opened gpx file %s for write" % self.track.trackfile.path + ".gpx")
-				gpx = libs.gpxpy.gpxpy.gpx.GPX()
-				gpx_track = libs.gpxpy.gpxpy.gpx.GPXTrack()
+				gpx = gpxpy.gpx.GPX()
+				gpx_track = gpxpy.gpx.GPXTrack()
 				gpx.tracks.append(gpx_track)
-				gpx_segment = libs.gpxpy.gpxpy.gpx.GPXTrackSegment()
+				gpx_segment = gpxpy.gpx.GPXTrackSegment()
 				gpx_track.segments.append(gpx_segment)
 
 				for p in self.get_pos():
@@ -84,12 +84,12 @@ class ActivityFile(ActivityFileMetaclass):
 						continue
 					else:
 						gps_fixes += 1
-					gpx_segment.points.append(libs.gpxpy.gpxpy.gpx.GPXTrackPoint(lat, lon))
+					gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(lat, lon))
 
 				gpx_file.write(gpx.to_xml())
 
 		except Exception, msg:
-			logging.debug("Exception occured in convert: %s" % msg)
+			logging.error("Exception occured in convert: %s" % msg)
 
 	def set_weather(self):
 		try:

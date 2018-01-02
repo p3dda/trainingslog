@@ -150,6 +150,7 @@ class ActivityTest(TestCase):
 
 		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+		self.assertGreater(os.stat(act.track.trackfile.path + ".gpx").st_size, 0)
 
 		self.assertEqual(act.time_elapsed, 7723)
 		self.assertEqual(act.time, 4857)
@@ -203,6 +204,7 @@ class ActivityTest(TestCase):
 		self.assertEqual(response.status_code, 302)
 		act = Activity.objects.get(pk=1)
 		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+		self.assertGreater(os.stat(act.track.trackfile.path + ".gpx").st_size, 0)
 
 		laps = Lap.objects.filter(activity=act)
 		self.assertEqual(len(laps), 5)

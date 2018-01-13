@@ -452,7 +452,6 @@ class ActivityTest(TestCase):
 
 		act.delete()
 
-
 	def test_vivofit_upload(self):
 		"""
 		Tests AppleWatch tcx file upload and parsing

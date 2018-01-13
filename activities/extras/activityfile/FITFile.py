@@ -102,7 +102,6 @@ class FITFile(ActivityFile):
 				except Exception as msg:
 					logging.error("Failed to parse lap message with error: %s" % msg)
 
-
 	def parse_trackpoints(self):
 		detail_entry_list = ["avg_stance_time", "avg_vertical_oscillation", "total_training_effect", "normalized_power", "training_stress_score", "left_right_balance"]
 		alt_data = []

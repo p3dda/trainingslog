@@ -42,62 +42,66 @@ class FITFile(ActivityFile):
 			if message.name == "record":
 				lap_altitude.append(message.get_value('altitude'))
 			elif message.name == "lap":
-				lap = Lap()
-				lap.date = message.get_value("start_time").replace(tzinfo=utc)
-				lap.time = message.get_value("total_timer_time")
-				lap.distance = message.get_value("total_distance")
-				if lap.distance is None:
-					lap.distance = 0
-				else:
-					lap.distance /= 1000
-				lap.elevation_gain = message.get_value("total_ascent")
-				lap.elevation_loss = message.get_value("total_descent")
-				if lap.elevation_gain is None:
-					lap.elevation_gain = 0
-				if lap.elevation_loss is None:
-					lap.elevation_loss = 0
-
-				lap.cadence_avg = message.get_value("avg_cadence")
-				lap.cadence_max = message.get_value("max_cadence")
-				if message.get_value("sport") == 'running':
-					if lap.cadence_avg is not None:
-						lap.cadence_avg *= 2
-					if lap.cadence_max is not None:
-						lap.cadence_max *= 2
-
-				lap.calories = message.get_value("total_calories")
-				lap.hf_avg = message.get_value("avg_heart_rate")
-				lap.hf_max = message.get_value("max_heart_rate")
-
-				if len(lap_altitude) > 0:
-					lap.elevation_max = max(lap_altitude)
-					lap.elevation_min = min(lap_altitude)
-				lap_altitude = []
-
-				max_speed = message.get("max_speed")
-				if max_speed and max_speed.value:
-					if max_speed.units == "m/s":
-						lap.speed_max = (max_speed.value * 3600.0) / 1000
-					elif max_speed.units == "km/h":
-						lap.speed_max = max_speed.value
+				try:
+					lap = Lap()
+					lap.date = message.get_value("start_time").replace(tzinfo=utc)
+					lap.time = message.get_value("total_timer_time")
+					lap.distance = message.get_value("total_distance")
+					if lap.distance is None:
+						lap.distance = 0
 					else:
-						raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
-				else:
-					lap.speed_max = 0
+						lap.distance /= 1000
+					lap.elevation_gain = message.get_value("total_ascent")
+					lap.elevation_loss = message.get_value("total_descent")
+					if lap.elevation_gain is None:
+						lap.elevation_gain = 0
+					if lap.elevation_loss is None:
+						lap.elevation_loss = 0
 
-				avg_speed = message.get("avg_speed")
-				if avg_speed and avg_speed.value:
-					if avg_speed:
-						if avg_speed.units == "m/s":
-							lap.speed_avg = (avg_speed.value * 3600.0) / 1000
+					lap.cadence_avg = message.get_value("avg_cadence")
+					lap.cadence_max = message.get_value("max_cadence")
+					if message.get_value("sport") == 'running':
+						if lap.cadence_avg is not None:
+							lap.cadence_avg *= 2
+						if lap.cadence_max is not None:
+							lap.cadence_max *= 2
+
+					lap.calories = message.get_value("total_calories")
+					lap.hf_avg = message.get_value("avg_heart_rate")
+					lap.hf_max = message.get_value("max_heart_rate")
+
+					if len(lap_altitude) > 0:
+						lap.elevation_max = max(lap_altitude)
+						lap.elevation_min = min(lap_altitude)
+					lap_altitude = []
+
+					max_speed = message.get("max_speed")
+					if max_speed and max_speed.value:
+						if max_speed.units == "m/s":
+							lap.speed_max = (max_speed.value * 3600.0) / 1000
 						elif max_speed.units == "km/h":
-							lap.speed_avg = avg_speed.value
+							lap.speed_max = max_speed.value
 						else:
 							raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
-				else:
-					lap.speed_avg = 0
+					else:
+						lap.speed_max = 0
 
-				self.laps.append(lap)
+					avg_speed = message.get("avg_speed")
+					if avg_speed and avg_speed.value:
+						if avg_speed:
+							if avg_speed.units == "m/s":
+								lap.speed_avg = (avg_speed.value * 3600.0) / 1000
+							elif max_speed.units == "km/h":
+								lap.speed_avg = avg_speed.value
+							else:
+								raise RuntimeError("Unknown speed unit: %s" % max_speed.units)
+					else:
+						lap.speed_avg = 0
+
+					self.laps.append(lap)
+				except Exception as msg:
+					logging.error("Failed to parse lap message with error: %s" % msg)
+
 
 	def parse_trackpoints(self):
 		detail_entry_list = ["avg_stance_time", "avg_vertical_oscillation", "total_training_effect", "normalized_power", "training_stress_score", "left_right_balance"]

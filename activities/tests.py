@@ -430,6 +430,29 @@ class ActivityTest(TestCase):
 		self.assertEqual(len(act_track.track_by_distance), 3021)
 		self.assertLess(max(act_track.track_by_distance.keys()), act.distance * 1000)
 
+	def test_zwift_bike_invaliddate(self):
+		"""
+		Tests zwift fit file parsing
+		"""
+		url = "/activities/"
+		self.client.login(username='test1', password='test1')
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'zwift_bike_invalid_date.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+		act = Activity.objects.get(pk=1)
+		self.assertTrue(os.path.isfile(act.track.trackfile.path + ".gpx"))
+
+		laps = Lap.objects.filter(activity=act)
+		self.assertEqual(len(laps), 39)
+
+		self.assertEqual(act.distance, Decimal('38.927'))
+		self.assertEqual(act.speed_avg, Decimal('26.8'))
+		act_track = ActivityFile.ActivityFile(act.track)
+
+		act.delete()
+
+
 	def test_vivofit_upload(self):
 		"""
 		Tests AppleWatch tcx file upload and parsing

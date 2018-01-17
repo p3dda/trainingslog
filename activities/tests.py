@@ -4,14 +4,19 @@ when you run "manage.py test".
 
 Replace this with more appropriate tests for your application.
 """
+import ddt
 import json
+import mock
 import os
+
 from decimal import Decimal
-from activities.models import Activity, CalorieFormula, Lap
+from activities.models import Activity, CalorieFormula, Lap, Track
 import activities.utils
-from activities.extras.activityfile import ActivityFile
+from activities.extras.activityfile import ActivityFile, FITFile, GPXFile, TCXFile
 import django.test.client
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
+from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from django.conf import settings as django_settings
 from django.core.urlresolvers import reverse
@@ -454,7 +459,7 @@ class ActivityTest(TestCase):
 
 	def test_vivofit_upload(self):
 		"""
-		Tests AppleWatch tcx file upload and parsing
+		Tests vivofit .fit file upload and parsing
 		"""
 		url = "/activities/"
 		self.client.login(username='test1', password='test1')
@@ -519,6 +524,34 @@ class ActivityTest(TestCase):
 
 		self.assertEqual(activities.utils.seconds_to_time(1825), "30:25")
 		self.assertEqual(activities.utils.seconds_to_time(1825, force_hour=True), "0:30:25")
+
+
+@ddt.ddt
+class ActivityParserTest(TestCase):
+	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json']
+
+	def setUp(self):
+		self.user1 = User.objects.get(username__exact='test1')
+		self.factory = RequestFactory()
+
+	@ddt.data(
+		# "bike_powermeter.fit",
+		# "wahoo_elemnt_bike.fit",
+		# "AppleWatch_indoor.fit",
+		"AppleWatch_outdoor_run.fit"
+	)
+	def test_valid_fit(self, testfile):
+
+		req = self.factory.post('dummy')
+		req.user = self.user1
+
+		newtrack = Track(trackfile=SimpleUploadedFile(name='test_upload.fit', content=open("examples/%s" % testfile, 'rb').read()))
+		newtrack.save()
+		actfile = ActivityFile.ActivityFile(newtrack, req)
+		actfile.import_activity()
+		self.assertIsInstance(actfile, ActivityFile.ActivityFile)
+
+		activity = actfile.get_activity()
 
 
 class ActivityViewsTest(TestCase):

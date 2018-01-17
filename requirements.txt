@@ -3,3 +3,5 @@ python-dateutil
 wsgiref
 fitparse>=1.0.1
 gpxpy>=0.9.8
+ddt
+mock

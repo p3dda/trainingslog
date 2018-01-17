@@ -31,6 +31,8 @@ class FITFile(ActivityFile):
 		self.time_end = None
 		self.position_start = None
 
+		logging.debug("Parsing file %s" % self.track.trackfile.path)
+
 		for message in self.fitfile.get_messages(name="session"):
 			if message.get_value("start_position_lat") is not None and message.get_value("start_position_long") is not None:
 				self.position_start = (message.get_value("start_position_lat"), message.get_value("start_position_long"))
@@ -101,7 +103,7 @@ class FITFile(ActivityFile):
 
 					self.laps.append(lap)
 				except Exception as msg:
-					logging.error("Failed to parse lap message with error: %s" % msg)
+					logging.warning("Failed to parse lap %s message in file %s with error: %s" % (len(self.laps) + 1, self.track.trackfile.path, msg))
 
 	def parse_trackpoints(self):
 		detail_entry_list = ["avg_stance_time", "avg_vertical_oscillation", "total_training_effect", "normalized_power", "training_stress_score", "left_right_balance"]

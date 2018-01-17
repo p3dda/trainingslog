@@ -257,6 +257,7 @@ def list_activities(request):
 			try:
 				newtrack = Track(trackfile=request.FILES['trackfile'])
 				newtrack.save()
+				logging.debug("Uploaded activity file to %s" % newtrack.trackfile.path)
 				filename, fileextension = os.path.splitext(newtrack.trackfile.path)
 				newtrack.filetype = fileextension.lower()[1:]
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
@@ -304,7 +305,7 @@ def list_activities(request):
 
 				newtrack.trackfile.save(filename, File(open(tmpfilename, 'r')))
 				is_saved = True
-				logging.debug("Filename: %s" % filename)
+				logging.debug("Uploaded activity file with garmin communicator plugin to %s" % newtrack.trackfile.path)
 
 				activityfile = ActivityFile.ActivityFile(newtrack, request)
 				activityfile.import_activity()

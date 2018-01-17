@@ -91,7 +91,7 @@ class FITFile(ActivityFile):
 						if avg_speed:
 							if avg_speed.units == "m/s":
 								lap.speed_avg = (avg_speed.value * 3600.0) / 1000
-							elif max_speed.units == "km/h":
+							elif avg_speed.units == "km/h":
 								lap.speed_avg = avg_speed.value
 							else:
 								raise RuntimeError("Unknown speed unit: %s" % max_speed.units)

@@ -535,8 +535,8 @@ class ActivityParserTest(TestCase):
 		self.factory = RequestFactory()
 
 	@ddt.data(
-		# "bike_powermeter.fit",
-		# "wahoo_elemnt_bike.fit",
+		"bike_powermeter.fit",
+		"wahoo_elemnt_bike.fit",
 		# "AppleWatch_indoor.fit",
 		"AppleWatch_outdoor_run.fit"
 	)

@@ -36,6 +36,7 @@ class FITFile(ActivityFile):
 				self.position_start = (message.get_value("start_position_lat"), message.get_value("start_position_long"))
 			self.time_start = message.get_value("start_time")
 			self.time_end = message.get_value("timestamp")
+			self.date = message.get_value("start_time").replace(tzinfo=utc)
 
 		lap_altitude = []
 		for message in self.fitfile.get_messages():

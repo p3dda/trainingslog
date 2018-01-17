@@ -176,7 +176,6 @@ class ActivityFile(ActivityFileMetaclass):
 		# fetch details data from file
 		self.parse_file()
 		self.calc_totals()
-
 		if self.position_start is not None:
 			self.set_weather()
 
@@ -291,10 +290,15 @@ class ActivityFile(ActivityFileMetaclass):
 		self.activity.elevation_gain = elev_gain
 		self.activity.elevation_loss = elev_loss
 		self.activity.time = time_sum
-		self.activity.date = self.laps[0].date
+
+		if self.date:
+			self.activity.date = self.date
+		else:
+			if len(self.laps) > 0:
+				self.activity.date = self.laps[0].date
 		self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
 
-		if self.time_start and self.time_end:  # FIXME: This is not set in fit activities
+		if self.time_start and self.time_end:
 			logging.debug("First and last trackpoint timestamps in track are %s and %s" % (self.time_start, self.time_end))
 			self.activity.time_elapsed = (self.time_end - self.time_start).days * 86400 + (self.time_end - self.time_start).seconds
 

@@ -534,6 +534,10 @@ class ActivityParserTest(TestCase):
 		self.user1 = User.objects.get(username__exact='test1')
 		self.factory = RequestFactory()
 
+	def tearDown(self):
+		act = Activity.objects.last()
+		act.delete()
+
 	@ddt.data(
 		"bike_powermeter.fit",
 		"wahoo_elemnt_bike.fit",

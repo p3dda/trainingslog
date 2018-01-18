@@ -536,7 +536,8 @@ class ActivityParserTest(TestCase):
 
 	def tearDown(self):
 		act = Activity.objects.last()
-		act.delete()
+		if act is not None:
+			act.delete()
 
 	@ddt.data(
 		"bike_powermeter.fit",

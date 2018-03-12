@@ -173,6 +173,8 @@ class TCXFile(ActivityFile):
 				if xmltp.find(self.TCX_NS + "Time") is not None:
 					self.time_end = dateutil.parser.parse(xmltp.find(self.TCX_NS + "Time").text)
 
+			speed_max = str(min(float(speed_max), 999.9))
+
 			lap = Lap(
 				date=lap_date,
 				time=time,

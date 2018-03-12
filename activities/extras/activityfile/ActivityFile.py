@@ -296,7 +296,11 @@ class ActivityFile(ActivityFileMetaclass):
 		else:
 			if len(self.laps) > 0:
 				self.activity.date = self.laps[0].date
-		self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
+
+		if self.activity.time > 0:
+			self.activity.speed_avg = str(round(float(self.activity.distance) * 3600 / self.activity.time, 1))
+		else:
+			self.activity.speed_avg = "0.0"
 
 		if self.time_start and self.time_end:
 			logging.debug("First and last trackpoint timestamps in track are %s and %s" % (self.time_start, self.time_end))

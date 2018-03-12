@@ -6,7 +6,6 @@ Replace this with more appropriate tests for your application.
 """
 import ddt
 import json
-import mock
 import os
 
 from decimal import Decimal
@@ -529,6 +528,7 @@ class ActivityTest(TestCase):
 @ddt.ddt
 class ActivityParserTest(TestCase):
 	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json']
+	valid_files = os.listdir('examples')
 
 	def setUp(self):
 		self.user1 = User.objects.get(username__exact='test1')
@@ -539,18 +539,13 @@ class ActivityParserTest(TestCase):
 		if act is not None:
 			act.delete()
 
-	@ddt.data(
-		"bike_powermeter.fit",
-		"wahoo_elemnt_bike.fit",
-		# "AppleWatch_indoor.fit",
-		"AppleWatch_outdoor_run.fit"
-	)
-	def test_valid_fit(self, testfile):
-
+	@ddt.idata(valid_files)
+	def test_valid(self, testfile):
+		print("Testing file %s" % testfile)
 		req = self.factory.post('dummy')
 		req.user = self.user1
 
-		newtrack = Track(trackfile=SimpleUploadedFile(name='test_upload.fit', content=open("examples/%s" % testfile, 'rb').read()))
+		newtrack = Track(trackfile=SimpleUploadedFile(name=testfile, content=open("examples/%s" % testfile, 'rb').read()))
 		newtrack.save()
 		actfile = ActivityFile.ActivityFile(newtrack, req)
 		actfile.import_activity()

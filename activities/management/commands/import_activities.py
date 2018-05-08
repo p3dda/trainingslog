@@ -17,7 +17,10 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **options):
 		for user in User.objects.all():
-			logging.debug("Call sync handlers for user %s" % user.username)
+			try:
+				logging.debug("Call sync handlers for user %s" % user.username)
 
-			plugin = activities.extras.syncplugins.imap.IMAPSync(user)
-			plugin.run()
+				plugin = activities.extras.syncplugins.imap.IMAPSync(user)
+				plugin.run()
+			except Exception as msg:
+				logging.error("Import failed for user %s with message %s" % (user.username, msg))

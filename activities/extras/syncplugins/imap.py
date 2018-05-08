@@ -27,6 +27,8 @@ class IMAPSyncException(Exception):
 	pass
 
 
+PARAMS_REQUIRED = 'sync_imap_host', 'sync_imap_user', 'sync_imap_password'
+
 class IMAPSync(object):
 	def __init__(self, user):
 		"""
@@ -55,13 +57,25 @@ class IMAPSync(object):
 		# profile = self.user.profile
 		if 'sync_imap_enable' in self.user.params and self.user.params['sync_imap_enable']:
 			logging.debug("IMAP sync is enabled for user %s" % self.user.username)
+			missing_param = False
+			for param in PARAMS_REQUIRED:
+				if param not in self.user.params:
+					logging.warning("Missing parameter in userprofile: %s", param)
+					missing_param = True
 
-			self.imapclient = imaplib.IMAP4(self.user.params['sync_imap_host'])
+			if missing_param:
+				return
+
+			self.imapclient = imaplib.IMAP4_SSL(self.user.params['sync_imap_host'])
 			result = self.imapclient.login(self.user.params['sync_imap_user'], self.cipher.decrypt(self.user.params['sync_imap_password']))
 			if result[0] != 'OK':
 				raise IMAPSyncException('IMAP login failed: %s' % result)
 
-			result = self.imapclient.select(self.user.params['sync_imap_mailbox'])
+			if 'sync_imap_mailbox' in self.user.params:
+				mailbox = self.user.params['sync_imap_mailbox']
+			else:
+				mailbox = 'INBOX'
+			result = self.imapclient.select(mailbox)
 			if result[0] != 'OK':
 				raise IMAPSyncException('IMAP failed to select mailbox %s: %s' % (self.user.params['sync_imap_mailbox'], result))
 

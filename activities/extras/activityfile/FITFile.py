@@ -11,8 +11,8 @@ from ActivityFile import ActivityFile
 class FITFile(ActivityFile):
 	filetypes = ["fit"]
 
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
+	def __init__(self, track, request=None, user=None, activityname="Import"):
+		ActivityFile.__init__(self, track, request, user, activityname)
 		# logging.debug("Trackfile %r closed" % tcxfile.trackfile)
 
 		self.fitfile = fitparse.FitFile(

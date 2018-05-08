@@ -41,8 +41,8 @@ class TCXFile(ActivityFile):
 	xmlactextns = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
 	xml_instance = "{http://www.w3.org/2001/XMLSchema-instance}"
 
-	def __init__(self, track, request=None):
-		ActivityFile.__init__(self, track, request)
+	def __init__(self, track, request=None, user=None, activityname="Import"):
+		ActivityFile.__init__(self, track, request, user, activityname)
 		track.trackfile.open()
 		self.xmltree = ElementTree(file=track.trackfile)
 		track.trackfile.close()

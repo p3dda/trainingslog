@@ -46,7 +46,7 @@ ActivityFileMetaclass = ActivityFileMeta('ActivityFileMetaclass', (object, ), {}
 class ActivityFile(ActivityFileMetaclass):
 	filetypes = None
 
-	def __init__(self, track, request=None):
+	def __init__(self, track, request=None, user=None, activityname="Import"):
 		self.track = track
 		self.request = request
 		self.activity = None
@@ -58,6 +58,15 @@ class ActivityFile(ActivityFileMetaclass):
 		self.position_start = None
 		self.time_start = None
 		self.time_end = None
+
+		if request is not None:
+			self.user = request.user
+		elif user is not None:
+			self.user = user
+		else:
+			logging.error("Neither request.user nor user is set for ActivityFile import")
+			raise Exception("Missing user for ActivityFile import")
+		self.name = activityname
 
 	def get_activity(self):
 		return self.activity
@@ -156,8 +165,8 @@ class ActivityFile(ActivityFileMetaclass):
 	def import_activity(self):
 		# create new activity from file
 		# Event/sport is only dummy for now, make selection after import
-		events = Event.objects.filter(user=self.request.user)  # FIXME: there must always be a event and sport definied
-		sports = Sport.objects.filter(user=self.request.user)
+		events = Event.objects.filter(user=self.user)  # FIXME: there must always be a event and sport definied
+		sports = Sport.objects.filter(user=self.user)
 
 		if events is None or len(events) == 0:
 			raise RuntimeError("There must be a event type defined. Please define one first.")
@@ -167,8 +176,8 @@ class ActivityFile(ActivityFileMetaclass):
 		event = events[0]
 		sport = sports[0]
 
-		self.activity = Activity(name="Garmin Import")
-		self.activity.user = self.request.user
+		self.activity = Activity(name=self.name)
+		self.activity.user = self.user
 		self.activity.event = event
 		self.activity.sport = sport
 		self.activity.track = self.track

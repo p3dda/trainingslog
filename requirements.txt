@@ -6,3 +6,4 @@ gpxpy>=0.9.8
 ddt
 mock
 jsonfield
+pycrypto

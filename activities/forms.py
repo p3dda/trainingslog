@@ -24,7 +24,7 @@ class UserProfileForm(forms.Form):
 
 		super(UserProfileForm, self).__init__(*args, **kw)
 
-		for (param, formtype) in self.PARAMS:
+		for (param, formtype, required) in self.PARAMS:
 			self.fields[param] = formtype
 			if param in self.user.params:
 				# if param in ['sync.imap.enable', 'sync.garminconnect.enable']:

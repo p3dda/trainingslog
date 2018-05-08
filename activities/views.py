@@ -855,7 +855,7 @@ def user_profile(request):
 	else:
 		form = UserProfileForm(request.user)
 	print repr(form)
-	return render(request, 'activities/user_profile.html', {'form': form})
+	return render_to_response('activities/user_profile.html', {'form': form})
 
 
 class ActivityListJson(BaseDatatableView):

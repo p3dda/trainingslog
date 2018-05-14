@@ -1,26 +1,576 @@
 [
-    {
-        "pk": 1, 
-        "model": "activities.calorieformula", 
-        "fields": {
-            "public": true, 
-            "user": null, 
-            "weight_time_factor": 6.359999999999999, 
-            "name": "Aerobic", 
-            "weight_dist_factor": 0.0
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "activities.calorieformula", 
-        "fields": {
-            "public": true, 
-            "user": null, 
-            "weight_time_factor": 6.0, 
-            "name": "Badminton", 
-            "weight_dist_factor": 0.0
-        }
-    }, 
+  {
+    "pk": 1,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.359999999999999,
+      "name": "Aerobic",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 2,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.0,
+      "name": "Badminton",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 3,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.5,
+      "name": "Basketball",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 4,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.0,
+      "name": "Bergwandern mit Gepaeck",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 5,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.26,
+      "name": "Bergsteigen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 6,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 2.5799999999999996,
+      "name": "Billard",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 7,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 11.04,
+      "name": "Fitnesstraining",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 8,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.919999999999999,
+      "name": "Fussball",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 9,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 5.159999999999999,
+      "name": "Golf ohne Caddy",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 10,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.199999999999999,
+      "name": "Inline-Skating",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 11,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.16,
+      "name": "Jogging (7 min/km)",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 12,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 12.48,
+      "name": "Jogging (5min / km)",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 13,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 17.34,
+      "name": "Jogging (3,5min / km)",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 14,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.199999999999999,
+      "name": "Kanu fahren",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 15,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.64,
+      "name": "Mountainbiking",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 16,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.0,
+      "name": "Rad fahren 15km/h",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 17,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 10.2,
+      "name": "Rad fahren 25km/h",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 18,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.219999999999999,
+      "name": "Reiten, Galopp",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 19,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.64,
+      "name": "Rudern",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 20,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.68,
+      "name": "Schwimmen, langsam",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 21,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 9.36,
+      "name": "Schwimmen, zuegig",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 22,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.0,
+      "name": "Segeln",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 23,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.16,
+      "name": "Skilanglauf, langsam",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 24,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 9.36,
+      "name": "Skilanglauf, z?gig",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 25,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 8.16,
+      "name": "Snowboarding",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 26,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 12.12,
+      "name": "Squash",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 27,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 4.08,
+      "name": "Tanzen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 28,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 7.319999999999999,
+      "name": "Tanzen, klassisch",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 29,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.6,
+      "name": "Tennis",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 30,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 4.14,
+      "name": "Tischtennis",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 31,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.48,
+      "name": "Volleyball",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 32,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.6,
+      "name": "Walking",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 33,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 5.159999999999999,
+      "name": "Windsurfen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 34,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 1.5,
+      "name": "Auto fahren",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 35,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 1.9799999999999998,
+      "name": "Buegeln",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 36,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 1.2,
+      "name": "Fernsehen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 37,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 5.04,
+      "name": "Gartenarbeit",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 38,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.42,
+      "name": "Gartenarbeit, leichte",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 39,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.0,
+      "name": "Heimwerken",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 40,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 9.299999999999999,
+      "name": "Holz hacken",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 41,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 2.4,
+      "name": "Klavierspielen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 42,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 2.28,
+      "name": "Kochen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 43,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 0.72,
+      "name": "Liegen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 44,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.9,
+      "name": "Putzen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 45,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 4.8,
+      "name": "Sex aktiv",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 46,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 2.16,
+      "name": "Sex passiv",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 47,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 1.26,
+      "name": "Sitzen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 48,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 3.5999999999999996,
+      "name": "Spazieren gehen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 49,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 1.5,
+      "name": "Stehen",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 50,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.119999999999999,
+      "name": "Tragen, mittleres Gewicht",
+      "weight_dist_factor": 0.0
+    }
+  },
+  {
+    "pk": 51,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 6.8999999999999995,
+      "name": "Treppen steigen",
+      "weight_dist_factor": 0.0
+    }
+  },
+   {
+    "pk": 52,
+    "model": "activities.calorieformula",
+    "fields": {
+      "public": true,
+      "user": null,
+      "weight_time_factor": 0.0,
+      "name": "Laufen",
+      "weight_dist_factor": 1.036
+    }
+  },
     {
         "pk": 2, 
         "model": "activities.equipment", 

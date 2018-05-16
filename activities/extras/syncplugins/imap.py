@@ -17,7 +17,7 @@ from django.conf import settings as django_settings
 from django.core.files.base import File
 import django.core.mail
 
-from activities.models import Track
+from activities.models import Track, TrackAlreadyExists
 from activities.extras.activityfile import ActivityFile
 
 import libs.crypto.cipher
@@ -84,14 +84,11 @@ class IMAPSync(object):
 			for num in data[0].split():
 				_, mail_raw = self.imapclient.fetch(num, '(RFC822)')
 				mail = email.message_from_string(mail_raw[0][1])
-				(result, num_act, num_files) = self.process_email(mail)
-				if result:
-					logging.debug("EMail imported successfully, imported %s/%s activities. Mark as deleted" % (num_act, num_files))
-					self.imapclient.store(num, '+FLAGS', '\\Deleted')
+				stats = self.process_email(mail)
+				logging.debug("EMail imported successfully, imported %s/%s activities. Mark as deleted" % (stats["num_success"], stats["num_total"]))
+				self.imapclient.store(num, '+FLAGS', '\\Deleted')
 
-					self.send_import_confirm("IMAP Sync", ['pedda@p3dda.net'], num_act, num_files)
-				else:
-					self.send_import_fail("IMAP Sync", ['pedda@p3dda.net'], num_act, num_files)
+				self.send_import_confirm("IMAP Sync", ['pedda@p3dda.net'], stats)
 
 			self.imapclient.expunge()
 		else:
@@ -106,8 +103,7 @@ class IMAPSync(object):
 		@return: Tuple: (success, num) Boolean success flag and number of imported activities
 		"""
 		email_success = False
-		num_act = 0
-		num_files = 0
+		stats = {'num_duplicate': 0, 'num_total': 0, 'num_success': 0, 'num_fail': 0}
 		logging.debug("Parsing email: From: %s, Subject: %s, Date: %s" % (mail["From"], mail["Subject"], mail["Date"]))
 		if not mail.is_multipart():
 			logging.debug("Mail has no attachment, skip")
@@ -118,24 +114,30 @@ class IMAPSync(object):
 			ctype = part.get_content_type()
 			filename = part.get_filename()
 			if ctype == 'application/octet-stream' and filename:
-				num_files += 1
-				logging.debug("Found .fit attachment with filename %s" % filename)
+				stats['num_total'] += 1
+				logging.debug("Found attachment with filename %s" % filename)
 				# Call file import
 				if not mail["Subject"]:
 					name = 'IMAP Import'
 				else:
 					name = self._decode_header(mail["Subject"]) + " " + filename
 
-				tmpfile = os.path.join(tmpdirname, part.get_filename())
-				with open(tmpfile, 'wb') as f:
-					f.write(part.get_payload(decode=True))
+				try:
+					tmpfile = os.path.join(tmpdirname, part.get_filename())
+					with open(tmpfile, 'wb') as f:
+						f.write(part.get_payload(decode=True))
 
-				result = self.import_file(tmpfile, name)
-				if result:
-					num_act += 1
+					result = self.import_file(tmpfile, name)
+					if result:
+						stats['num_success'] += 1
+					else:
+						stats['num_fail'] += 1
+				except TrackAlreadyExists:
+					stats['num_fail'] += 1
+					stats['num_duplicate'] += 1
 		shutil.rmtree(tmpdirname)
 
-		return (num_files==num_act, num_act, num_files)
+		return stats
 
 	def import_file(self, actfile, name):
 		is_saved = False
@@ -158,7 +160,7 @@ class IMAPSync(object):
 
 		return True
 
-	def send_import_confirm(self, title, to, num_activities, num_files):
+	def send_import_confirm(self, title, to, stats):
 		subject = "Trainingslog %s" % title
 		if 'sync_imap_mailbox' not in self.user.params:
 			mailbox = 'INBOX'
@@ -169,29 +171,10 @@ Trainingslog Activity Import
 
 User %(user)s
 Processed email for IMAP Account %(email)s@%(host)s/%(maildir)s
-Successfully imported %(num_activities)s/%(num_files)s Activities
+Successfully imported %(num_success)s/%(num_total)s Activities; %(num_duplicate)s already existing
 """\
 		% {
 			'user': self.user.username, 'email': self.user.params['sync_imap_user'], 'host': self.user.params['sync_imap_host'],
-			'maildir': mailbox, 'num_activities': num_activities, 'num_files': num_files
-		}
-		django.core.mail.send_mail(subject, body, django_settings.EMAIL_FROM, to)
-
-	def send_import_fail(self, title, to, num_activities, num_files):
-		subject = "Trainingslog %s" % title
-		if 'sync_imap_mailbox' not in self.user.params:
-			mailbox = 'INBOX'
-		else:
-			mailbox = self.user.params['sync_imap_mailbox']
-		body = """
-Trainingslog Activity Import failed
-
-User %(user)s
-Processed email for IMAP Account %(email)s@%(host)s/%(maildir)s
-Partially imported %(num_activities)s/%(num_files)s Activities
-"""\
-		% {
-			'user': self.user.username, 'email': self.user.params['sync_imap_user'], 'host': self.user.params['sync_imap_host'],
-			'maildir': mailbox, 'num_activities': num_activities, 'num_files': num_files
+			'maildir': mailbox, 'num_success': stats['num_success'], 'num_fail': stats['num_fail'], 'num_total': stats['num_total'], 'num_duplicate': stats['num_duplicate']
 		}
 		django.core.mail.send_mail(subject, body, django_settings.EMAIL_FROM, to)

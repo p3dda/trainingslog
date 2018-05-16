@@ -1,4 +1,5 @@
 import jsonfield
+import hashlib
 import os
 
 from django.db import models
@@ -6,6 +7,10 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 import django.core.exceptions
+
+
+class TrackAlreadyExists(Exception):
+	pass
 
 
 class Parameters(models.Model):
@@ -239,6 +244,18 @@ class Track(models.Model):
 	trackfile = models.FileField(upload_to='uploads/tracks/%Y/%m/%d')
 	preview_img = models.FileField(upload_to='uploads/previews/%Y/%m/%d', null=True)
 	filetype = models.CharField(max_length=10, null=True)  # FIXME: Need database update procedure; set default "tcx"
+	file_sha1 = models.CharField(max_length=40, null=True)
+
+	def generate_sha1(self):
+		sha = hashlib.sha1()
+		self.trackfile.seek(0)
+		while True:
+			buf = self.trackfile.read(104857600)
+			if not buf:
+				break
+			sha.update(buf)
+		sha1 = sha.hexdigest()
+		return sha1
 
 	def delete(self, *args, **kwargs):
 		files = []
@@ -258,6 +275,15 @@ class Track(models.Model):
 
 		models.Model.delete(self, *args, **kwargs)
 
+	def save(self, *args, **kwargs):
+		if not self.id:
+			self.file_sha1 = self.generate_sha1()
+
+			match_qs = Track.objects.filter(file_sha1=self.file_sha1)
+			if match_qs.count() > 0:
+				raise TrackAlreadyExists("Track with sha1 %s checksum already exists: %s" % (self.file_sha1, self.trackfile.name))
+
+		models.Model.save(self, *args, **kwargs)
 
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)

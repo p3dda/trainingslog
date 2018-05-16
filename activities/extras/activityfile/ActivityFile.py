@@ -61,11 +61,8 @@ class ActivityFile(ActivityFileMetaclass):
 
 		if request is not None:
 			self.user = request.user
-		elif user is not None:
-			self.user = user
 		else:
-			logging.error("Neither request.user nor user is set for ActivityFile import")
-			raise Exception("Missing user for ActivityFile import")
+			self.user = user
 		self.name = activityname
 
 	def get_activity(self):
@@ -165,6 +162,10 @@ class ActivityFile(ActivityFileMetaclass):
 	def import_activity(self):
 		# create new activity from file
 		# Event/sport is only dummy for now, make selection after import
+		if not self.user:
+			logging.error("Neither request.user nor user is set for ActivityFile import")
+			raise Exception("Missing user for ActivityFile import")
+
 		events = Event.objects.filter(user=self.user)  # FIXME: there must always be a event and sport definied
 		sports = Sport.objects.filter(user=self.user)
 

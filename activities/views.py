@@ -14,7 +14,7 @@ import time
 import traceback
 import logging
 
-from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap
+from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap, TrackAlreadyExists#
 from activities.forms import EquipmentForm, UserProfileForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile
@@ -266,9 +266,11 @@ def list_activities(request):
 				activityfile.import_activity()
 				activity = activityfile.get_activity()
 				activity.save()
+			except TrackAlreadyExists as msg:
+				logging.warning("TrackAlreadyExists exception occured with message %s" % msg)
+				return HttpResponseBadRequest(msg)
 			except Exception as msg:
 				logging.error("Exception occured in import with message %s" % msg)
-				raise
 				if is_saved:
 					newtrack.delete()
 				for line in traceback.format_exc().splitlines():

@@ -610,6 +610,37 @@ class ActivityParserTest(TestCase):
 
 		activity = actfile.get_activity()
 
+	def test_duplicates(self):
+		"""
+		Tests duplicate activity creation
+		"""
+		req = self.factory.post('dummy')
+		req.user = self.user1
+
+		newtrack = Track(trackfile=SimpleUploadedFile(name='zwift_bike.fit1', content=open("examples/zwift_bike.fit", 'rb').read()))
+		newtrack.save()
+		newtrack2 = Track(trackfile=SimpleUploadedFile(name='zwift_bike.fit2', content=open("examples/zwift_bike.fit", 'rb').read()))
+		self.assertRaises(activities.models.TrackAlreadyExists, newtrack2.save)
+
+	def test_duplicate_uploads(self):
+		"""
+		Tests duplicate file upload
+		"""
+		url = "/activities/"
+
+		self.client.login(username='test1', password='test1')
+
+		resp = self.client.get(url, {"id": 1})
+		self.assertEqual(resp.status_code, 200)
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike_nogps.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 302)
+
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', 'bike_nogps.fit'), 'r')
+		response = self.client.post(url, {'trackfile': testfile})
+		self.assertEqual(response.status_code, 400)
+
 
 class ActivityViewsTest(TestCase):
 	fixtures = ['activities_testdata.json', 'activities_tests_authdata.json', 'activities_tests_actdata']

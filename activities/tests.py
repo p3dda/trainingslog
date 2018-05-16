@@ -314,7 +314,7 @@ class ActivityTest(TestCase):
 		url = "/activities/"
 		self.client.login(username='test1', password='test1')
 
-		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', '16MileLongRun.FIT'), 'r')
+		testfile = open(os.path.join(django_settings.PROJECT_ROOT, 'examples', '16MileLongRun.fit'), 'r')
 		response = self.client.post(url, {'trackfile': testfile})
 		self.assertEqual(response.status_code, 302)
 		act = Activity.objects.get(pk=1)

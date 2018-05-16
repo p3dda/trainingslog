@@ -23,11 +23,12 @@ from activities.extras.activityfile import ActivityFile
 import libs.crypto.cipher
 
 
+PARAMS_REQUIRED = 'sync_imap_host', 'sync_imap_user', 'sync_imap_password'
+
+
 class IMAPSyncException(Exception):
 	pass
 
-
-PARAMS_REQUIRED = 'sync_imap_host', 'sync_imap_user', 'sync_imap_password'
 
 class IMAPSync(object):
 	def __init__(self, user):
@@ -48,7 +49,7 @@ class IMAPSync(object):
 		"""
 		dh = email.header.decode_header(header)
 		default_charset = 'ASCII'
-		return ' '.join([ unicode(t[0], t[1] or default_charset) for t in dh ])
+		return ' '.join([unicode(t[0], t[1] or default_charset) for t in dh])
 
 	def run(self):
 		"""

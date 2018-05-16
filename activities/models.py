@@ -285,6 +285,7 @@ class Track(models.Model):
 
 		models.Model.save(self, *args, **kwargs)
 
+
 class ActivityBaseClass(models.Model):
 	name = models.CharField(max_length=200)
 	comment = models.TextField(blank=True)

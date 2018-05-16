@@ -14,7 +14,7 @@ import time
 import traceback
 import logging
 
-from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap, TrackAlreadyExists#
+from activities.models import Activity, ActivityTemplate, CalorieFormula, Equipment, Event, Sport, Track, Lap, TrackAlreadyExists
 from activities.forms import EquipmentForm, UserProfileForm
 from activities.utils import activities_summary, int_or_none, str_float_or_none, pace_to_speed, speed_to_pace, seconds_to_time
 from activities.extras.activityfile import ActivityFile

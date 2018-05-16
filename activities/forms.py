@@ -5,6 +5,7 @@ from activities.models import Activity, Equipment, Event
 import libs.crypto.cipher
 import django.core.exceptions
 
+
 class UserProfileForm(forms.Form):
 	PARAMS = [
 		('sync_imap_enable', forms.BooleanField(required=False), False),
@@ -35,7 +36,6 @@ class UserProfileForm(forms.Form):
 					value = self.user.params[param]
 				self.fields[param].initial = value
 
-
 	def save(self, *args, **kw):
 		for param in self.changed_data:
 			value = self.cleaned_data.get(param)
@@ -56,10 +56,9 @@ class UserProfileForm(forms.Form):
 					pass
 
 		for field in ['sync_imap_enable', 'sync_garminconnect_enable']:
-			if cleaned_data[field] != True:
+			if cleaned_data[field] is not True:
 				cleaned_data[field] = False
 		return cleaned_data
-
 
 
 class ActivityForm(forms.ModelForm):
